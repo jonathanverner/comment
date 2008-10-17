@@ -14,23 +14,34 @@
  *CHANGES:
  ***************************************************************/
 #include <QtGui/QWidget>
+#include <QtCore/QPoint>
+#include <QtCore/QString>
+#include <poppler-qt4.h>
+
 
 class QLineEdit;
 class QAction;
 class QToolBar;
 class QGraphicsView;
 class QGraphicsScene;
-class Poppler::Document;
+class QMouseEvent;
+class testView;
+class QRegExpValidator;
+
+
 
 
 class mainWindow : public QWidget { 
+  Q_OBJECT
 	private:
 		QLineEdit *pageNums;
+		QRegExpValidator *val;
 		QAction *nextAct, *prevAct;
 		QToolBar *toolBar;
-		QGraphicsView *pageView;
+		testView *pageView;
 		QGraphicsScene *scene;
 		QWidget *editor;
+
 
 		void createToolBar();
 		void createActions();
@@ -38,9 +49,19 @@ class mainWindow : public QWidget {
 		void assemble();
 
 		Poppler::Document *pdf;
+		int num_of_pages;
 	public:
-		mainWindow(Poppler::Document *pdf);
-	
+		mainWindow();
+		bool loadFile( QString fileName );
+
+	protected slots:
+		void mouseNearBorder(const QPoint &pos);
+		void showPageNum( int pageNum );
+
+	signals:
+		void quit();
+
+	protected:
 };
 
 #endif /* _mainWindow_H */

@@ -15,16 +15,22 @@
  ***************************************************************/
 
 #include <QtGui/QGraphicsView>
+#include <QtCore/QPoint>
 
 class QGraphicsScene;
-class QWidget;
+class QMouseEvent;
 
 class testView : public QGraphicsView { 
   Q_OBJECT
 	private:
 		qreal zoom;
+		int currentPage;
 	public:
-		testView( QGraphicsScene *scene, QWidget *parent = 0 ) : QGraphicsView(scene, parent), zoom(1) {};
+		testView( QGraphicsScene *scene, QWidget *parent = 0 ) : QGraphicsView(scene, parent), zoom(1), currentPage(1) { setDragMode( QGraphicsView::ScrollHandDrag ); };
+		int getCurrentPage();
+	signals:
+		void mouseNearBorder( const QPoint &pos );
+		void onPage( int num );
 	public slots:
 	  void zoomIN();
 	  void zoomOUT();
@@ -32,6 +38,12 @@ class testView : public QGraphicsView {
 	  void down();
 	  void left();
 	  void right();
+	  void nextPage();
+	  void prevPage();
+	  void gotoPage( int num );
+
+	protected:
+	  virtual void mouseMoveEvent( QMouseEvent *e );
 };
 
 

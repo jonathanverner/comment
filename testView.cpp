@@ -10,8 +10,19 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
- 
+#include <QtCore/QDebug>
+#include <QtGui/QMouseEvent>
+#include "pageBeginItem.h"
 #include "testView.h"
+
+
+void testView::mouseMoveEvent( QMouseEvent *e ) { 
+  if ( e->pos().y() < 30 || e->pos().y() > (height()-30) || 
+       e->pos().x() < 30 || e->pos().x() > (width()-30) ) {
+    emit mouseNearBorder( e->globalPos() );
+  }
+  QGraphicsView::mouseMoveEvent( e );
+}
 
 void testView::zoomIN() {
   scale ( 1.5, 1.5 );
@@ -19,6 +30,40 @@ void testView::zoomIN() {
 
 void testView::zoomOUT() {
   scale( 0.7, 0.7 ); 
+}
+
+int testView::getCurrentPage() { 
+  pageBeginItem *pg;
+  foreach( QGraphicsItem *i, items() ) { 
+    if ( pg = dynamic_cast<pageBeginItem *>(i) ) { 
+      currentPage = pg->getPageNum();
+      return currentPage;
+    }
+  }
+  return currentPage;
+}
+
+void testView::gotoPage( int num ) { 
+  pageBeginItem *pg;
+  foreach( QGraphicsItem *i, items() ) { 
+    if ( pg = dynamic_cast<pageBeginItem *>(i) ) { 
+      if  ( pg->getPageNum() == num ) { 
+	currentPage = num;
+	centerOn( i );
+	emit onPage( num );
+	return;
+      }
+    }
+  }
+  return;
+}
+
+void testView::nextPage() { 
+  gotoPage( currentPage + 1 );
+}
+
+void testView::prevPage() { 
+  gotoPage( currentPage - 1 );
 }
 
 void testView::up() {
