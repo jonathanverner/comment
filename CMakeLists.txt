@@ -25,12 +25,13 @@ SET(ANNOT_SRC
   abstractPageItem.cpp
   myToolTip.cpp
   mainWindow.cpp
+  testView.cpp
+  pageBeginItem.cpp
 )
 
 SET(TEST_SRC
   testPoppler.cpp
   testPdfPageItem.cpp
-  testView.cpp
   testMainWindow.cpp
 )
 
@@ -82,10 +83,13 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Windows")
 #)
 
 
+ADD_EXECUTABLE(comment comment.cpp ${ANNOT_SRC})
+TARGET_LINK_LIBRARIES(comment ${LINK_LIBS})
+
 ADD_EXECUTABLE(testPoppler ${ANNOT_SRC} testPoppler.cpp)
 TARGET_LINK_LIBRARIES(testPoppler ${LINK_LIBS})
 
-ADD_EXECUTABLE(testPdfPageItem ${ANNOT_SRC} testPdfPageItem.cpp testView.cpp)
+ADD_EXECUTABLE(testPdfPageItem ${ANNOT_SRC} testPdfPageItem.cpp)
 TARGET_LINK_LIBRARIES(testPdfPageItem ${LINK_LIBS})
 
 
