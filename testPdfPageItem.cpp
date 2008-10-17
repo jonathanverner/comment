@@ -77,19 +77,29 @@ int main(int argc, char **argv) {
 
   Poppler::Page *page = pdf->page( pgNum );
   QGraphicsScene scene;
-  pdfPageItem pdfPage( page );
+//  pdfPageItem pdfPage( page );
   commentItem comment(100,100);
   testView view( &scene );
   QPixmap comment_icon, hover;
   comment_icon.load("comment.png");
   hover.load("hover.png");
+  pdfPageItem *pageItem;
+  qreal y=0;
 
+  for(int i = 0; i < pdf->numPages(); i++ ) {
+    pageItem = new pdfPageItem( pdf->page( i ) );
+    pageItem->setPos(10,y);
+    y+=pageItem->boundingRect().height()+10;
+    scene.addItem( pageItem );
+  };
 
-  scene.addItem( &pdfPage );
+//  scene.addItem( &pdfPage );
   scene.addItem( &comment );
+  scene.setBackgroundBrush(Qt::gray);
   comment.setZValue( 1 );
   comment.setIcon( comment_icon );
   comment.setText(" Toto je testovaci comment " );
+//  view.ignore_item_interaction( &pdfPage );
 //  comment.setToolTip( hover );
 //  scene.setSceneRect(0,0,600,800);
 //  testPageView view( &scene, page, 0 );
