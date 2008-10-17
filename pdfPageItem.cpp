@@ -20,12 +20,12 @@
 
 #include "pdfPageItem.h"
 
-pdfPageItem::pdfPageItem( Poppler::Page *page ) : pdfPage(page) {
-}
-
 pdfPageItem::~pdfPageItem() {
   delete pdfPage;
 }
+
+pdfPageItem::pdfPageItem( Poppler::Page *page ) : pdfPage( page ) {
+};
 
 QRectF pdfPageItem::boundingRect() const { 
   QSizeF sz = pdfPage->pageSizeF();
@@ -40,5 +40,3 @@ void pdfPageItem::paint( QPainter *painter, const QStyleOptionGraphicsItem *opti
   QImage image = pdfPage->renderToImage( 72*zoom, 72*zoom, (int) (x*zoom), (int) (y*zoom), (int) (w*zoom), (int) (h*zoom) );
   painter->drawImage( exposed, image );
 }
-
-

@@ -25,11 +25,15 @@ class QWidget;
 class pdfPageItem : public QGraphicsItem { 
 	private:
 		Poppler::Page *pdfPage;
+		int pageNum;
 	public:
 		pdfPageItem( Poppler::Page *page );
 		~pdfPageItem();
 		QRectF boundingRect() const;
+		void setPageNum( int pgNum ) {pageNum = pgNum;}
+		int getPageNum() const { return pageNum;};
 		void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
+
 };
 
 #endif // PDFPAGEITEM_H
