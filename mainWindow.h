@@ -19,28 +19,23 @@
 #include <poppler-qt4.h>
 
 
-class QLineEdit;
-class QAction;
-class QToolBar;
-class QGraphicsView;
-class QGraphicsScene;
-class QMouseEvent;
+class toolBox;
 class testView;
-class QRegExpValidator;
+class pdfScene;
+class textTool;
+class pageNumberEdit;
 
-
-
+class QStackedWidget;
 
 class mainWindow : public QWidget { 
   Q_OBJECT
 	private:
-		QLineEdit *pageNums;
-		QRegExpValidator *val;
-		QAction *nextAct, *prevAct;
-		QToolBar *toolBar;
+	  	pageNumberEdit *numberEdit;
+		toolBox *toolBar;
 		testView *pageView;
-		QGraphicsScene *scene;
-		QWidget *editor;
+		pdfScene *scene;
+		QStackedWidget *editor;
+		textTool *textAnnotTool;
 
 
 		void createToolBar();
@@ -48,15 +43,13 @@ class mainWindow : public QWidget {
 		void createOther();
 		void assemble();
 
-		Poppler::Document *pdf;
-		int num_of_pages;
 	public:
 		mainWindow();
 		bool loadFile( QString fileName );
 
 	protected slots:
 		void mouseNearBorder(const QPoint &pos);
-		void showPageNum( int pageNum );
+//		void updatePageNumber( int pgNum );
 
 	signals:
 		void quit();
