@@ -17,16 +17,25 @@
 
 #include <QtGui/QGraphicsScene>
 #include <QtCore/QString>
+#include <QtCore/QVector>
 #include <QtCore/QList>
 
 class abstractTool;
-class PoDoFo::PdfDocument;
-class Poppler::Document;
+class abstractAnnotation;
 
-class pdfScene : public QGraphicsScene { 
+namespace PoDoFo { 
+  class PdfDocument;
+}
+
+namespace Poppler {
+  class Document;
+}
+
+class pdfScene : public QGraphicsScene {
 	private:
 		QSet<abstractTool *> tools;
-		QVector<QPoint> pageCorners;
+		QVector< QList<abstractAnnotation *> > annotations;
+		QVector<QPointF> pageCorners;
 		qreal pageSkip; // amount of space to be left between the pages of the pdf
 		qreal leftSkip; // the left margin
 		QString myFileName;
@@ -36,24 +45,26 @@ class pdfScene : public QGraphicsScene {
 		Poppler::Document *pdf;
 
 		void processPage( PoDoFo::PdfDocument *pdf, int pgNum );
-		void loadPopplerPdf( QString fileName );
+		void loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, const char *slot );
 		void mergeAnnotationsFromPage( PoDoFo::PdfDocument *pdf, int pgNum );
 		void generateTempFileName();
-		void updateAnnotationPositions();
+		void addAnnotations();
 
 	public:
 		pdfScene();
-		pdfScene( const QList<abstractTool *> &tools, QString fileName );
+		pdfScene( const QSet<abstractTool *> &tools, QString fileName = "");
 
 		void registerTool( abstractTool *tool );
 
-		bool loadFromFile( QString fileName );
+		bool loadFromFile( QString fileName, QObject *pageInViewReceiver = NULL, const char *slot = NULL);
 		bool saveToFile( QString fileName );
 		bool save();
 
+		int getNumPages() { return numPages; };
+
 		/* Always retuns a valid page number in [0,numPages) */
-		int posToPage( const QPoint &scenePos ); 
-		QPoint topLeftPage( int page );
+		int posToPage( const QPointF &scenePos ); 
+		QPointF topLeftPage( int page );
 };
 		
 
