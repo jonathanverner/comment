@@ -30,25 +30,37 @@ class QGraphicsSceneMouseEvent;
 class QGraphicsSceneHoverEvent;
 class toolBox;
 
+namespace PoDoFo { 
+  class PdfAnnotation;
+  class PdfDocument;
+}
+
 class abstractTool : public QObject { 
+	private:
+		QString toolName;
+
 	protected:
 		QStackedWidget *editArea;
 		toolBox *toolBar;
-		QGraphicsScene *scene;
+		pdfScene *scene;
 		QWidget *editor;
 		abstractAnnotation *currentEditItem;
 		QString author;
 
+
+		void setToolName( QString ToolName ) { toolName = ToolName; };
+
 	public:
 		 abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea  ): editArea(EditArea), scene(Scene), toolBar(ToolBar), currentEditItem( NULL ) {} ;
-		 ~abstractTool();
 
 		 QString getAuthor() const { return author; };
 		 void setAuthor( QString Author ) { author = Author; };
 
-		 /* Returns true, if the annotation was recognized (and added to the scene)
-		  * otherwise returns false */
-		 virtual bool processAnnotation( PoDoFo::PdfAnnotation *annotation, int page ) = 0;
+		 QString getToolName() { return toolName; };
+
+		 /* Returns a pointer to a newly created annotation, if the annotation was recognized,
+		  * otherwise returns NULL */
+		 virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation ) = 0;
 
 		 /* Called when the user wants to add a new annotation at scenePos 
 		  * (scene coordinates) */
@@ -73,7 +85,6 @@ class abstractAnnotation : public QGraphicsItem {
 		QDate date;
 		QTime time;
 
-		int page;
 
 		abstractTool *myTool;
 
@@ -92,11 +103,10 @@ class abstractAnnotation : public QGraphicsItem {
 
 
 	public:
-		static bool isA( PoDoFo::PdfAnnotation *annotation ) { return false;};
-		friend bool abstractTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, int page );
+		static bool isA( PoDoFo::PdfAnnotation *annotation ) { return false; };
  
 	public:
-		abstractAnnotation( abstractTool *tool, int page = 0, PoDoFo::PdfAnnotation *annotation = NULL );
+		abstractAnnotation( abstractTool *tool );
 
 
 		void setAuthor( QString a ) { author = a; };
@@ -105,11 +115,6 @@ class abstractAnnotation : public QGraphicsItem {
 		QString getAuthor() { return author; };
 		QDate getDate() { return date; };
 		QTime getTime() { return time; };
-		int getPage() { return page; };
-		/* Warning, does not update the position
-		 * of the annotation on the scene !!!
-		 * might be fixed in the future, thought */
-		void setPage( int pg ) { page = pg; };
 
 		virtual QRectF boundingRect() const;
 		virtual void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );

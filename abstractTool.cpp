@@ -14,6 +14,8 @@
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsSceneMouseEvent>
 #include <QtGui/QGraphicsSceneHoverEvent>
+#include <QtGui/QPainter>
+#include <QtGui/QStyleOptionGraphicsItem>
 
 #include <QtCore/QDebug>
 
@@ -31,8 +33,9 @@
 }
 
 
-abstractAnnotation::abstractAnnotation( abstractTool *tool, int pg, PoDoFo::PdfAnnotation *annotation ):
-	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ) page( pg ) {
+abstractAnnotation::abstractAnnotation( abstractTool *tool ):
+	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() )
+{
 }
 
 void abstractAnnotation::setMyToolTip(const QPixmap &pixMap) {
@@ -95,19 +98,18 @@ void abstractAnnotation::hoverLeaveEvent( QGraphicsSceneHoverEvent *event ) {
   showingToolTip = false;
 }
 
-void abstractAnnotation::setIcon(QPixmap &icn) {
+void abstractAnnotation::setIcon(const QPixmap &icn) {
   if ( ! ( icn.rect() == icon.rect() ) ) prepareGeometryChange();
   icon = icn;
   update( icon.rect() );
 }
 
-QRectF abstractItem::boundingRect() const {
+QRectF abstractAnnotation::boundingRect() const {
   return (QRectF) icon.rect();
 }
 
-void abstractItem::paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget ) {
+void abstractAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget ) {
   painter->drawPixmap( option->exposedRect, icon, option->exposedRect );
-
 }
 
 

@@ -13,59 +13,58 @@
 
 
 #include <QtGui/QTextEdit>
+#include <QtGui/QStackedWidget>
+
+#include <QtCore/QDebug>
+
+#include <podofo/podofo.h>
 
 #include "toolBox.h"
 #include "textTool.h"
 #include "pdfScene.h"
 
-QPixmap comment::Tool *icon = NULL;
+QPixmap *textTool::icon = NULL;
 
-textTool::textTool( pdfScene *Scene, QToolBar *ToolBar, QStackedWidget *EditArea):
+textTool::textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
 	abstractTool( Scene, ToolBar, EditArea )
 {
   if ( ! icon ) icon = new QPixmap( "comment.png" );
-  QTextEdit edt = new QTextEdit(EditArea);
+  QTextEdit *edt = new QTextEdit( EditArea );
   editor = edt;
   connect( edt, SIGNAL( textChanged() ), this, SLOT( updateComment() ) );
   editArea->addWidget( editor );
-  toolBar->addTool( icon, this, SLOT( newActionEvent(QPoint*) ), SLOT( editItem(abstractAnnotation*) ) );
+  toolBar->addTool( QIcon(*icon), this );
 }
 
 textTool::~textTool() {
   editArea->removeWidget( editor );
   toolBar->removeTool( this );
   delete editor;
-
 }
 
-bool textTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, int page ) {
-  if ( ! textAnnotation::isA( annotation ) ) return false;
-  textAnnotation *annot = new textAnnotation( this, page, annotation );
-  scene->add( annot );
-
-  /* needs some more thought, for the moment
-   * set it to 10 so that it is at least above
-   * the pageItems */
-  annot->setZValue( 10 );
-  return true;
+abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotation ) {
+  if ( ! textAnnotation::isA( annotation ) ) return NULL;
+  return new textAnnotation( this, annotation );
 }
 
 void textTool::newActionEvent( QPoint *ScenePos ) {
-  textAnnotation *annot = new textAnnotation( this, scene->posToPage( *ScenePos ) );
-  scene->add( annot );
+  textAnnotation *annot = new textAnnotation( this );
+  scene->addItem( annot );
   annot->setPos( *ScenePos );
   editItem( annot );
 }
 
 void textTool::updateComment() {
   if ( ! currentEditItem ) return;
-  textAnnotation *annot = dynamic_cast<textAnnotation*>(currentItem);
+  textAnnotation *annot = dynamic_cast<textAnnotation*>(currentEditItem);
   annot->setText( dynamic_cast<QTextEdit*>(editor)->toHtml() );
 }
 
-textAnnotation::textAnnotation( textTool *tool, int page, PoDoFo::PdfAnnotation *Comment):
-	abstractAnnotation( tool, page, Comment );
+
+textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment):
+	abstractAnnotation( tool )
 {
+  setIcon( *textTool::icon );
   if ( isA( Comment ) ) { 
     std::string content = Comment->GetContents().GetStringUtf8();
     std::string author = Comment->GetTitle().GetStringUtf8();
@@ -73,9 +72,12 @@ textAnnotation::textAnnotation( textTool *tool, int page, PoDoFo::PdfAnnotation 
     setText( QString::fromUtf8( content.c_str() ) );
     PoDoFo::PdfRect pos = Comment->GetRect();
     setPos( pos.GetLeft(), pos.GetBottom()+pos.GetHeight() );
+    qDebug() << "Adding annotation: "<< QString::fromStdString(author) << QString::fromStdString(content);
   }
 }
 
+textAnnotation::~textAnnotation() { 
+};
 
 void textAnnotation::setText(QString Comment) {
   comment = Comment;
@@ -83,8 +85,11 @@ void textAnnotation::setText(QString Comment) {
 
 bool textAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
   if ( ! annotation ) return false;
-  return ( annotation->GetType() == ePdfAnnotation_Text );
+  return ( annotation->GetType() == PoDoFo::ePdfAnnotation_Text );
 }
+
+//void textAnnotation::saveToPdfPage( PoDoFo:PdfDocument *document, int page ) {
+//}
 
 
 #include "textTool.moc"

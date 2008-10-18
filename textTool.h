@@ -16,17 +16,21 @@
 
 #include "abstractTool.h"
 
+class toolBox;
+class textAnnotation;
+
 class textTool : public abstractTool { 
   Q_OBJECT
 	private:
 	  static QPixmap *icon;
 
 	public:
-		textTool( pdfScene *Scene, toolBoxr *ToolBar, QStackedWidget *EditArea);
+		textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
 		~textTool();
 
-		virtual bool processAnnotation( PoDoFo::PdfAnnotation *annotation, int page );
+		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation );
 		virtual void newActionEvent( QPoint *ScenePos );
+		friend class textAnnotation;
 
 	protected slots:
 		void updateComment();
@@ -36,10 +40,12 @@ class textAnnotation : public abstractAnnotation {
 	private:
 		QString comment;
 	public:
-		textAnnotation( textTool *tool, int page = 0, PoDoFo::PdfAnnotation *comment = NULL );
+		textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *textAnnot = NULL );
+		~textAnnotation();
+
 		void setText(QString comment);
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, int page ) = 0;
+		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, int page ) {};
 
 };
 
