@@ -8,6 +8,7 @@ SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 FIND_PACKAGE(Qt4)
 FIND_PACKAGE(Poppler)
+FIND_PACKAGE(LIBPODOFO REQUIRED)
 
 INCLUDE_DIRECTORIES(
  ${CMAKE_CURRENT_SOURCE_DIR}
@@ -17,6 +18,7 @@ INCLUDE_DIRECTORIES(
  ${QT_QTGUI_INCLUDE_DIR}
  ${QT_QTNETWORK_INCLUDE_DIR}
  ${POPPLER_INCLUDE_DIR}
+ ${LIBPODOFO_INCL}
 )
 
 SET(ANNOT_SRC
@@ -27,12 +29,18 @@ SET(ANNOT_SRC
   mainWindow.cpp
   testView.cpp
   pageBeginItem.cpp
+  abstractTool.cpp
+  textTool.cpp
+  toolBox.cpp
+  pdfScene.cpp
+  pageNumberEdit.cpp
 )
 
 SET(TEST_SRC
   testPoppler.cpp
   testPdfPageItem.cpp
   testMainWindow.cpp
+  testPODOFO.cpp
 )
 
 #SET(UI_FILES
@@ -48,6 +56,7 @@ SET(LINK_LIBS
   ${QT_QTCORE_LIBRARIES}
   ${QT_QTGUI_LIBRARIES}
   ${POPPLER_LIBRARY}
+  ${LIBPODOFO_LIB}
 )
 
 QT4_AUTOMOC(${ANNOT_SRC} ${TEST_SRC})
@@ -96,6 +105,11 @@ TARGET_LINK_LIBRARIES(testPdfPageItem ${LINK_LIBS})
 ADD_EXECUTABLE(testMainWindow ${ANNOT_SRC} testMainWindow.cpp)
 TARGET_LINK_LIBRARIES(testMainWindow ${LINK_LIBS})
 
+ADD_EXECUTABLE(testPODOFO testPODOFO.cpp)
+TARGET_LINK_LIBRARIES(testPODOFO ${LINK_LIBS})
+
+ADD_EXECUTABLE(testPageNumberEdit pageNumberEdit.cpp testPageNumberEdit.cpp)
+TARGET_LINK_LIBRARIES(testPageNumberEdit ${LINK_LIBS})
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
 ADD_DEFINITIONS(
@@ -108,6 +122,10 @@ ADD_DEFINITIONS(
 #	-DQT_NO_DEBUG_OUTPUT
 )
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Windows")
+
+ADD_DEFINITIONS(
+	${LIBPODOFO_CFLAGS}
+)
 
 FILE(GLOB docs doc/*)
 FILE(GLOB pics pics/*png)
