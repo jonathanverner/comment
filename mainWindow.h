@@ -49,6 +49,8 @@ class mainWindow : public QWidget {
 
 	protected slots:
 		void mouseNearBorder(const QPoint &pos);
+		void newAnnotation( const QPointF &scenePos);
+
 //		void updatePageNumber( int pgNum );
 
 	signals:

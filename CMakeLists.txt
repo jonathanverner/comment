@@ -23,8 +23,6 @@ INCLUDE_DIRECTORIES(
 
 SET(ANNOT_SRC
   pdfPageItem.cpp
-  commentItem.cpp
-  abstractPageItem.cpp
   myToolTip.cpp
   mainWindow.cpp
   testView.cpp
@@ -39,8 +37,8 @@ SET(ANNOT_SRC
 SET(TEST_SRC
   testPoppler.cpp
   testPdfPageItem.cpp
-  testMainWindow.cpp
   testPODOFO.cpp
+  testAnnotRM.cpp
 )
 
 #SET(UI_FILES
@@ -102,11 +100,12 @@ ADD_EXECUTABLE(testPdfPageItem ${ANNOT_SRC} testPdfPageItem.cpp)
 TARGET_LINK_LIBRARIES(testPdfPageItem ${LINK_LIBS})
 
 
-ADD_EXECUTABLE(testMainWindow ${ANNOT_SRC} testMainWindow.cpp)
-TARGET_LINK_LIBRARIES(testMainWindow ${LINK_LIBS})
-
 ADD_EXECUTABLE(testPODOFO testPODOFO.cpp)
 TARGET_LINK_LIBRARIES(testPODOFO ${LINK_LIBS})
+
+ADD_EXECUTABLE(annot_rm testAnnotRM.cpp)
+TARGET_LINK_LIBRARIES(annot_rm ${LINK_LIBS})
+
 
 ADD_EXECUTABLE(testPageNumberEdit pageNumberEdit.cpp testPageNumberEdit.cpp)
 TARGET_LINK_LIBRARIES(testPageNumberEdit ${LINK_LIBS})

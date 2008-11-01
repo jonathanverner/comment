@@ -11,6 +11,7 @@
  *CHANGES:
  ***************************************************************/
 
+#include <QtCore/QDebug>
 
 #include <QtGui/QAction>
 #include <QtGui/QLineEdit>
@@ -38,6 +39,7 @@ toolBox::toolBox( QWidget *mainWin ) : QToolBar( mainWin ), curTool( NULL ), act
 
 
 void toolBox::setCurrentTool( abstractTool *tool ) {
+  qDebug() << "Setting tool to " << tool->getToolName();
   curTool = tool;
 }
 

@@ -29,7 +29,8 @@ class textTool : public abstractTool {
 		~textTool();
 
 		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation );
-		virtual void newActionEvent( QPoint *ScenePos );
+		virtual void newActionEvent( const QPointF *ScenePos );
+		virtual void editItem( abstractAnnotation *item );
 		friend class textAnnotation;
 
 	protected slots:
@@ -44,6 +45,7 @@ class textAnnotation : public abstractAnnotation {
 		~textAnnotation();
 
 		void setText(QString comment);
+		QString getText() { return comment;}
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
 		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, int page ) {};
 

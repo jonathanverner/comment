@@ -64,12 +64,14 @@ class abstractTool : public QObject {
 
 		 /* Called when the user wants to add a new annotation at scenePos 
 		  * (scene coordinates) */
-		 virtual void newActionEvent( QPoint *scenePos ) = 0;
+		 virtual void newActionEvent( const QPointF *scenePos ) = 0;
 
 
 		 /* Called by an item, which wants to be edited. The item passes
 		  * a reference to itself */
 		 virtual void editItem( abstractAnnotation *item );
+
+		 friend class abstractAnnotation;
 
 };
 

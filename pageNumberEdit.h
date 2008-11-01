@@ -34,6 +34,7 @@ class pageNumberEdit : public QToolBar {
 		/* next, previous handlers */
 		void wantNext();
 		void wantPrev();
+		void wantGoTo();
 	public:
 		/* Beware, if you pass mainWin as
 		 * NULL, the actions shortcut

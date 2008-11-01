@@ -16,16 +16,24 @@
 
 #include <QtGui/QGraphicsItem>
 #include <QtCore/QRectF>
+#include <QtCore/QCache>
 
 class Poppler::Page;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 
+
 class pdfPageItem : public QGraphicsItem { 
 	private:
 		Poppler::Page *pdfPage;
 		int pageNum;
+		struct cachedPage { 
+		  qreal zoom;
+		  QPixmap pix;
+		};
+		static QCache<int, struct cachedPage> renderCache;
+		QPixmap populateCache( qreal zoom );
 	public:
 		pdfPageItem( Poppler::Page *page );
 		~pdfPageItem();

@@ -22,6 +22,8 @@
 
 class abstractTool;
 class abstractAnnotation;
+class QGraphicsItem;
+class QEvent;
 
 namespace PoDoFo { 
   class PdfDocument;
@@ -48,7 +50,7 @@ class pdfScene : public QGraphicsScene {
 		void loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, const char *slot );
 		void mergeAnnotationsFromPage( PoDoFo::PdfDocument *pdf, int pgNum );
 		void generateTempFileName();
-		void addAnnotations();
+		void addPageAnnotations( int pageNum, QGraphicsItem *pageItem );
 
 	public:
 		pdfScene();
@@ -65,6 +67,8 @@ class pdfScene : public QGraphicsScene {
 		/* Always retuns a valid page number in [0,numPages) */
 		int posToPage( const QPointF &scenePos ); 
 		QPointF topLeftPage( int page );
+
+		//void event( QEvent *e );
 };
 		
 

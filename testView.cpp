@@ -14,6 +14,8 @@
 #include <QtGui/QMouseEvent>
 #include "pageBeginItem.h"
 #include "testView.h"
+#include "abstractTool.h"
+
 
 
 void testView::mouseMoveEvent( QMouseEvent *e ) { 
@@ -22,7 +24,33 @@ void testView::mouseMoveEvent( QMouseEvent *e ) {
     emit mouseNearBorder( e->globalPos() );
   }
   QGraphicsView::mouseMoveEvent( e );
+  if ( moving ) moved = true;
 }
+
+void testView::mousePressEvent( QMouseEvent *e ) { 
+  moving = true;
+  QGraphicsView::mousePressEvent( e );
+}
+
+
+void testView::mouseReleaseEvent( QMouseEvent *e ) { 
+  moving = false;
+  foreach( QGraphicsItem *i, items( e->pos() ) ) { 
+    if ( dynamic_cast<abstractAnnotation*>( i ) ) {
+        QGraphicsView::mouseReleaseEvent( e );
+	moved = false;
+	return;
+    }
+  }
+  QGraphicsView::mouseReleaseEvent( e );
+  qDebug() << "MouseReleaseEvent isAccepted:" << e->isAccepted();
+  if ( e->button() == Qt::LeftButton && ! moved ) { 
+    emit newAnnotationAction( mapToScene( e->pos() ) );
+  }
+  moved=false;
+}
+    
+
 
 void testView::zoomIN() {
   scale ( 1.5, 1.5 );

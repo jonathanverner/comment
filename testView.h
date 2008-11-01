@@ -25,12 +25,14 @@ class testView : public QGraphicsView {
 	private:
 		qreal zoom;
 		int currentPage;
+		bool moving, moved;
 	public:
-		testView( QGraphicsScene *scene, QWidget *parent = 0 ) : QGraphicsView(scene, parent), zoom(1), currentPage(1) { setDragMode( QGraphicsView::ScrollHandDrag ); };
+		testView( QGraphicsScene *scene, QWidget *parent = 0 ) : QGraphicsView(scene, parent), zoom(1), currentPage(1), moving(false), moved(false) { setDragMode( QGraphicsView::ScrollHandDrag ); };
 		int getCurrentPage();
 	signals:
 		void mouseNearBorder( const QPoint &pos );
 		void onPage( int num );
+		void newAnnotationAction( const QPointF &scenePos );
 	public slots:
 	  void zoomIN();
 	  void zoomOUT();
@@ -44,6 +46,8 @@ class testView : public QGraphicsView {
 
 	protected:
 	  virtual void mouseMoveEvent( QMouseEvent *e );
+	  virtual void mouseReleaseEvent( QMouseEvent *e );
+	  virtual void mousePressEvent( QMouseEvent *e );
 };
 
 

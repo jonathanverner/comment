@@ -17,7 +17,7 @@
 
 
 
-pageBeginItem::pageBeginItem( int pgNum, qreal w ) : pageNum( pgNum ), wd(w) { 
+pageBeginItem::pageBeginItem( int pgNum, qreal w, QGraphicsItem *parent ) : QGraphicsItem(parent), pageNum( pgNum ), wd(w) { 
   sg = new pageBeginSignalEmitter();
 }
 

@@ -25,9 +25,22 @@
 
 QPixmap *textTool::icon = NULL;
 
+void textTool::editItem( abstractAnnotation *item ) { 
+  qDebug()<<"Editing... textAnnotation";
+  currentEditItem = item;
+  QTextEdit *edt = dynamic_cast<QTextEdit*>(editor);
+  editArea->setCurrentWidget( editor );
+  editArea->show();
+  edt->setText( dynamic_cast<textAnnotation*>(item)->getText() );
+  edt->setFocus();
+}
+
+
+
 textTool::textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
 	abstractTool( Scene, ToolBar, EditArea )
 {
+  setToolName( "Text Tool" );
   if ( ! icon ) icon = new QPixmap( "comment.png" );
   QTextEdit *edt = new QTextEdit( EditArea );
   editor = edt;
@@ -47,7 +60,7 @@ abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotati
   return new textAnnotation( this, annotation );
 }
 
-void textTool::newActionEvent( QPoint *ScenePos ) {
+void textTool::newActionEvent( const QPointF *ScenePos ) {
   textAnnotation *annot = new textAnnotation( this );
   scene->addItem( annot );
   annot->setPos( *ScenePos );
@@ -57,7 +70,7 @@ void textTool::newActionEvent( QPoint *ScenePos ) {
 void textTool::updateComment() {
   if ( ! currentEditItem ) return;
   textAnnotation *annot = dynamic_cast<textAnnotation*>(currentEditItem);
-  annot->setText( dynamic_cast<QTextEdit*>(editor)->toHtml() );
+  annot->setText( dynamic_cast<QTextEdit*>(editor)->toPlainText() );
 }
 
 
@@ -65,13 +78,16 @@ textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment):
 	abstractAnnotation( tool )
 {
   setIcon( *textTool::icon );
+//  setZValue( 10 ); //FIXME: needs more thought
   if ( isA( Comment ) ) { 
     std::string content = Comment->GetContents().GetStringUtf8();
     std::string author = Comment->GetTitle().GetStringUtf8();
     setAuthor( QString::fromUtf8( author.c_str() ) );
     setText( QString::fromUtf8( content.c_str() ) );
     PoDoFo::PdfRect pos = Comment->GetRect();
-    setPos( pos.GetLeft(), pos.GetBottom()+pos.GetHeight() );
+    setPos( pos.GetLeft()-pos.GetWidth(), pos.GetBottom()+pos.GetHeight()/2 );
+    qDebug() << "(left,width,bottom,height)=("<<pos.GetLeft()<<"," << pos.GetWidth() <<","<< pos.GetBottom()<<"," << pos.GetHeight()<<")";
+    qDebug() << "QPosF" << scenePos();
     qDebug() << "Adding annotation: "<< QString::fromStdString(author) << QString::fromStdString(content);
   }
 }
@@ -81,6 +97,7 @@ textAnnotation::~textAnnotation() {
 
 void textAnnotation::setText(QString Comment) {
   comment = Comment;
+  setMyToolTip( comment );
 }
 
 bool textAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
@@ -89,6 +106,9 @@ bool textAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
 }
 
 //void textAnnotation::saveToPdfPage( PoDoFo:PdfDocument *document, int page ) {
+//  QPointF pagePos = scene()->globalToPagePos( scenePos() );
+//  PoDoFo::PdfPage *pdfPage = document->GetPage( page );
+//  PoDoFo::PdfAnnotation *pdfAnnotation = pdfPage->CreateAnnotation( ePdfAnnotation_Text, PdfRect )
 //}
 
 

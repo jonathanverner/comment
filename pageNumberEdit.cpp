@@ -29,6 +29,7 @@ pageNumberEdit::pageNumberEdit( QWidget *main ):
   pageEdit->setCursorPosition(0);
   connect( pageEdit, SIGNAL( textEdited(QString) ), this, SLOT( pageNumberChanged() ) );
   connect( pageEdit, SIGNAL( cursorPositionChanged(int,int) ), this, SLOT( cursorChanged(int,int) ) ); 
+  connect( pageEdit, SIGNAL( editingFinished() ), this, SLOT( wantGoTo() ) );
 
   /* If mainWin is a widget, add the actions there, so that they are
    * global and shortcuts work globaly */
@@ -104,6 +105,14 @@ void pageNumberEdit::setMaxPageNum(int max) {
   }
   pageEdit->setCursorPosition( 0 );
 }
+
+void pageNumberEdit::wantGoTo() { 
+  int cur = getCurrentPageNum();
+  if ( cur < numberOfPages && 0 < cur) { 
+    emit gotoPage( cur );
+  }
+}
+    
 
 void pageNumberEdit::wantNext() { 
   int cur = getCurrentPageNum();

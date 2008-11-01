@@ -26,16 +26,18 @@
 
 /* Called by an item, which wants to be edited. The item passes
  * * a reference to itself */
- void abstractTool::editItem( abstractAnnotation *item ) {
+void abstractTool::editItem( abstractAnnotation *item ) {
   currentEditItem = item;
   editArea->setCurrentWidget( editor );
   editArea->show();
+  editArea->setFocus();
 }
 
 
 abstractAnnotation::abstractAnnotation( abstractTool *tool ):
-	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() )
+	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ), haveToolTip(false)
 {
+  setAcceptsHoverEvents( true );
 }
 
 void abstractAnnotation::setMyToolTip(const QPixmap &pixMap) {
@@ -60,13 +62,18 @@ void abstractAnnotation::mouseMoveEvent( QGraphicsSceneMouseEvent *event ) {
   qreal dy = event->pos().y() - event->lastPos().y();
   setPos( pos().x() + dx, pos().y() + dy );
   qDebug() << "Mouse moved";
+  event->accept();
 }
 
 void abstractAnnotation::mouseReleaseEvent( QGraphicsSceneMouseEvent *event ) { 
+  event->accept();
   qDebug() << "Mouse released (moved = "<<moved<<")";
   if ( moved ) { 
     moved = false;
-  } else myTool->editItem( this );
+  } else {
+    qDebug() << "Want To Edit ";
+    myTool->editItem( this );
+  }
 }
 
 
@@ -78,6 +85,7 @@ void abstractAnnotation::mousePressEvent( QGraphicsSceneMouseEvent *event ) {
 
 void abstractAnnotation::hoverEnterEvent( QGraphicsSceneHoverEvent *event ) {
   qDebug() << "Mouse hover ENTER";
+  qDebug() << "Item Pos:"<< scenePos();
   if ( haveToolTip ) { 
     switch( tp ) { 
 	    case pixmap:
@@ -90,12 +98,15 @@ void abstractAnnotation::hoverEnterEvent( QGraphicsSceneHoverEvent *event ) {
 		    break;
     }
   }
+  event->accept();
 }
 
 void abstractAnnotation::hoverLeaveEvent( QGraphicsSceneHoverEvent *event ) {
   qDebug() << "Mouse hover LEAVE";
   myToolTip::hide();
   showingToolTip = false;
+  myTool->editArea->hide();
+  event->accept();
 }
 
 void abstractAnnotation::setIcon(const QPixmap &icn) {

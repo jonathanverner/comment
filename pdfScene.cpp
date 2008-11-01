@@ -14,6 +14,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QTemporaryFile>
 #include <QtCore/QDebug>
+#include <QtCore/QEvent>
 
 #include <poppler-qt4.h>
 #include <podofo/podofo.h>
@@ -44,24 +45,41 @@ void pdfScene::registerTool( abstractTool *tool ) {
 void pdfScene::processPage( PoDoFo::PdfDocument *pdf, int pgNum ) { 
   PoDoFo::PdfPage *pg = pdf->GetPage( pgNum );
   abstractAnnotation *annot;
-  int numAnnots = pg->GetNumAnnots();
-  for(int i = 0; i< numAnnots; i++ ) { 
-    foreach( abstractTool *tool, tools.toList() ) { 
-      if ( annot = tool->processAnnotation( pg->GetAnnotation( i ) ) ) { 
+
+  /* The following piece of code iterates through the
+   * list of annotations and whenever one of the tools
+   * recognizes the annotation, it is 
+   *  1) converted into the toolAnnotation (i.e. some descendant of abstractAnnotation)
+   *     and added to the internal list of annotations on this page
+   *  2) deleted from the PoDoFo::PdfPage
+   *
+   * However, when we delete an annotation from the page, the
+   * indexing of the annotations changes so we cannot do a
+   * straightforward loop through the annotations. 
+   */ 
+  int num_of_retained=0;
+  bool retainCurAnnot;
+  while( pg->GetNumAnnots() > num_of_retained ) { 
+    retainCurAnnot=true;
+    foreach( abstractTool *tool, tools.toList() ) {
+      if ( annot = tool->processAnnotation( pg->GetAnnotation( num_of_retained ) ) ) { 
 	try {
-	  pg->DeleteAnnotation( i );
-	} catch ( PoDoFo::PdfError error ) {
-	  qDebug() << "Weird ERROR deleting annotation #"<<i <<" :" << error.what();
+	  pg->DeleteAnnotation( num_of_retained );
+	  annotations[pgNum].append( annot );
+	  retainCurAnnot = false;
+	} catch ( PoDoFo::PdfError error ) { 
+	  qDebug() << "Cannot delete annotation, not leaving it alone.";
 	}
-	annotations[pgNum].append( annot );
 	break;
       }
     }
+    if ( retainCurAnnot ) num_of_retained++;
   }
 }
 
 // assumes pdf == NULL ( otherwise there will be a memory leak ! )
 void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, const char *slot ) { 
+  QPointF annotationPos;
   pdf = Poppler::Document::load( fileName );
   if ( ! pdf ) return;
   pdf->setRenderHint( Poppler::Document::TextAntialiasing, true );
@@ -71,15 +89,35 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
   qreal y=pageSkip;
   for(int i = 0; i < numPages; i++ ) {
     pageItem = new pdfPageItem( pdf->page( i ) );
+    addItem( pageItem );
     pageItem->setPos(leftSkip,y);
     pageCorners.append( QPointF( leftSkip, y ) );
     QRectF pgSize = pageItem->boundingRect();
-    beginMarker = new pageBeginItem( i+1, pgSize.width());
-    beginMarker->setPos(leftSkip, y+pgSize.height()/2);
+    // note that passing the third parameter already
+    // adds beginMarker to the scene, so we need not add
+    // it again;
+    beginMarker = new pageBeginItem( i+1, pgSize.width(), pageItem ); // i+1 since pageBeginItem expects page numbers to start from 1
+    beginMarker->setPos(0, pgSize.height()/2);
     y+=pageItem->boundingRect().height()+pageSkip;
-    addItem( pageItem );
-    addItem( beginMarker );
+    addPageAnnotations( i, pageItem );
+    qDebug() << "Page Size:" << pageItem->boundingRect();
+    qDebug() << i;
     connect( beginMarker->getSignalEmitter(), SIGNAL( pageInView(int) ), pageInViewReceiver, slot );
+  }
+}
+
+// pageNum is zero-based
+void pdfScene::addPageAnnotations( int pageNum, QGraphicsItem *pageItem ) { 
+  if ( pageNum < annotations.size() ) { 
+    qreal x,y,w,h;
+    foreach( abstractAnnotation *a, annotations[pageNum] ) { 
+      a->setParentItem( pageItem );
+      a->setZValue( 10 );
+//      pageItem->boundingRect()->
+      a->setPos( QPointF( a->pos().x(), pageItem->boundingRect().height() - a->pos().y() ) );
+      qDebug() << "Annotation QPosF" << a->scenePos();
+
+    }
   }
 }
 
@@ -106,20 +144,10 @@ bool pdfScene::loadFromFile( QString fileName, QObject *pageInViewReceiver, cons
   if ( tempFileName == "" ) generateTempFileName(); // FIXME: may fail !!!
   pdfDoc.Write( tempFileName.data() );
   loadPopplerPdf( tempFileName, pageInViewReceiver, slot );
-  addAnnotations();
   myFileName = fileName;
   return true;
 }
 
-void pdfScene::addAnnotations() { 
-  for( int i=0;i< annotations.size(); i++ ) { 
-    foreach( abstractAnnotation *a, annotations[i] ) { 
-      addItem( a );
-      a->setPos( topLeftPage( i ) + a->pos() );
-      a->setZValue( 10 ); // FIXME: needs more thought
-    }
-  }
-} 
 
 
 bool pdfScene::saveToFile( QString fileName ) {
@@ -164,3 +192,5 @@ QPointF pdfScene::topLeftPage( int page ) {
   return QPointF(0,0);
 }
 
+//void pdfScene::event( QEvent *e ) {
+//};

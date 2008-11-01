@@ -29,7 +29,8 @@ class pageBeginItem : public QGraphicsItem {
 		qreal wd;
 		pageBeginSignalEmitter *sg;
 	public:
-		pageBeginItem( int pgNum, qreal wd );
+		// pgNum page numbers start from 1
+		pageBeginItem( int pgNum, qreal wd, QGraphicsItem *parent = NULL );
 		~pageBeginItem();
 		QRectF boundingRect() const { return QRectF(0,0,wd,10); };
 		pageBeginSignalEmitter *getSignalEmitter() { return sg; };

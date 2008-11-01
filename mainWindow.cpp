@@ -59,6 +59,8 @@ mainWindow::mainWindow() {
   connect( numberEdit, SIGNAL( prevPage() ), pageView, SLOT( prevPage() ) );
   connect( numberEdit, SIGNAL( nextPage() ), pageView, SLOT( nextPage() ) );
   connect( numberEdit, SIGNAL( gotoPage(int) ), pageView, SLOT( gotoPage(int) ) );
+  connect( pageView, SIGNAL( mouseNearBorder(const QPoint&) ), this, SLOT( mouseNearBorder(const QPoint&) ) );
+  connect( pageView, SIGNAL( newAnnotationAction(const QPointF&) ), this, SLOT( newAnnotation(const QPointF &) ) );
 
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -68,10 +70,17 @@ mainWindow::mainWindow() {
   mainLayout->setSpacing( 0 );
   mainLayout->setContentsMargins( 0, 0, 0, 0 );
   setLayout( mainLayout );
-
+  editor->hide();
 }
 
 
+void mainWindow::newAnnotation( const QPointF &scenePos ) { 
+ abstractTool *tool = toolBar->currentTool();
+ if ( tool ) {
+ qDebug() << "Main Window New Annotation";
+   tool->newActionEvent( &scenePos );
+ }
+}
 
 void mainWindow::mouseNearBorder( const QPoint &pos ) { 
   QPoint localPos = mapFromGlobal( pos );

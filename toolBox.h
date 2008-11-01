@@ -53,10 +53,12 @@ class toolBox : public QToolBar {
 		toolBox( QWidget *mainWin );
 
 		void addTool( const QIcon &icon, abstractTool *tool );
-		void setCurrentTool( abstractTool *tool );
 		void removeTool( abstractTool *tool );
 
 		abstractTool *currentTool();
+
+	public slots:
+		void setCurrentTool( abstractTool *tool );
 
 
 	signals:
