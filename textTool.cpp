@@ -25,6 +25,11 @@
 
 QPixmap *textTool::icon = NULL;
 
+bool textTool::acceptEventsFor( QGraphicsItem *item ) { 
+  if ( dynamic_cast<textAnnotation*>(item) ) return true;
+  return false;
+}
+
 void textTool::editItem( abstractAnnotation *item ) { 
   qDebug()<<"Editing... textAnnotation";
   currentEditItem = item;
@@ -55,9 +60,9 @@ textTool::~textTool() {
   delete editor;
 }
 
-abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotation ) {
+abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
   if ( ! textAnnotation::isA( annotation ) ) return NULL;
-  return new textAnnotation( this, annotation );
+  return new textAnnotation( this, annotation, transform );
 }
 
 void textTool::newActionEvent( const QPointF *ScenePos ) {
@@ -74,22 +79,19 @@ void textTool::updateComment() {
 }
 
 
-textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment):
+textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment, pdfCoords *transform ):
 	abstractAnnotation( tool )
 {
   setIcon( *textTool::icon );
-//  setZValue( 10 ); //FIXME: needs more thought
   if ( isA( Comment ) ) { 
     std::string content = Comment->GetContents().GetStringUtf8();
     std::string author = Comment->GetTitle().GetStringUtf8();
     setAuthor( QString::fromUtf8( author.c_str() ) );
     setText( QString::fromUtf8( content.c_str() ) );
     PoDoFo::PdfRect pos = Comment->GetRect();
-    setPos( pos.GetLeft()-pos.GetWidth(), pos.GetBottom()+pos.GetHeight()/2 );
-    qDebug() << "(left,width,bottom,height)=("<<pos.GetLeft()<<"," << pos.GetWidth() <<","<< pos.GetBottom()<<"," << pos.GetHeight()<<")";
-    qDebug() << "QPosF" << scenePos();
-    qDebug() << "Adding annotation: "<< QString::fromStdString(author) << QString::fromStdString(content);
+    setPos( transform->pdfToScene( &pos ) );
   }
+    setZValue( 10 );
 }
 
 textAnnotation::~textAnnotation() { 

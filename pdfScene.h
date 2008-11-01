@@ -27,11 +27,24 @@ class QEvent;
 
 namespace PoDoFo { 
   class PdfDocument;
+  class PdfPage;
+  class PdfRect;
 }
 
 namespace Poppler {
   class Document;
 }
+
+class pdfCoords { 
+	private:
+		qreal pgSize;
+	public:
+		pdfCoords( PoDoFo::PdfPage *pg );
+		QPointF pdfToScene( PoDoFo::PdfRect *pos );
+		PoDoFo::PdfRect *sceneToPdf( const QPointF &pos );
+		PoDoFo::PdfRect *sceneToPdf( const QRectF &rect );
+};
+
 
 class pdfScene : public QGraphicsScene {
 	private:

@@ -62,7 +62,8 @@ class toolBox : public QToolBar {
 
 
 	signals:
-		void toolChanged();
+		//void toolChanged();
+		void toolActivated( abstractTool *tool );
 };
 
 

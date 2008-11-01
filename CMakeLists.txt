@@ -32,6 +32,8 @@ SET(ANNOT_SRC
   toolBox.cpp
   pdfScene.cpp
   pageNumberEdit.cpp
+  pageView.cpp
+  toolTips.cpp
 )
 
 SET(TEST_SRC

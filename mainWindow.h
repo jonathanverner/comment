@@ -20,7 +20,7 @@
 
 
 class toolBox;
-class testView;
+class pageView;
 class pdfScene;
 class textTool;
 class pageNumberEdit;
@@ -32,7 +32,7 @@ class mainWindow : public QWidget {
 	private:
 	  	pageNumberEdit *numberEdit;
 		toolBox *toolBar;
-		testView *pageView;
+		pageView *pgView;
 		pdfScene *scene;
 		QStackedWidget *editor;
 		textTool *textAnnotTool;

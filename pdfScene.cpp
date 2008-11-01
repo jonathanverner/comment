@@ -24,6 +24,25 @@
 #include "pdfScene.h"
 #include "pageBeginItem.h"
 
+
+pdfCoords::pdfCoords( PoDoFo::PdfPage *pg ) { 
+  pgSize = pg->GetPageSize().GetHeight();
+}
+
+QPointF pdfCoords::pdfToScene( PoDoFo::PdfRect *pos ) { 
+  QPointF ret( pos->GetLeft()-pos->GetWidth(), pgSize-pos->GetBottom()-pos->GetHeight() );
+  return ret;
+}
+
+PoDoFo::PdfRect *pdfCoords::sceneToPdf( const QPointF &pos ) { 
+  return new PoDoFo::PdfRect( pos.x(), pgSize-pos.y(), 0, 0 );
+}
+
+PoDoFo::PdfRect *pdfCoords::sceneToPdf( const QRectF &rect ) { 
+  return new PoDoFo::PdfRect( rect.x(), pgSize-(rect.y()+rect.height()), rect.width(), rect.height() );
+}
+
+
 pdfScene::pdfScene(): 
 	pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10)
 {
@@ -45,6 +64,7 @@ void pdfScene::registerTool( abstractTool *tool ) {
 void pdfScene::processPage( PoDoFo::PdfDocument *pdf, int pgNum ) { 
   PoDoFo::PdfPage *pg = pdf->GetPage( pgNum );
   abstractAnnotation *annot;
+  pdfCoords transform(pg);
 
   /* The following piece of code iterates through the
    * list of annotations and whenever one of the tools
@@ -62,7 +82,7 @@ void pdfScene::processPage( PoDoFo::PdfDocument *pdf, int pgNum ) {
   while( pg->GetNumAnnots() > num_of_retained ) { 
     retainCurAnnot=true;
     foreach( abstractTool *tool, tools.toList() ) {
-      if ( annot = tool->processAnnotation( pg->GetAnnotation( num_of_retained ) ) ) { 
+      if ( annot = tool->processAnnotation( pg->GetAnnotation( num_of_retained ), &transform ) ) { 
 	try {
 	  pg->DeleteAnnotation( num_of_retained );
 	  annotations[pgNum].append( annot );
@@ -112,11 +132,6 @@ void pdfScene::addPageAnnotations( int pageNum, QGraphicsItem *pageItem ) {
     qreal x,y,w,h;
     foreach( abstractAnnotation *a, annotations[pageNum] ) { 
       a->setParentItem( pageItem );
-      a->setZValue( 10 );
-//      pageItem->boundingRect()->
-      a->setPos( QPointF( a->pos().x(), pageItem->boundingRect().height() - a->pos().y() ) );
-      qDebug() << "Annotation QPosF" << a->scenePos();
-
     }
   }
 }

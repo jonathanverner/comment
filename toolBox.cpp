@@ -41,6 +41,8 @@ toolBox::toolBox( QWidget *mainWin ) : QToolBar( mainWin ), curTool( NULL ), act
 void toolBox::setCurrentTool( abstractTool *tool ) {
   qDebug() << "Setting tool to " << tool->getToolName();
   curTool = tool;
+//  emit toolChanged();
+  emit toolActivated( tool );
 }
 
 void toolBox::addTool( const QIcon &icon, abstractTool *tool ) {

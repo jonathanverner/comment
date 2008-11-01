@@ -29,11 +29,15 @@ class pdfScene;
 class QGraphicsSceneMouseEvent;
 class QGraphicsSceneHoverEvent;
 class toolBox;
+class viewEvent;
+class QLabel;
 
 namespace PoDoFo { 
   class PdfAnnotation;
   class PdfDocument;
 }
+
+class pdfCoords;
 
 class abstractTool : public QObject { 
 	private:
@@ -60,7 +64,7 @@ class abstractTool : public QObject {
 
 		 /* Returns a pointer to a newly created annotation, if the annotation was recognized,
 		  * otherwise returns NULL */
-		 virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation ) = 0;
+		 virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) = 0;
 
 		 /* Called when the user wants to add a new annotation at scenePos 
 		  * (scene coordinates) */
@@ -70,6 +74,13 @@ class abstractTool : public QObject {
 		 /* Called by an item, which wants to be edited. The item passes
 		  * a reference to itself */
 		 virtual void editItem( abstractAnnotation *item );
+
+		 /* Called by the view when an event happens. Returns true, if
+		  * tool handles the event, otherwise returns false; */
+		 virtual bool handleEvent( viewEvent *ev );
+
+		 /* Returns true, if the tool handles events for the item it */
+		 virtual bool acceptEventsFor( QGraphicsItem *it )=0;
 
 		 friend class abstractAnnotation;
 
@@ -92,16 +103,10 @@ class abstractAnnotation : public QGraphicsItem {
 
 
 	protected:
+		bool movable;
 		void setMyToolTip(const QPixmap &pixMap);
 		void setMyToolTip(const QString &richText);
 		void setIcon( const QPixmap &icon);
-
-		void mouseMoveEvent( QGraphicsSceneMouseEvent *event );
-		void mousePressEvent( QGraphicsSceneMouseEvent *event );
-		void mouseReleaseEvent( QGraphicsSceneMouseEvent *event );
-		void hoverEnterEvent( QGraphicsSceneHoverEvent *event );
-		void hoverLeaveEvent( QGraphicsSceneHoverEvent *event );
-
 
 
 	public:
@@ -111,6 +116,12 @@ class abstractAnnotation : public QGraphicsItem {
 		abstractAnnotation( abstractTool *tool );
 
 
+		bool showToolTip( const QPoint &scPos );
+		void hideToolTip();
+		bool editSelf();
+		bool hasToolTip();
+
+		bool isMovable() { return movable; };
 		void setAuthor( QString a ) { author = a; };
 		void setDate( QDate d ) { date = d; };
 		void setTime( QTime t ) { time = t; };

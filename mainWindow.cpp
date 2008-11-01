@@ -25,6 +25,7 @@
 #include "toolBox.h"
 #include "textTool.h"
 #include "pdfScene.h"
+#include "pageView.h"
 
 
 
@@ -37,35 +38,38 @@ mainWindow::mainWindow() {
   textAnnotTool = new textTool( scene, toolBar, editor );
   scene->registerTool( textAnnotTool );
 
-  pageView = new testView( scene );
-  pageView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
-  pageView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 
-  QAction *quitAct = new QAction( pageView );
-  QAction *zoomInAct = new QAction( pageView );
-  QAction *zoomOutAct = new QAction( pageView );
+
+  pgView = new pageView( scene );
+  pgView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+  pgView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
+
+  QAction *quitAct = new QAction( pgView );
+  QAction *zoomInAct = new QAction( pgView );
+  QAction *zoomOutAct = new QAction( pgView );
 
   quitAct->setShortcut((QString) "Ctrl+Q");
   zoomInAct->setShortcut((QString) "Ctrl++");
   zoomOutAct->setShortcut((QString) "Ctrl+-");
 
-  pageView->addAction(zoomInAct);
-  pageView->addAction(zoomOutAct);
-  pageView->addAction(quitAct);
+  pgView->addAction(zoomInAct);
+  pgView->addAction(zoomOutAct);
+  pgView->addAction(quitAct);
 
   connect( quitAct, SIGNAL( triggered() ), this, SIGNAL( quit() ) );
-  connect( zoomInAct, SIGNAL( triggered() ), pageView, SLOT( zoomIN() ) );
-  connect( zoomOutAct, SIGNAL( triggered() ), pageView, SLOT( zoomOUT() ) );
-  connect( numberEdit, SIGNAL( prevPage() ), pageView, SLOT( prevPage() ) );
-  connect( numberEdit, SIGNAL( nextPage() ), pageView, SLOT( nextPage() ) );
-  connect( numberEdit, SIGNAL( gotoPage(int) ), pageView, SLOT( gotoPage(int) ) );
-  connect( pageView, SIGNAL( mouseNearBorder(const QPoint&) ), this, SLOT( mouseNearBorder(const QPoint&) ) );
-  connect( pageView, SIGNAL( newAnnotationAction(const QPointF&) ), this, SLOT( newAnnotation(const QPointF &) ) );
+  connect( zoomInAct, SIGNAL( triggered() ), pgView, SLOT( zoomIN() ) );
+  connect( zoomOutAct, SIGNAL( triggered() ), pgView, SLOT( zoomOUT() ) );
+  connect( numberEdit, SIGNAL( prevPage() ), pgView, SLOT( prevPage() ) );
+  connect( numberEdit, SIGNAL( nextPage() ), pgView, SLOT( nextPage() ) );
+  connect( numberEdit, SIGNAL( gotoPage(int) ), pgView, SLOT( gotoPage(int) ) );
+  connect( pgView, SIGNAL( mouseNearBorder(const QPoint&) ), this, SLOT( mouseNearBorder(const QPoint&) ) );
+//  connect( pgView, SIGNAL( newAnnotationAction(const QPointF&) ), this, SLOT( newAnnotation(const QPointF &) ) );
+  connect( toolBar, SIGNAL( toolActivated(abstractTool*) ), pgView, SLOT( setCurrentTool(abstractTool*) ) );
 
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
   mainLayout->addWidget( toolBar );
-  mainLayout->addWidget( pageView );
+  mainLayout->addWidget( pgView );
   mainLayout->addWidget( editor );
   mainLayout->setSpacing( 0 );
   mainLayout->setContentsMargins( 0, 0, 0, 0 );

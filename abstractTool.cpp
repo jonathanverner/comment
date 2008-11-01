@@ -16,6 +16,7 @@
 #include <QtGui/QGraphicsSceneHoverEvent>
 #include <QtGui/QPainter>
 #include <QtGui/QStyleOptionGraphicsItem>
+#include <QtGui/QLabel>
 
 #include <QtCore/QDebug>
 
@@ -23,6 +24,7 @@
 
 #include "abstractTool.h"
 #include "myToolTip.h"
+#include "pageView.h"
 
 /* Called by an item, which wants to be edited. The item passes
  * * a reference to itself */
@@ -33,9 +35,20 @@ void abstractTool::editItem( abstractAnnotation *item ) {
   editArea->setFocus();
 }
 
+bool abstractTool::handleEvent( viewEvent *ev ) { 
+  if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
+    QPointF pos=ev->scenePos(), delta = ev->sceneDelta();
+    abstractAnnotation *annot = dynamic_cast<abstractAnnotation*>(ev->item());
+    if ( ev->isClick() ) { 
+      if ( annot ) editItem( annot );
+      else newActionEvent( &pos );
+      return true;
+    }
+  } else return false;
+}
 
 abstractAnnotation::abstractAnnotation( abstractTool *tool ):
-	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ), haveToolTip(false)
+	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ), haveToolTip(false), movable( true )
 {
   setAcceptsHoverEvents( true );
 }
@@ -56,57 +69,46 @@ void abstractAnnotation::setMyToolTip(const QString &richText) {
   if ( showingToolTip ) myToolTip::update( richText );
 }
 
-void abstractAnnotation::mouseMoveEvent( QGraphicsSceneMouseEvent *event ) {
-  moved = true;
-  qreal dx = event->pos().x() - event->lastPos().x();
-  qreal dy = event->pos().y() - event->lastPos().y();
-  setPos( pos().x() + dx, pos().y() + dy );
-  qDebug() << "Mouse moved";
-  event->accept();
+
+bool abstractAnnotation::editSelf() { 
+  myTool->editItem( this );
+  return true;
 }
 
-void abstractAnnotation::mouseReleaseEvent( QGraphicsSceneMouseEvent *event ) { 
-  event->accept();
-  qDebug() << "Mouse released (moved = "<<moved<<")";
-  if ( moved ) { 
-    moved = false;
-  } else {
-    qDebug() << "Want To Edit ";
-    myTool->editItem( this );
+
+bool abstractAnnotation::hasToolTip() { 
+  if ( haveToolTip ) { 
+    if ( tp == text && toolTipRichText.size() < 1 ) return false;
+    return true;
   }
+  return false;
 }
 
-
-void abstractAnnotation::mousePressEvent( QGraphicsSceneMouseEvent *event ) {
-   moved = false;
-   event->accept();
-   qDebug() << "Mouse pressed";
-}
-
-void abstractAnnotation::hoverEnterEvent( QGraphicsSceneHoverEvent *event ) {
-  qDebug() << "Mouse hover ENTER";
-  qDebug() << "Item Pos:"<< scenePos();
+bool abstractAnnotation::showToolTip( const QPoint &scPos ) { 
+  qDebug() << "Showing Tooltip";
   if ( haveToolTip ) { 
     switch( tp ) { 
 	    case pixmap:
-		    myToolTip::showPixmap(event->screenPos(), toolTipPixMap );
+		    myToolTip::showPixmap(scPos, toolTipPixMap );
 		    showingToolTip = true;
+		    return true;
 		    break;
 	    case text:
-		    myToolTip::showText(event->screenPos(), toolTipRichText );
+		    if ( toolTipRichText.size() < 1 ) return false;
+		    myToolTip::showText(scPos, toolTipRichText );
 		    showingToolTip = true;
+		    return true;
 		    break;
     }
   }
-  event->accept();
+  return false;
 }
 
-void abstractAnnotation::hoverLeaveEvent( QGraphicsSceneHoverEvent *event ) {
-  qDebug() << "Mouse hover LEAVE";
+void abstractAnnotation::hideToolTip() { 
+  qDebug() << "Hiding Tooltip";
   myToolTip::hide();
   showingToolTip = false;
   myTool->editArea->hide();
-  event->accept();
 }
 
 void abstractAnnotation::setIcon(const QPixmap &icn) {
