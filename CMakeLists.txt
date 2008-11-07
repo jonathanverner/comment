@@ -34,6 +34,10 @@ SET(ANNOT_SRC
   pageNumberEdit.cpp
   pageView.cpp
   toolTips.cpp
+  pdfUtil.cpp
+  wordItem.cpp
+  textLayer.cpp
+  hilightTool.cpp
 )
 
 SET(TEST_SRC
