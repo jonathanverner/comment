@@ -17,7 +17,7 @@
 #include <QtGui/QGraphicsView>
 #include <QtGui/QMouseEvent>
 #include <QtCore/QPoint>
-#include "toolTips.h"
+//#include "toolTips.h"
 
 class QGraphicsScene;
 class abstractTool;
@@ -39,6 +39,7 @@ class viewEvent {
 		QGraphicsItem *IT;
 		Qt::MouseButton bt_caused;
 		Qt::MouseButtons bt_state;
+		QWidget *viewPort;
 
 		QPoint eventDelta() { return lastEvPos-evPos; };
 
@@ -69,14 +70,12 @@ class pageView : public QGraphicsView {
 		QPointF moveDelta;
 		abstractTool *currentTool;
 
-		toolTips tips;
 	protected:
 	  viewEvent eventToVE( QMouseEvent *e, viewEvent::eventType tp );
 	  virtual void mouseMoveEvent( QMouseEvent *e );
 	  virtual void mouseReleaseEvent( QMouseEvent *e );
 	  virtual void mousePressEvent( QMouseEvent *e );
 	  virtual void keyPressEvent( QKeyEvent *e );
-//	  virtual void resizeEvent( QResizeEvent *e );
 
 	public:
 		pageView( QGraphicsScene *scene, QWidget *parent = 0 );

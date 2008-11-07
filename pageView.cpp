@@ -19,6 +19,7 @@
 #include "pageView.h"
 #include "abstractTool.h"
 #include "myToolTip.h"
+//#include "pdfScene.h"
 
 
 bool viewEvent::isClick() { 
@@ -27,9 +28,8 @@ bool viewEvent::isClick() {
 
 pageView::pageView( QGraphicsScene *scene, QWidget *parent ) :
 	QGraphicsView( scene, parent ), zoom(1), currentPage(1), currentTool(NULL),
-	movingItem(NULL), tips(this), toolTipItem(NULL) { 
+	movingItem(NULL), toolTipItem(NULL) { 
 	  setDragMode( QGraphicsView::ScrollHandDrag );
-	  setResizeAnchor( QGraphicsView::AnchorUnderMouse );
 	}
 
 
@@ -37,6 +37,7 @@ viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) {
  viewEvent ret;
  abstractAnnotation *annot;
  ret.distance=0;
+ ret.viewPort = viewport();
  if ( tp == viewEvent::VE_MOUSE_PRESS ) { 
    mousePressStartPos = e->pos();
  } else if ( tp == viewEvent::VE_MOUSE_MOVE && e->buttons() ) {
@@ -93,6 +94,8 @@ void pageView::mouseMoveEvent( QMouseEvent *e ) {
     QPoint delta = viewEv.eventDelta();
     hBar->setValue(hBar->value() - (isRightToLeft() ? delta.x() : -delta.x()));
     vBar->setValue(vBar->value() + delta.y());
+/*    pdfScene *sc = dynamic_cast<pdfScene*>(scene());
+    qDebug() << "Currently on Pos:" << hBar->value()<< vBar->value();*/
   } else { // show/hide tooltips
     abstractAnnotation *annot;
     bool hide = true;
@@ -103,7 +106,7 @@ void pageView::mouseMoveEvent( QMouseEvent *e ) {
 	    qDebug() << "Hiding old tooltip to show new";
 	    toolTipItem->hideToolTip();
 	  } else if ( toolTipItem == annot ) { 
-	    qDebug() << "Tooltip Shown, no noeed to show more";
+	    qDebug() << "Tooltip Shown, no need to show more";
 	    hide = false;
 	    break;
 	  }

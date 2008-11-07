@@ -26,28 +26,37 @@
 #include "textTool.h"
 #include "pdfScene.h"
 #include "pageView.h"
+#include "hilightTool.h"
 
 
 
 mainWindow::mainWindow() { 
-  toolBar = new toolBox( this );
-  numberEdit = new pageNumberEdit( this );
-  toolBar->addWidget( numberEdit );
   scene = new pdfScene();
+  pgView = new pageView( scene );
+  toolBar = new toolBox( pgView );
   editor = new QStackedWidget( this );
+  numberEdit = new pageNumberEdit( this );
+
+  toolBar->addWidget( numberEdit );
   textAnnotTool = new textTool( scene, toolBar, editor );
+  textAnnotTool->setAuthor( "Jonathan Verner" );
+  hilightTool *hiTool = new hilightTool( scene, toolBar, editor );
+  hiTool->setAuthor( "Jonathan Verner" );
+  scene->registerTool( hiTool );
+
   scene->registerTool( textAnnotTool );
 
 
 
-  pgView = new pageView( scene );
   pgView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
   pgView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 
   QAction *quitAct = new QAction( pgView );
+  QAction *saveAct = new QAction( pgView );
   QAction *zoomInAct = new QAction( pgView );
   QAction *zoomOutAct = new QAction( pgView );
 
+  saveAct->setShortcut((QString) "Ctrl+S");
   quitAct->setShortcut((QString) "Ctrl+Q");
   zoomInAct->setShortcut((QString) "Ctrl++");
   zoomOutAct->setShortcut((QString) "Ctrl+-");
@@ -55,8 +64,10 @@ mainWindow::mainWindow() {
   pgView->addAction(zoomInAct);
   pgView->addAction(zoomOutAct);
   pgView->addAction(quitAct);
+  pgView->addAction(saveAct);
 
   connect( quitAct, SIGNAL( triggered() ), this, SIGNAL( quit() ) );
+  connect( saveAct, SIGNAL( triggered() ), this, SLOT( save() ) );
   connect( zoomInAct, SIGNAL( triggered() ), pgView, SLOT( zoomIN() ) );
   connect( zoomOutAct, SIGNAL( triggered() ), pgView, SLOT( zoomOUT() ) );
   connect( numberEdit, SIGNAL( prevPage() ), pgView, SLOT( prevPage() ) );
@@ -68,7 +79,7 @@ mainWindow::mainWindow() {
 
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
-  mainLayout->addWidget( toolBar );
+ // mainLayout->addWidget( toolBar );
   mainLayout->addWidget( pgView );
   mainLayout->addWidget( editor );
   mainLayout->setSpacing( 0 );
@@ -78,12 +89,15 @@ mainWindow::mainWindow() {
 }
 
 
-void mainWindow::newAnnotation( const QPointF &scenePos ) { 
- abstractTool *tool = toolBar->currentTool();
- if ( tool ) {
- qDebug() << "Main Window New Annotation";
-   tool->newActionEvent( &scenePos );
- }
+
+
+void mainWindow::save() { 
+  qDebug() << "mainWindow::save(): Saving...";
+  if ( scene ) { 
+    scene->save();
+  } else { 
+    qWarning() << "mainWindow::save(): pdfScene is a null pointer";
+  }
 }
 
 void mainWindow::mouseNearBorder( const QPoint &pos ) { 

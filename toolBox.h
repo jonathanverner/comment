@@ -22,6 +22,7 @@
 
 class abstractTool;
 class QLineEdit;
+class QEvent;
 
 class toolBox : public QToolBar { 
   Q_OBJECT
@@ -56,6 +57,9 @@ class toolBox : public QToolBar {
 		void removeTool( abstractTool *tool );
 
 		abstractTool *currentTool();
+
+	protected:
+		void leaveEvent( QEvent *event );
 
 	public slots:
 		void setCurrentTool( abstractTool *tool );

@@ -23,11 +23,23 @@
 #include "abstractTool.h" 
 #include "pdfScene.h"
 #include "pageBeginItem.h"
+#include "wordItem.h"
+#include "textLayer.h"
 
 
 pdfCoords::pdfCoords( PoDoFo::PdfPage *pg ) { 
-  pgSize = pg->GetPageSize().GetHeight();
+  if ( pg ) setPage( pg );
+  else pgSize = 0;
 }
+
+void pdfCoords::setPage( PoDoFo::PdfPage *pg ) { 
+  if ( pg ) pgSize = pg->GetPageSize().GetHeight();
+  else {
+    pgSize = 0;
+    qWarning() << "pdfCoords: Warning, calling setPage with a null pointer;";
+  }
+}
+
 
 QPointF pdfCoords::pdfToScene( PoDoFo::PdfRect *pos ) { 
   QPointF ret( pos->GetLeft()-pos->GetWidth(), pgSize-pos->GetBottom()-pos->GetHeight() );
@@ -61,6 +73,10 @@ void pdfScene::registerTool( abstractTool *tool ) {
   tools.insert( tool );
 }
 
+/* Go through the page pgNum, remove all recognized annotations
+ * and add them to the annotation list. Nothing is added to the
+ * scene, this is done only after we load the poppler document */
+
 void pdfScene::processPage( PoDoFo::PdfDocument *pdf, int pgNum ) { 
   PoDoFo::PdfPage *pg = pdf->GetPage( pgNum );
   abstractAnnotation *annot;
@@ -81,22 +97,42 @@ void pdfScene::processPage( PoDoFo::PdfDocument *pdf, int pgNum ) {
   bool retainCurAnnot;
   while( pg->GetNumAnnots() > num_of_retained ) { 
     retainCurAnnot=true;
+    try {
     foreach( abstractTool *tool, tools.toList() ) {
       if ( annot = tool->processAnnotation( pg->GetAnnotation( num_of_retained ), &transform ) ) { 
 	try {
 	  pg->DeleteAnnotation( num_of_retained );
 	  annotations[pgNum].append( annot );
 	  retainCurAnnot = false;
-	} catch ( PoDoFo::PdfError error ) { 
-	  qDebug() << "Cannot delete annotation, not leaving it alone.";
+	} catch ( PoDoFo::PdfError error ) {
+	  qWarning() << "Cannot delete annotation, not leaving it alone.";
 	}
 	break;
       }
+	
+    }
+    } catch ( PoDoFo::PdfError error ) {
+	qWarning() << "Cannot process annotation:" << error.what();
+	retainCurAnnot = true;
     }
     if ( retainCurAnnot ) num_of_retained++;
   }
 }
 
+/* Loads a pdf into the scene: 
+ *    Goes through the pdf pages, converts each to a pdfPageItem
+ *    and adds it to the scene. Also adds all annotations
+ *    from the annotations list belonging to the page onto the scene.
+ *    Populates the pageCorners list. For each page it adds a pageMarker 
+ *    item onto the pageItem, (vertically into the middle). When this pageMarker receives
+ *    a paint event, it does nothing but emits a signal (which
+ *    is connected to pageInViewReceiver if not NULL). This is how
+ *    a view knows which page is currently in view. Note that
+ *    if there are different views watching the same scene, this
+ *    will confuse the hell out of them :-) We need to eventually
+ *    move this stuff into the pageView class, but I currently don't
+ *    have the motivation, since in the near future there will always
+ *    be only a single view */
 // assumes pdf == NULL ( otherwise there will be a memory leak ! )
 void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, const char *slot ) { 
   QPointF annotationPos;
@@ -106,12 +142,17 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
   pdf->setRenderHint( Poppler::Document::Antialiasing, true );
   pdfPageItem *pageItem;
   pageBeginItem *beginMarker;
+  pageCorners.clear();
   qreal y=pageSkip;
+  wordItem *it;
+  textLayer *txt;
   for(int i = 0; i < numPages; i++ ) {
     pageItem = new pdfPageItem( pdf->page( i ) );
+    pageItem->setPageNum( i );
     addItem( pageItem );
     pageItem->setPos(leftSkip,y);
     pageCorners.append( QPointF( leftSkip, y ) );
+    qDebug() << "Page("<<i<<"):"<<y<<" == "<<pageCorners[i].y();
     QRectF pgSize = pageItem->boundingRect();
     // note that passing the third parameter already
     // adds beginMarker to the scene, so we need not add
@@ -119,6 +160,13 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
     beginMarker = new pageBeginItem( i+1, pgSize.width(), pageItem ); // i+1 since pageBeginItem expects page numbers to start from 1
     beginMarker->setPos(0, pgSize.height()/2);
     y+=pageItem->boundingRect().height()+pageSkip;
+//    QList<poppler::TextBox*> textList = pageItem->getPage()->textList();
+    foreach( Poppler::TextBox *word, pageItem->getPage()->textList() ) { // add the text layer
+      it = new wordItem( word );
+      it->setParentItem( pageItem );
+    }
+    txt = new textLayer( pageItem->getPage() );
+    txt->setParentItem( pageItem );
     addPageAnnotations( i, pageItem );
     qDebug() << "Page Size:" << pageItem->boundingRect();
     qDebug() << i;
@@ -126,6 +174,10 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
   }
 }
 
+/* Iterates through the annotations on page pageNum and adds them 
+ * to the scene by setting their parent to pageItem. Note this
+ * requires the annotations to have their positions relative to 
+ * the page they belong to. Called from loadPoppler.*/
 // pageNum is zero-based
 void pdfScene::addPageAnnotations( int pageNum, QGraphicsItem *pageItem ) { 
   if ( pageNum < annotations.size() ) { 
@@ -159,6 +211,7 @@ bool pdfScene::loadFromFile( QString fileName, QObject *pageInViewReceiver, cons
   if ( tempFileName == "" ) generateTempFileName(); // FIXME: may fail !!!
   pdfDoc.Write( tempFileName.data() );
   loadPopplerPdf( tempFileName, pageInViewReceiver, slot );
+  annotations.clear();
   myFileName = fileName;
   return true;
 }
@@ -167,6 +220,9 @@ bool pdfScene::loadFromFile( QString fileName, QObject *pageInViewReceiver, cons
 
 bool pdfScene::saveToFile( QString fileName ) {
   PoDoFo::PdfMemDocument pdfDoc;
+  PoDoFo::PdfPage *pg;
+  pdfPageItem *pgItem;
+  pdfCoords coords;
   abstractAnnotation *a;
   try { 
     pdfDoc.Load( tempFileName );
@@ -175,8 +231,21 @@ bool pdfScene::saveToFile( QString fileName ) {
     return false;
   } 
   foreach( QGraphicsItem *item, items() ) { 
-    if ( a = dynamic_cast< abstractAnnotation *>(item) )
-      a->saveToPdfPage( &pdfDoc, posToPage( a->scenePos() ) );
+    if ( a = dynamic_cast< abstractAnnotation *>(item) ) {
+      pgItem = dynamic_cast<pdfPageItem*>(a->parentItem());
+      if ( ! pgItem ) { 
+	qWarning() << "Annotation does not have a parent page, adding to page 0...";
+	pgItem=getPageItem(0);
+	if ( !pgItem ) {
+	  qWarning() << "Page 0 missing, this is really WEIRD!!!";
+	  continue;
+	}
+      }
+      qDebug() << " Saving annotation on page " << pgItem->getPageNum();
+      pg = pdfDoc.GetPage( pgItem->getPageNum() );
+      coords.setPage( pg );
+      a->saveToPdfPage( &pdfDoc, pg, &coords );
+    }
   }
   pdfDoc.Write( QFile::encodeName( fileName ).data() );
   return true;
@@ -186,18 +255,40 @@ bool pdfScene::save() {
   saveToFile( myFileName );
 }
 
+void pdfScene::placeAnnotation( abstractAnnotation *annot, const QPointF *scPos ) { 
+  int pg = posToPage( *scPos );
+  QGraphicsItem *parentPage = getPageItem( pg );
+  annot->setPos( parentPage->mapFromScene( *scPos ) );
+  annot->setParentItem( parentPage );
+  qDebug() << "Placing Annotation at page " << pg << " relative position " << parentPage->mapFromScene( *scPos ) << "=="<<annot->pos()<< " absolute position " << *scPos;
+}
+
+pdfPageItem *pdfScene::getPageItem( int pgNum ) { 
+  QPointF topLeft = topLeftPage( pgNum );
+  pdfPageItem *pg;
+  foreach( QGraphicsItem *item, items( topLeft ) ) { 
+    if ( pg = dynamic_cast<pdfPageItem*>( item ) ) { 
+      if ( pg->getPageNum() == pgNum ) return pg;
+    }
+  }
+  return NULL;
+}
+
+
+
 int pdfScene::posToPage( const QPointF &scenePos ) {
   /* Just in case we have numPages > pageCorners.size();
    * (This can happen when loading a file, because
    *  we initialize numPages right away, but only
    *  initialize pageCorners after some processing */
   int max = pageCorners.size();  
-  qreal y=pageSkip, limit = scenePos.y();
-  for(int i=0;i<max;i++) {
-    if ( y >= limit ) return i;
+  qreal y=0, limit = scenePos.y();
+  int i=0;
+  for(;i<max;i++) {
     y+=pageCorners[i].y();
+    if ( y >= limit ) break;
   }
-  if ( max > 1 ) return max-1;
+  if ( i > 0 ) return i-1;
   return 0;
 }
 
@@ -207,5 +298,4 @@ QPointF pdfScene::topLeftPage( int page ) {
   return QPointF(0,0);
 }
 
-//void pdfScene::event( QEvent *e ) {
-//};
+

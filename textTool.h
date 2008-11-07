@@ -48,7 +48,7 @@ class textAnnotation : public abstractAnnotation {
 		void setText(QString comment);
 		QString getText() { return comment;}
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, int page ) {};
+		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 
 };
 

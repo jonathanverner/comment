@@ -30,6 +30,7 @@ void myToolTip::init() {
   toolTip->setPalette(QToolTip::palette());
   toolTip->setFrameStyle(QFrame::NoFrame);
   toolTip->setMargin( 3 );
+  toolTip->hide();
 }
 
 void myToolTip::wait() {

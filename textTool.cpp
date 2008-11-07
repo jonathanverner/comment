@@ -22,6 +22,7 @@
 #include "toolBox.h"
 #include "textTool.h"
 #include "pdfScene.h"
+#include "pdfUtil.h"
 
 QPixmap *textTool::icon = NULL;
 
@@ -66,9 +67,11 @@ abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotati
 }
 
 void textTool::newActionEvent( const QPointF *ScenePos ) {
+  qDebug() << "Creating new Annotation at " << *ScenePos;
   textAnnotation *annot = new textAnnotation( this );
-  scene->addItem( annot );
-  annot->setPos( *ScenePos );
+  annot->setAuthor( author );
+  scene->placeAnnotation( annot, ScenePos );
+  annot->setZValue( 10 );
   editItem( annot );
 }
 
@@ -83,11 +86,9 @@ textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment, 
 	abstractAnnotation( tool )
 {
   setIcon( *textTool::icon );
-  if ( isA( Comment ) ) { 
-    std::string content = Comment->GetContents().GetStringUtf8();
-    std::string author = Comment->GetTitle().GetStringUtf8();
-    setAuthor( QString::fromUtf8( author.c_str() ) );
-    setText( QString::fromUtf8( content.c_str() ) );
+  if ( isA( Comment ) ) {
+    setAuthor( pdfUtil::pdfStringToQ( Comment->GetTitle() ) );
+    setText( pdfUtil::pdfStringToQ( Comment->GetContents() ) );
     PoDoFo::PdfRect pos = Comment->GetRect();
     setPos( transform->pdfToScene( &pos ) );
   }
@@ -107,11 +108,22 @@ bool textAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
   return ( annotation->GetType() == PoDoFo::ePdfAnnotation_Text );
 }
 
-//void textAnnotation::saveToPdfPage( PoDoFo:PdfDocument *document, int page ) {
-//  QPointF pagePos = scene()->globalToPagePos( scenePos() );
-//  PoDoFo::PdfPage *pdfPage = document->GetPage( page );
-//  PoDoFo::PdfAnnotation *pdfAnnotation = pdfPage->CreateAnnotation( ePdfAnnotation_Text, PdfRect )
-//}
+
+void textAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { 
+  qDebug() << "Saving annotation: " << pos();
+  PoDoFo::PdfRect *brect = coords->sceneToPdf( pos() );
+  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Text, *brect );
+  try { 
+    annot->SetOpen( false );
+    annot->SetContents( pdfUtil::qStringToPdf( comment ) );
+    annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
+  } catch ( PoDoFo::PdfError error ) { 
+    qDebug() << "Error setting annotation properties:" << error.what();
+  }
+  delete brect;
+}
+
+
 
 
 #include "textTool.moc"

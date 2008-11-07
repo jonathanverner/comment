@@ -35,6 +35,8 @@ class QLabel;
 namespace PoDoFo { 
   class PdfAnnotation;
   class PdfDocument;
+  class PdfPage;
+  class PdfAnnotation;
 }
 
 class pdfCoords;
@@ -63,7 +65,8 @@ class abstractTool : public QObject {
 		 QString getToolName() { return toolName; };
 
 		 /* Returns a pointer to a newly created annotation, if the annotation was recognized,
-		  * otherwise returns NULL */
+		  * otherwise returns NULL. Note that the new annotation should have its position 
+		  * relative to the page. However this should be intuitive :-) */
 		 virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) = 0;
 
 		 /* Called when the user wants to add a new annotation at scenePos 
@@ -71,8 +74,7 @@ class abstractTool : public QObject {
 		 virtual void newActionEvent( const QPointF *scenePos ) = 0;
 
 
-		 /* Called by an item, which wants to be edited. The item passes
-		  * a reference to itself */
+		 /* Edit the item (i.e. show an editing widget, etc.) */
 		 virtual void editItem( abstractAnnotation *item );
 
 		 /* Called by the view when an event happens. Returns true, if
@@ -109,6 +111,7 @@ class abstractAnnotation : public QGraphicsItem {
 		void setIcon( const QPixmap &icon);
 
 
+
 	public:
 		static bool isA( PoDoFo::PdfAnnotation *annotation ) { return false; };
  
@@ -134,7 +137,7 @@ class abstractAnnotation : public QGraphicsItem {
 
 
 
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, int page ) = 0;
+		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) = 0;
 
 };
 

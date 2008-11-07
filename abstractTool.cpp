@@ -48,7 +48,7 @@ bool abstractTool::handleEvent( viewEvent *ev ) {
 }
 
 abstractAnnotation::abstractAnnotation( abstractTool *tool ):
-	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ), haveToolTip(false), movable( true )
+	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ), haveToolTip(false), showingToolTip(false), movable( true )
 {
   setAcceptsHoverEvents( true );
 }
@@ -68,6 +68,7 @@ void abstractAnnotation::setMyToolTip(const QString &richText) {
   toolTipRichText = richText;
   if ( showingToolTip ) myToolTip::update( richText );
 }
+
 
 
 bool abstractAnnotation::editSelf() { 

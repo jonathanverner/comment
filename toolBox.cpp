@@ -85,5 +85,10 @@ abstractTool *toolBox::currentTool() {
   return curTool;
 }
 
+void toolBox::leaveEvent( QEvent *e ) { 
+  hide();
+  QWidget::leaveEvent( e );
+}
+
 #include "toolBox.moc"
 #include "myAction.moc"

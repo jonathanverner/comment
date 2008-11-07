@@ -37,6 +37,8 @@ class pdfPageItem : public QGraphicsItem {
 	public:
 		pdfPageItem( Poppler::Page *page );
 		~pdfPageItem();
+
+		Poppler::Page *getPage() { return pdfPage; }
 		QRectF boundingRect() const;
 		void setPageNum( int pgNum ) {pageNum = pgNum;}
 		int getPageNum() const { return pageNum;};
