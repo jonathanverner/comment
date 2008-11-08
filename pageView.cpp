@@ -63,8 +63,11 @@ viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) {
  ret.lastEvPos=lastMouseEvPos;
  lastMouseEvPos=e->pos();
  if ( currentTool ) { 
-   foreach( QGraphicsItem *i, items( e->pos() ) ) { 
-     if ( currentTool->acceptEventsFor( i ) ) ret.IT = i;
+   foreach( QGraphicsItem *i, items( e->pos() ) ) {
+     if ( currentTool->acceptEventsFor( i ) ) {
+       ret.IT = i;
+       break;
+     }
    }
  }
  return ret;
