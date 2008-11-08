@@ -37,6 +37,8 @@ QRectF wordItem::boundingRect() const {
 void wordItem::paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget ) {
   if (hilited) { 
     painter->fillRect(QRectF(0,0,w,h)/* bx->boundingBox()*/, QColor(255,255,0,128) );
+  } else {
+//    painter->drawRect(QRectF(0,0,w,h)/* bx->boundingBox()*/);
   }
 }
 
