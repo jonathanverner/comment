@@ -37,7 +37,7 @@ class hilightTool : public abstractTool {
 		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) { return NULL; };
 		virtual void newActionEvent( const QPointF *scPos );
 		virtual void editItem( abstractAnnotation *item ) { currentEditItem = item;};
-		virtual bool acceptEventsFor( QGraphicsItem *item ){return false;};
+		virtual bool acceptEventsFor( QGraphicsItem *item );
 		virtual bool handleEvent( viewEvent *ev );
 
 		friend class hilightAnnotation;
@@ -48,10 +48,13 @@ class hilightAnnotation : public abstractAnnotation {
 	private:
 		QList<QRectF> hBoxes;
 		QRectF bBox;
+		QPainterPath exactShape;
+		bool exShapeValid;
 
 		void updateBBox();
+		void finalizeBBox();
 	public:
-		hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL ): abstractAnnotation(tool), bBox(0,0,0,0) {};
+		hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL ): abstractAnnotation(tool), bBox(0,0,0,0),exShapeValid(false) {};
 		~hilightAnnotation() {};
 		
 
@@ -59,9 +62,12 @@ class hilightAnnotation : public abstractAnnotation {
 
 		void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
 		QRectF boundingRect() const {return bBox;};
+		QPainterPath shape() const;
 
 		static bool isA( PoDoFo::PdfAnnotation *annotation ) { return false;}
 		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { return; };
+
+		friend class hilightTool;
 
 };
 

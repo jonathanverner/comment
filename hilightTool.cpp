@@ -62,26 +62,46 @@ void hilightTool::updateCurrentAnnotation( QPointF ScenePos ) {
   return;
 }
 
+bool hilightTool::acceptEventsFor( QGraphicsItem *item ) {  
+  /*bool ret = */ return dynamic_cast<hilightAnnotation*>( item );
+/*  abstractAnnotation *a = dynamic_cast<abstractAnnotation*>( item );
+  if ( a ) qDebug() << "Checking item type" << a->getToolName();
+  if ( ret ) qDebug() << "Accepting event for item";
+  return ret;*/
+}
+
 bool hilightTool::handleEvent( viewEvent *ev ) { 
   hilightAnnotation *annot;
-  if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::LeftButton ) ) {
-
-    qDebug() << "Starting hilight at "<< ev->scenePos();
-    QPointF pos = ev->scenePos();
-    newActionEvent( &pos );
+  if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::RightButton ) ) {
+    if ( annot = dynamic_cast<hilightAnnotation*>(ev->item()) ) { 
+      qDebug() << "Editing hilight at "<< ev->scenePos();
+      editItem( annot );
+    } else {
+      ev->scene()->addRect(QRectF(ev->scenePos(), QSizeF(2,2)));
+      qDebug() << "Starting hilight at "<< ev->scenePos();
+      QPointF pos = ev->scenePos();
+      newActionEvent( &pos );
+    }
     return true;
-  } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
-    if ( ev->isClick() || ! (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) 
-      return false;
+  } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::RightButton ) ) { 
+    if ( ev->isClick() || ! (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) return false;
     qDebug() << "Finishing hilight at "<< ev->scenePos();
     updateCurrentAnnotation( ev->scenePos() );
+    annot->finalizeBBox();
     currentEditItem = NULL;
     return true;
   } else if ( ev->type() == viewEvent::VE_MOUSE_MOVE && (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) { 
     qDebug() << "Updating hilight at "<< ev->scenePos();
     updateCurrentAnnotation( ev->scenePos() );
+    qDebug() << "Current BBox:" << annot->boundingRect();
+    if ( ! (ev->btnState() & Qt::RightButton) ) { // Missed a mouse release, end editing annotation
+      qDebug() << "WARNING MISSED MOUSE RELEASE EVENT!!!";
+      annot->finalizeBBox();
+      currentEditItem=NULL;
+    };
     return true;
   }
+  return false;
 }
 
 
@@ -93,22 +113,51 @@ void hilightAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsItem
   }
 }
 
-void hilightAnnotation::updateBBox() {
+QPainterPath hilightAnnotation::shape() const { 
+//  if (exShapeValid) return exactShape;
+  QPainterPath tmp;
+  tmp.addRect(boundingRect());
+  return tmp;
+}
+
+void hilightAnnotation::finalizeBBox() { 
+  QPainterPath tmp;
+  update();
   prepareGeometryChange();
-  update( bBox );
   if (hBoxes.size() < 1 ) bBox = QRectF(0,0,0,0);
   else { 
     QRectF b = hBoxes.front();
     qreal minY=b.y(), minX=b.x(), maxY=minY+b.height(), maxX=minX+b.width();
     foreach( QRectF box, hBoxes ) { 
+      tmp.addRect(box);
       if ( box.y() < minY ) minY = box.y();
       if ( box.x() < minX ) minX = box.x();
       if ( box.y() + box.height() > maxY ) maxY = box.y() + box.height();
       if ( box.x() + box.width() > maxX ) maxX = box.x() + box.width();
     }
     bBox=QRectF(mapFromParent(QPointF(minX,minY)),mapFromParent(QPointF(maxY,maxX)));
-    qDebug() << "BBox: " << bBox;
+//    qDebug() << "BBox: " << bBox;
   }
+  exactShape=tmp;
+  exShapeValid=true;
+  update();
+};
+
+void hilightAnnotation::updateBBox() {
+  update();
+  prepareGeometryChange();
+  exShapeValid=false;
+    QRectF b = mapToParent(bBox).boundingRect();
+    qreal minY=b.y(), minX=b.x(), maxY=minY+b.height(), maxX=minX+b.width();
+    foreach( QRectF box, hBoxes ) { 
+      if ( box.y() < minY ) minY = box.y();
+      if ( box.x() < minX ) minX = box.x();
+      if ( box.y() + box.height() > maxY ) maxY = box.y() + box.height();
+      if ( box.x() + box.width() > maxX ) maxX = box.x() + box.width();
+    bBox=QRectF(mapFromParent(QPointF(minX,minY)),mapFromParent(QPointF(maxY,maxX)));
+//    qDebug() << "BBox: " << bBox;
+  }
+  update();
 };
 
 #include "hilightTool.moc"
