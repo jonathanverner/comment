@@ -37,6 +37,7 @@ class viewEvent {
 		QPointF SP;
 		QGraphicsScene *SC;
 		QGraphicsItem *IT;
+		abstractAnnotation *topMostAll;
 		Qt::MouseButton bt_caused;
 		Qt::MouseButtons bt_state;
 		QWidget *viewPort;

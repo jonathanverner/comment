@@ -17,6 +17,8 @@
 #include <QtGui/QPainter>
 #include <QtGui/QStyleOptionGraphicsItem>
 #include <QtGui/QLabel>
+#include <QtGui/QAction>
+#include <QtGui/QMenu>
 
 #include <QtCore/QDebug>
 
@@ -25,14 +27,53 @@
 #include "abstractTool.h"
 #include "myToolTip.h"
 #include "pageView.h"
+#include "pdfScene.h"
+
+
+abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
+	editArea(EditArea), scene(Scene), toolBar(ToolBar), currentEditItem( NULL ) {
+	  cntxMenu = new QMenu();
+	  QAction *delAct  = cntxMenu->addAction( "Delete" );
+	  QAction *proAct  = cntxMenu->addAction( "Properties...");
+	  connect( delAct, SIGNAL( triggered() ), this, SLOT( deleteCurrentAnnotation() ) );
+	  connect( proAct, SIGNAL( triggered() ), this, SLOT( editCurrentAnnotationProperties() ) );
+	}
+
+
+void abstractTool::deleteCurrentAnnotation() { 
+  if ( currentEditItem ) {
+    scene->removeItem( currentEditItem );
+    delete currentEditItem;
+  }
+  currentEditItem = NULL;
+}
+
+void abstractTool::hideEditor() { 
+  if ( editArea ) editArea->hide();
+}
+
+
+void abstractTool::editCurrentAnnotationProperties() { 
+  qDebug() << "Editing properties...";
+}
+
+QMenu *abstractTool::contextMenu( QGraphicsItem *it ) { 
+  currentEditItem = dynamic_cast<abstractAnnotation*>(it);
+  return cntxMenu;
+}
 
 /* Called by an item, which wants to be edited. The item passes
  * * a reference to itself */
 void abstractTool::editItem( abstractAnnotation *item ) {
-  currentEditItem = item;
-  editArea->setCurrentWidget( editor );
-  editArea->show();
-  editArea->setFocus();
+  if ( currentEditItem == item ) { 
+    currentEditItem = NULL;
+    editArea->hide();
+  } else {
+    currentEditItem = item;
+    editArea->setCurrentWidget( editor );
+    editArea->show();
+    editArea->setFocus();
+  }
 }
 
 bool abstractTool::handleEvent( viewEvent *ev ) { 
@@ -45,6 +86,10 @@ bool abstractTool::handleEvent( viewEvent *ev ) {
       return true;
     }
   } else return false;
+}
+
+QMenu *abstractAnnotation::contextMenu() { 
+  return myTool->contextMenu( this );
 }
 
 abstractAnnotation::abstractAnnotation( abstractTool *tool ):
@@ -71,7 +116,7 @@ void abstractAnnotation::setMyToolTip(const QString &richText) {
 
 
 
-bool abstractAnnotation::editSelf() { 
+bool abstractAnnotation::editSelf() {
   myTool->editItem( this );
   return true;
 }
@@ -126,7 +171,7 @@ void abstractAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsIte
   painter->drawPixmap( option->exposedRect, icon, option->exposedRect );
 }
 
-
+#include "abstractTool.moc"
 
 
 

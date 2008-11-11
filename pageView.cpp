@@ -15,6 +15,7 @@
 #include <QtGui/QKeyEvent>
 #include <QtGui/QGraphicsItem>
 #include <QtGui/QScrollBar>
+#include <QtGui/QMenu>
 #include "pageBeginItem.h"
 #include "pageView.h"
 #include "abstractTool.h"
@@ -55,6 +56,7 @@ viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) {
  ret.myType = tp;
  ret.SC = scene();
  ret.IT=NULL;
+ ret.topMostAll = dynamic_cast<abstractAnnotation*>(itemAt(e->pos()));
  ret.lastSP=mapToScene( lastMouseEvPos );
  ret.SP=mapToScene( e->pos() );
  ret.bt_caused = e->button();
@@ -121,7 +123,8 @@ void pageView::mouseMoveEvent( QMouseEvent *e ) {
       }
     }
     if ( toolTipItem && hide ) {
-      toolTipItem->hideToolTip();
+      myToolTip::hide();
+      if ( currentTool ) currentTool->hideEditor();
       toolTipItem = NULL;
     }
   }
@@ -141,8 +144,10 @@ void pageView::mousePressEvent( QMouseEvent *e ) {
 	}
       }
     }
-  }
-  if ( currentTool ) currentTool->handleEvent( &viewEv );
+    if ( currentTool ) currentTool->handleEvent( &viewEv );
+  } else if ( (viewEv.bt_caused & Qt::RightButton) && viewEv.topMostAll ) { // popup-menu
+    viewEv.topMostAll->contextMenu()->popup( e->pos() );
+  } else if ( currentTool ) currentTool->handleEvent( &viewEv );
 }
 
 
@@ -153,12 +158,12 @@ void pageView::mouseReleaseEvent( QMouseEvent *e ) {
   if ( currentTool ) {
     if ( currentTool->handleEvent( &viewEv ) ) return;
   };
-  if ( viewEv.isClick() ) {
+  if ( viewEv.isClick() && ( viewEv.bt_caused == Qt::LeftButton ) ) {
     abstractAnnotation *annot;
     foreach( QGraphicsItem *i, items( viewEv.evPos ) ) {
       if ( annot = dynamic_cast<abstractAnnotation*>( i ) ) { 
 	if ( annot->editSelf() ) return;
-	}
+      }
     }
   }
 }

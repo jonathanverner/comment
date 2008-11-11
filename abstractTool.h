@@ -31,6 +31,7 @@ class QGraphicsSceneHoverEvent;
 class toolBox;
 class viewEvent;
 class QLabel;
+class QMenu;
 
 namespace PoDoFo { 
   class PdfAnnotation;
@@ -42,6 +43,7 @@ namespace PoDoFo {
 class pdfCoords;
 
 class abstractTool : public QObject { 
+  Q_OBJECT
 	private:
 		QString toolName;
 
@@ -50,14 +52,19 @@ class abstractTool : public QObject {
 		toolBox *toolBar;
 		pdfScene *scene;
 		QWidget *editor;
+		QMenu *cntxMenu;
 		abstractAnnotation *currentEditItem;
 		QString author;
 
 
 		void setToolName( QString ToolName ) { toolName = ToolName; };
 
+	protected slots:
+		void deleteCurrentAnnotation();
+		void editCurrentAnnotationProperties();
+
 	public:
-		 abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea  ): editArea(EditArea), scene(Scene), toolBar(ToolBar), currentEditItem( NULL ) {} ;
+		 abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea  );
 
 		 QString getAuthor() const { return author; };
 		 void setAuthor( QString Author ) { author = Author; };
@@ -74,7 +81,9 @@ class abstractTool : public QObject {
 		 virtual void newActionEvent( const QPointF *scenePos ) = 0;
 
 
-		 /* Edit the item (i.e. show an editing widget, etc.) */
+		 /* Edit the item (i.e. show an editing widget, etc.),
+		  * if the item is currently already being edited, hide
+		  * it instead */
 		 virtual void editItem( abstractAnnotation *item );
 
 		 /* Called by the view when an event happens. Returns true, if
@@ -82,7 +91,12 @@ class abstractTool : public QObject {
 		 virtual bool handleEvent( viewEvent *ev );
 
 		 /* Returns true, if the tool handles events for the item it */
-		 virtual bool acceptEventsFor( QGraphicsItem *it )=0;
+		 virtual bool acceptEventsFor( QGraphicsItem *it ) = 0;
+
+		 /* Returns the context menu for the item *it */
+		 virtual QMenu *contextMenu( QGraphicsItem *it );
+
+		 virtual void hideEditor();
 
 		 friend class abstractAnnotation;
 
@@ -122,6 +136,9 @@ class abstractAnnotation : public QGraphicsItem {
 		bool showToolTip( const QPoint &scPos );
 		void hideToolTip();
 		bool editSelf();
+		 /* Returns the context menu for the item *it */
+                QMenu *contextMenu();
+
 		bool hasToolTip();
 
 		bool isMovable() { return movable; };
