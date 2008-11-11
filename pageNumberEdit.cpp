@@ -37,6 +37,7 @@ pageNumberEdit::pageNumberEdit( QWidget *main ):
     actionWidget->addAction( nextAct );
     actionWidget->addAction( prevAct );
   }
+  setMaximumSize(200,300);
 }
 
 /* Guarantees that the cursor stays within the editable part

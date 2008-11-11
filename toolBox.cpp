@@ -34,7 +34,9 @@ void myAction::activate() {
   /* If mainWin != NULL, then new actions will also be
    * added to mainWin, so that their shortcuts work when mainWin
    * has focus */
-toolBox::toolBox( QWidget *mainWin ) : QToolBar( mainWin ), curTool( NULL ), actionWidget(mainWin) {
+toolBox::toolBox( QWidget *mainWin ) : QToolBar( mainWin ), curTool( NULL ), actionWidget(mainWin), left(false), firstAction(NULL) {
+  setAutoFillBackground( true );
+  left=false;
 }
 
 
@@ -44,6 +46,7 @@ void toolBox::setCurrentTool( abstractTool *tool ) {
 //  emit toolChanged();
   emit toolActivated( tool );
 }
+
 
 void toolBox::addTool( const QIcon &icon, abstractTool *tool ) {
   if ( tools.contains( tool ) ) return;
@@ -56,10 +59,12 @@ void toolBox::addTool( const QIcon &icon, abstractTool *tool ) {
   if ( left ) { // last tool was inserted on the left of the page number edit
                 // so now we insert to the right
     addAction( toolAction );
+    qDebug() << "Adding to the right";
     left = false;
   } else { // otherwise we insert to the left
     insertAction( firstAction, toolAction );
     firstAction = toolAction;
+    qDebug() << "Adding to the left";
     left = true;
   }
 }

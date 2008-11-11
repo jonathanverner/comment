@@ -37,14 +37,15 @@ mainWindow::mainWindow() {
   editor = new QStackedWidget( this );
   numberEdit = new pageNumberEdit( this );
 
-  toolBar->addWidget( numberEdit );
+
   textAnnotTool = new textTool( scene, toolBar, editor );
   textAnnotTool->setAuthor( "Jonathan Verner" );
+  toolBar->addWidget( numberEdit );
   hilightTool *hiTool = new hilightTool( scene, toolBar, editor );
   hiTool->setAuthor( "Jonathan Verner" );
   scene->registerTool( hiTool );
-
   scene->registerTool( textAnnotTool );
+  toolBar->resize( pgView->width(), 50 );
 
 
 
@@ -85,6 +86,7 @@ mainWindow::mainWindow() {
   mainLayout->setSpacing( 0 );
   mainLayout->setContentsMargins( 0, 0, 0, 0 );
   setLayout( mainLayout );
+
   editor->hide();
 }
 
@@ -102,7 +104,10 @@ void mainWindow::save() {
 
 void mainWindow::mouseNearBorder( const QPoint &pos ) { 
   QPoint localPos = mapFromGlobal( pos );
-  if ( localPos.y() < toolBar->height()-10 ) toolBar->show();
+  if ( localPos.y() < toolBar->height()-10 ) {
+    if ( ! toolBar->isVisible() ) toolBar->resize( pgView->width(), toolBar->height() );
+    toolBar->show();
+  }
   else toolBar->hide();
 }
 
