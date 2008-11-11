@@ -46,6 +46,7 @@ textTool::textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea)
 	abstractTool( Scene, ToolBar, EditArea )
 {
   setToolName( "Text Tool" );
+
   if ( ! icon ) icon = new QPixmap( "comment.png" );
   QTextEdit *edt = new QTextEdit( EditArea );
   editor = edt;
@@ -84,7 +85,7 @@ void textTool::updateComment() {
 textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment, pdfCoords *transform ):
 	abstractAnnotation( tool )
 {
-  setIcon( *textTool::icon );
+  setIcon( textTool::icon->scaledToHeight(20) );
   if ( isA( Comment ) ) {
     setAuthor( pdfUtil::pdfStringToQ( Comment->GetTitle() ) );
     setText( pdfUtil::pdfStringToQ( Comment->GetContents() ) );
