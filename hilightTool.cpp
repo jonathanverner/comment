@@ -72,7 +72,7 @@ bool hilightTool::acceptEventsFor( QGraphicsItem *item ) {
 
 bool hilightTool::handleEvent( viewEvent *ev ) { 
   hilightAnnotation *annot;
-  if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::RightButton ) ) {
+  if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::LeftButton ) ) {
     if ( annot = dynamic_cast<hilightAnnotation*>(ev->item()) ) { 
       qDebug() << "Editing hilight at "<< ev->scenePos();
       editItem( annot );
@@ -83,7 +83,7 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
       newActionEvent( &pos );
     }
     return true;
-  } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::RightButton ) ) { 
+  } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
     if ( ev->isClick() || ! (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) return false;
     qDebug() << "Finishing hilight at "<< ev->scenePos();
     updateCurrentAnnotation( ev->scenePos() );
@@ -94,7 +94,7 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
     qDebug() << "Updating hilight at "<< ev->scenePos();
     updateCurrentAnnotation( ev->scenePos() );
     qDebug() << "Current BBox:" << annot->boundingRect();
-    if ( ! (ev->btnState() & Qt::RightButton) ) { // Missed a mouse release, end editing annotation
+    if ( ! (ev->btnState() & Qt::LeftButton) ) { // Missed a mouse release, end editing annotation
       qDebug() << "WARNING MISSED MOUSE RELEASE EVENT!!!";
       annot->finalizeBBox();
       currentEditItem=NULL;
