@@ -26,17 +26,16 @@
 
 QPixmap *textTool::icon = NULL;
 
-bool textTool::acceptEventsFor( QGraphicsItem *item ) { 
-  if ( dynamic_cast<textAnnotation*>(item) ) return true;
+bool textTool::acceptEventsFor( QGraphicsItem *item ) {
+  if ( dynamic_cast<textAnnotation*>(item) ) {
+    return true;
+  }
   return false;
 }
 
 void textTool::editItem( abstractAnnotation *item ) { 
-  qDebug()<<"Editing... textAnnotation";
-  currentEditItem = item;
+  abstractTool::editItem( item );
   QTextEdit *edt = dynamic_cast<QTextEdit*>(editor);
-  editArea->setCurrentWidget( editor );
-  editArea->show();
   edt->setText( dynamic_cast<textAnnotation*>(item)->getText() );
   edt->setFocus();
 }
@@ -70,8 +69,8 @@ void textTool::newActionEvent( const QPointF *ScenePos ) {
   qDebug() << "Creating new Annotation at " << *ScenePos;
   textAnnotation *annot = new textAnnotation( this );
   annot->setAuthor( author );
-  scene->placeAnnotation( annot, ScenePos );
   annot->setZValue( 10 );
+  scene->placeAnnotation( annot, ScenePos );
   editItem( annot );
 }
 
