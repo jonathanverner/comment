@@ -149,6 +149,7 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
   for(int i = 0; i < numPages; i++ ) {
     pageItem = new pdfPageItem( pdf->page( i ) );
     pageItem->setPageNum( i );
+    pageItem->setZValue( 0 );
     addItem( pageItem );
     pageItem->setPos(leftSkip,y);
     pageCorners.append( QPointF( leftSkip, y ) );
@@ -276,21 +277,25 @@ pdfPageItem *pdfScene::getPageItem( int pgNum ) {
 
 
 
-int pdfScene::posToPage( const QPointF &scenePos ) {
-  /* Just in case we have numPages > pageCorners.size();
-   * (This can happen when loading a file, because
-   *  we initialize numPages right away, but only
-   *  initialize pageCorners after some processing */
-  int max = pageCorners.size();  
-  qreal y=0, limit = scenePos.y();
-  int i=0;
-  for(;i<max;i++) {
-    y+=pageCorners[i].y();
-    if ( y >= limit ) break;
+int pdfScene::posToPage( const QPointF &scenePos ) { 
+  qreal pos = scenePos.y();
+  int min = 0, max = pageCorners.size()-1, pivot=min+(max-min)/2,dist;
+  if ( max < min ) return min;
+  qreal pivotVal;
+  while( min < max ) { 
+    dist=(max-min);
+    pivotVal = pageCorners[pivot].y();
+    if ( pos < pivotVal ) max = pivot;
+    else if (pivotVal < pos ) min = pivot;
+    else return pivot;
+    pivot = min+(max-min)/2;
+    if ( (max-min) >=dist ) {
+      if ( pageCorners[max].y() < pos ) return max;
+      return min;
+    }
   }
-  if ( i > 0 ) return i-1;
-  return 0;
-}
+  return pivot;
+};
 
 
 QPointF pdfScene::topLeftPage( int page ) {
