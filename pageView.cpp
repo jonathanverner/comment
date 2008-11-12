@@ -138,6 +138,7 @@ void pageView::mousePressEvent( QMouseEvent *e ) {
     foreach( QGraphicsItem *i, items( viewEv.evPos ) ) {
       if ( annot = dynamic_cast<abstractAnnotation*>( i ) ) { 
 	if ( annot->isMovable() ) {
+	  qDebug() << " Moving annotation ";
 	  movingItem = i;
 	  moveDelta = annot->scenePos() - viewEv.SP;
 	  return;
@@ -146,7 +147,7 @@ void pageView::mousePressEvent( QMouseEvent *e ) {
     }
     if ( currentTool ) currentTool->handleEvent( &viewEv );
   } else if ( (viewEv.bt_caused & Qt::RightButton) && viewEv.topMostAll ) { // popup-menu
-    viewEv.topMostAll->contextMenu()->popup( e->pos() );
+    viewEv.topMostAll->contextMenu()->popup( e->globalPos() );
   } else if ( currentTool ) currentTool->handleEvent( &viewEv );
 }
 
