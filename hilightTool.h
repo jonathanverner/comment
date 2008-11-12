@@ -49,16 +49,12 @@ class hilightAnnotation : public abstractAnnotation {
 		QList<QRectF> hBoxes;
 		QRectF bBox;
 		QPainterPath exactShape;
-		bool exShapeValid;
-
-		void updateBBox();
-		void finalizeBBox();
 	public:
-		hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL ): abstractAnnotation(tool), bBox(0,0,0,0),exShapeValid(false) {};
+		hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL ): abstractAnnotation(tool), bBox(0,0,0,0) {movable=false;};
 		~hilightAnnotation() {};
 		
 
-		void updateSelection( QList<QRectF> newSelection ) { hBoxes = newSelection; updateBBox(); };
+		void updateSelection( QList<QRectF> newSelection );
 
 		void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
 		QRectF boundingRect() const {return bBox;};
