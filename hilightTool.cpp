@@ -19,6 +19,7 @@
 #include "toolBox.h"
 #include "pdfScene.h"
 #include "pdfPageItem.h"
+#include "pdfUtil.h"
 
 QPixmap *hilightTool::icon = NULL;
 
@@ -98,6 +99,10 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
   return false;
 }
 
+abstractAnnotation *hilightTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
+  if ( ! hilightAnnotation::isA( annotation ) ) return NULL;
+  return new hilightAnnotation( this, annotation, transform );
+}
 
 
 void hilightAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget ) {
@@ -127,6 +132,51 @@ void hilightAnnotation::updateSelection( QList<QRectF> newSelection ) {
   bBox = tmp.boundingRect();
   exactShape=tmp;
   update();
+}
+
+hilightAnnotation::hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot, pdfCoords *transform): 
+	abstractAnnotation(tool), bBox(0,0,0,0) {
+	  movable=false;
+	  if ( isA( hilightAnnot ) ) {
+	    setAuthor( pdfUtil::pdfStringToQ( hilightAnnot->GetTitle() ) );
+	    //setText( pdfUtil::pdfStringToQ( Comment->GetContents() ) );
+	    PoDoFo::PdfRect ps = hilightAnnot->GetRect();
+	    setPos( transform->pdfToScene( &ps ) );
+	    PoDoFo::PdfArray quadPoints = hilightAnnot->GetQuadPoints();
+	    QRectF tmp;
+	    QList<QRectF> boxes = pdfUtil::quadPointsToQBoxes( quadPoints, transform );
+	    foreach( QRectF box, boxes ) { 
+	      tmp =  QRectF( box.x()-pos().x(), box.y()-pos().y(), box.width(), box.height() );
+	      qDebug() << "Box:" << box << "->" << tmp;
+	      hBoxes.append( tmp );
+	      exactShape.addRect( tmp );
+	    }
+	    bBox = exactShape.boundingRect();
+	  }
+	  setZValue( 10 );
+};
+
+bool hilightAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) { 
+  if ( ! annotation ) return false;
+  return ( annotation->GetType() == PoDoFo::ePdfAnnotation_Highlight );
+}
+void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { 
+  qDebug() << "Saving HILIGHT annotation: " << pos();
+  QList<QRectF> pageBoxes;
+  foreach( QRectF box, hBoxes ) { 
+    pageBoxes.append( mapToParent(box).boundingRect() );
+  }
+  PoDoFo::PdfRect *brect = coords->sceneToPdf( pos() );
+  PoDoFo::PdfArray quadPoints =  pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
+  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Highlight, *brect, &quadPoints );
+  try { 
+    annot->SetOpen( false );
+//    annot->SetContents( pdfUtil::qStringToPdf( comment ) );
+    annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
+  } catch ( PoDoFo::PdfError error ) { 
+    qDebug() << "Error setting annotation properties:" << error.what();
+  }
+  delete brect;
 }
 
 
