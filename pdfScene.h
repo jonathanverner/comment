@@ -36,24 +36,8 @@ namespace Poppler {
   class Document;
 }
 
-/* pdfCoords --- translates from the pdfPageItem coordinates (top,left)-based
- *               into the PDF coordinages (bottom, left) based. For this it
- *               needs to know the dimension of the particular page, which
- *               the constructor/setPage method extracts from their parameters
- */
-class pdfCoords { 
-	private:
-		qreal pgSize;
-	public:
-		pdfCoords( PoDoFo::PdfPage *pg = NULL );
-		void setPage( PoDoFo::PdfPage *pg );
 
-
-		QPointF pdfToScene( PoDoFo::PdfRect *pos );
-		PoDoFo::PdfRect *sceneToPdf( const QPointF &pos );
-		PoDoFo::PdfRect *sceneToPdf( const QRectF &rect );
-};
-
+class pdfCoords;
 
 class pdfScene : public QGraphicsScene {
 	private:

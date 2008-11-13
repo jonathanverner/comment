@@ -25,34 +25,8 @@
 #include "pageBeginItem.h"
 #include "wordItem.h"
 #include "textLayer.h"
+#include "pdfUtil.h"
 
-
-pdfCoords::pdfCoords( PoDoFo::PdfPage *pg ) { 
-  if ( pg ) setPage( pg );
-  else pgSize = 0;
-}
-
-void pdfCoords::setPage( PoDoFo::PdfPage *pg ) { 
-  if ( pg ) pgSize = pg->GetPageSize().GetHeight();
-  else {
-    pgSize = 0;
-    qWarning() << "pdfCoords: Warning, calling setPage with a null pointer;";
-  }
-}
-
-
-QPointF pdfCoords::pdfToScene( PoDoFo::PdfRect *pos ) { 
-  QPointF ret( pos->GetLeft()-pos->GetWidth(), pgSize-pos->GetBottom()-pos->GetHeight() );
-  return ret;
-}
-
-PoDoFo::PdfRect *pdfCoords::sceneToPdf( const QPointF &pos ) { 
-  return new PoDoFo::PdfRect( pos.x(), pgSize-pos.y(), 0, 0 );
-}
-
-PoDoFo::PdfRect *pdfCoords::sceneToPdf( const QRectF &rect ) { 
-  return new PoDoFo::PdfRect( rect.x(), pgSize-(rect.y()+rect.height()), rect.width(), rect.height() );
-}
 
 
 pdfScene::pdfScene(): 
