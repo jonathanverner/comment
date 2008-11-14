@@ -173,6 +173,8 @@ int textLayer::findLine( qreal y ) {
 };
 
 QList<QRectF> textLayer::select( QPointF from, QPointF to ) { 
+ QList<QRectF> ret;
+ if ( lines.size() < 1 ) return ret;
  int startLine = findLine( from.y() ), endLine = findLine( to.y() );
  qreal slineX = from.x(), elineX = to.x();
  if ( startLine > endLine ) {
@@ -181,7 +183,6 @@ QList<QRectF> textLayer::select( QPointF from, QPointF to ) {
    startLine -=endLine; slineX -=elineX;
  }
  qDebug() << "testLayer::select " << startLine << " - " << endLine;
- QList<QRectF> ret;
   // The code needs to be checked for correctnes when we are in fact selecting backwards
  if ( startLine == endLine ) {
    if ( slineX < elineX ) return lines[startLine]->interval( slineX, elineX );
