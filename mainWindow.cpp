@@ -38,14 +38,16 @@ mainWindow::mainWindow() {
   numberEdit = new pageNumberEdit( this );
 
 
+
+  toolBar->addWidget( numberEdit );
+
   textAnnotTool = new textTool( scene, toolBar, editor );
   textAnnotTool->setAuthor( "Jonathan Verner" );
-  toolBar->addWidget( numberEdit );
   hilightTool *hiTool = new hilightTool( scene, toolBar, editor );
   hiTool->setAuthor( "Jonathan Verner" );
   scene->registerTool( hiTool );
   scene->registerTool( textAnnotTool );
-  toolBar->resize( pgView->width(), 50 );
+  toolBar->resize( pgView->width(), toolBar->height()+10 );
 
 
 
@@ -56,21 +58,25 @@ mainWindow::mainWindow() {
   QAction *saveAct = new QAction( pgView );
   QAction *zoomInAct = new QAction( pgView );
   QAction *zoomOutAct = new QAction( pgView );
+  QAction *pageGotoAct = new QAction( pgView );
 
   saveAct->setShortcut((QString) "Ctrl+S");
   quitAct->setShortcut((QString) "Ctrl+Q");
   zoomInAct->setShortcut((QString) "Ctrl++");
   zoomOutAct->setShortcut((QString) "Ctrl+-");
+  pageGotoAct->setShortcut( (QString) "F6" );
 
   pgView->addAction(zoomInAct);
   pgView->addAction(zoomOutAct);
   pgView->addAction(quitAct);
   pgView->addAction(saveAct);
+  pgView->addAction(pageGotoAct);
 
   connect( quitAct, SIGNAL( triggered() ), this, SIGNAL( quit() ) );
   connect( saveAct, SIGNAL( triggered() ), this, SLOT( save() ) );
   connect( zoomInAct, SIGNAL( triggered() ), pgView, SLOT( zoomIN() ) );
   connect( zoomOutAct, SIGNAL( triggered() ), pgView, SLOT( zoomOUT() ) );
+  connect( pageGotoAct, SIGNAL( triggered() ), this, SLOT( pageNumEdit() ) );
   connect( numberEdit, SIGNAL( prevPage() ), pgView, SLOT( prevPage() ) );
   connect( numberEdit, SIGNAL( nextPage() ), pgView, SLOT( nextPage() ) );
   connect( numberEdit, SIGNAL( gotoPage(int) ), pgView, SLOT( gotoPage(int) ) );
@@ -101,6 +107,15 @@ void mainWindow::save() {
     qWarning() << "mainWindow::save(): pdfScene is a null pointer";
   }
 }
+
+
+void mainWindow::pageNumEdit() { 
+    if ( ! toolBar->isVisible() ) toolBar->resize( pgView->width(), toolBar->height() );
+    toolBar->show();
+    numberEdit->setFocus();
+    numberEdit->selectNumber();
+}
+ 
 
 void mainWindow::mouseNearBorder( const QPoint &pos ) { 
   QPoint localPos = mapFromGlobal( pos );

@@ -49,6 +49,7 @@ class mainWindow : public QWidget {
 
 	protected slots:
 		void mouseNearBorder(const QPoint &pos);
+		void pageNumEdit();
 		void save();
 	signals:
 		void quit();

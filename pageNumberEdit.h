@@ -52,6 +52,8 @@ class pageNumberEdit : public QToolBar {
 
 	public slots:
 		void setPageNumber(int pgNum);
+		void selectNumber();
+		void setFocus();
 
 
 

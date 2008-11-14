@@ -131,5 +131,12 @@ void pageNumberEdit::wantPrev() {
   }
 }
 
+void pageNumberEdit::selectNumber() { 
+  pageEdit->setSelection(0,getPagePartOfEdit().size());
+}
+
+void pageNumberEdit::setFocus() {
+  pageEdit->setFocus();
+}
 
 #include "pageNumberEdit.moc"

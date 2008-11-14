@@ -15,6 +15,7 @@
 
 #include <QtGui/QAction>
 #include <QtGui/QLineEdit>
+#include <QtGui/QPainter>
 
 #include "toolBox.h"
 #include "abstractTool.h"
@@ -56,17 +57,17 @@ void toolBox::addTool( const QIcon &icon, abstractTool *tool ) {
   toolAction->setShortcut( QString("Ctrl+")+QString::number( tools.size() ) );
   if ( actionWidget ) actionWidget->addAction( toolAction );
   connect( toolAction, SIGNAL( triggered(abstractTool*) ), this, SLOT( setCurrentTool(abstractTool*) ) );
-  if ( left ) { // last tool was inserted on the left of the page number edit
+//  if ( left ) { // last tool was inserted on the left of the page number edit
                 // so now we insert to the right
     addAction( toolAction );
-    qDebug() << "Adding to the right";
+/*    qDebug() << "Adding to the right";
     left = false;
   } else { // otherwise we insert to the left
     insertAction( firstAction, toolAction );
     firstAction = toolAction;
     qDebug() << "Adding to the left";
     left = true;
-  }
+  }*/
 }
 
 /* FIXME: does not reorder the actions so that the difference between
@@ -94,6 +95,7 @@ void toolBox::leaveEvent( QEvent *e ) {
   hide();
   QWidget::leaveEvent( e );
 }
+
 
 #include "toolBox.moc"
 #include "myAction.moc"
