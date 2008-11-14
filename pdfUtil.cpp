@@ -32,27 +32,23 @@ void pdfCoords::setPage( PdfPage *pg ) {
   }
 }
 
-
+/* 
+ * FIXME: PDF<->QGraphicsScene coordinate conversion
+ *        needs to be fixed. !!!! 
+ *        It's weird that when saving, we need to subtract
+ *        from y as we also do when loading. This should
+ *        gradually accumulate, but it isn't happening,
+ *        so there is a bug somewhere. We only need to
+ *        find it :-(
+ * */
 QPointF pdfCoords::pdfToScene( PdfRect *pos ) { 
-  QPointF ret( pos->GetLeft()-pos->GetWidth(), pgSize-pos->GetBottom()-pos->GetHeight() );
+  QPointF ret( (pos->GetLeft()-pos->GetWidth())-8, (pgSize-pos->GetBottom()-pos->GetHeight())-8 );
   return ret;
 }
 
 PdfRect *pdfCoords::sceneToPdf( const QPointF &pos ) { 
-  return new PdfRect( pos.x(), pgSize-pos.y(), 0, 0 );
+  return new PdfRect( pos.x()+8, (pgSize-pos.y())-8, 0, 0 );
 }
-
-PdfRect *pdfCoords::sceneToPdf( const QRectF &rect ) { 
-  return new PdfRect( rect.x(), pgSize-(rect.y()+rect.height()), rect.width(), rect.height() );
-}
-
-
-
-
-
-
-
-
 
 
 PdfString pdfUtil::qStringToPdf( QString str ) { 

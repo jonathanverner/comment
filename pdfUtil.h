@@ -40,7 +40,6 @@ class pdfCoords {
 
 		QPointF pdfToScene( PoDoFo::PdfRect *pos );
 		PoDoFo::PdfRect *sceneToPdf( const QPointF &pos );
-		PoDoFo::PdfRect *sceneToPdf( const QRectF &rect );
 };
 
 
