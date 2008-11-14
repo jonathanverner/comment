@@ -12,6 +12,8 @@
  ***************************************************************/
 #include <QtCore/QDebug>
 #include <QtGui/QIcon>
+#include <QtGui/QStackedWidget>
+
 
 #include "hilightTool.h"
 #include "pageView.h"
@@ -31,14 +33,12 @@ hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *Edi
   toolBar->addTool( QIcon(*icon), this );
 }
 
-hilightTool::~hilightTool() { 
-  toolBar->removeTool( this );
-};
 
 void hilightTool::newActionEvent( const QPointF *ScenePos ) {
   hilightAnnotation *hi = new hilightAnnotation(this);
   scene->placeAnnotation( hi, ScenePos );
   hi->setZValue( 9 );
+  qDebug() << "Editing item";
   editItem( hi );
 }
 
@@ -52,7 +52,6 @@ void hilightTool::updateCurrentAnnotation( QPointF ScenePos ) {
 	  if ( dynamic_cast<pdfPageItem*>(item) ) { 
 	    foreach( QGraphicsItem *i, item->children() ) { 
 	      if ( txt = dynamic_cast<textLayer*>(i) ) {
-	//	qDebug() << "annot->updateSelection( txt->select("<<from<<","<<to<<") );";
 		annot->updateSelection( txt->select( from, to ) );
 		return;
 	      }
@@ -71,28 +70,28 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
   hilightAnnotation *annot;
   if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::LeftButton ) ) {
     if ( annot = dynamic_cast<hilightAnnotation*>(ev->item()) ) { 
-//      qDebug() << "Editing hilight at "<< ev->scenePos();
       editItem( annot );
     } else {
-//      ev->scene()->addRect(QRectF(ev->scenePos(), QSizeF(2,2)));
-//      qDebug() << "Starting hilight at "<< ev->scenePos();
       QPointF pos = ev->scenePos();
       newActionEvent( &pos );
     }
     return true;
   } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
-    if ( ev->isClick() || ! (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) return false;
-//    qDebug() << "Finishing hilight at "<< ev->scenePos();
+    if ( ! (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) return false;
+    if ( ev->isClick() ) {
+      return true;
+    }
     updateCurrentAnnotation( ev->scenePos() );
     currentEditItem = NULL;
+    editArea->hide();
     return true;
   } else if ( ev->type() == viewEvent::VE_MOUSE_MOVE && (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) { 
-//    qDebug() << "Updating hilight at "<< ev->scenePos();
     updateCurrentAnnotation( ev->scenePos() );
-//    qDebug() << "Current BBox:" << annot->boundingRect();
-    if ( ! (ev->btnState() & Qt::LeftButton) ) { // Missed a mouse release, end editing annotation
+     if ( ! (ev->btnState() & Qt::LeftButton) ) { // Missed a mouse release, end editing annotation
       qDebug() << "WARNING MISSED MOUSE RELEASE EVENT!!!";
       currentEditItem=NULL;
+      editArea->hide();
+      return true;
     };
     return true;
   }
@@ -135,13 +134,9 @@ void hilightAnnotation::updateSelection( QList<QRectF> newSelection ) {
 }
 
 hilightAnnotation::hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot, pdfCoords *transform): 
-	abstractAnnotation(tool), bBox(0,0,0,0) {
+	abstractAnnotation(tool, hilightAnnot, transform), bBox(0,0,0,0) {
 	  movable=false;
 	  if ( isA( hilightAnnot ) ) {
-	    setAuthor( pdfUtil::pdfStringToQ( hilightAnnot->GetTitle() ) );
-	    //setText( pdfUtil::pdfStringToQ( Comment->GetContents() ) );
-	    PoDoFo::PdfRect ps = hilightAnnot->GetRect();
-	    setPos( transform->pdfToScene( &ps ) );
 	    PoDoFo::PdfArray quadPoints = hilightAnnot->GetQuadPoints();
 	    QRectF tmp;
 	    QList<QRectF> boxes = pdfUtil::quadPointsToQBoxes( quadPoints, transform );
@@ -153,7 +148,7 @@ hilightAnnotation::hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *
 	    }
 	    bBox = exactShape.boundingRect();
 	  }
-	  setZValue( 10 );
+	  setZValue( 9 );
 };
 
 bool hilightAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) { 
@@ -161,7 +156,7 @@ bool hilightAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
   return ( annotation->GetType() == PoDoFo::ePdfAnnotation_Highlight );
 }
 void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { 
-  qDebug() << "Saving HILIGHT annotation: " << pos();
+  qDebug() << "Saving HILIGHT annotation for "<<getAuthor()<<" : " << pos();
   QList<QRectF> pageBoxes;
   foreach( QRectF box, hBoxes ) { 
     pageBoxes.append( mapToParent(box).boundingRect() );
@@ -169,13 +164,7 @@ void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::Pd
   PoDoFo::PdfRect *brect = coords->sceneToPdf( pos() );
   PoDoFo::PdfArray quadPoints =  pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
   PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Highlight, *brect, &quadPoints );
-  try { 
-    annot->SetOpen( false );
-//    annot->SetContents( pdfUtil::qStringToPdf( comment ) );
-    annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
-  } catch ( PoDoFo::PdfError error ) { 
-    qDebug() << "Error setting annotation properties:" << error.what();
-  }
+  saveInfo2PDF( annot );
   delete brect;
 }
 

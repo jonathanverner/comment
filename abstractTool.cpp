@@ -19,6 +19,8 @@
 #include <QtGui/QLabel>
 #include <QtGui/QAction>
 #include <QtGui/QMenu>
+#include <QtGui/QTextEdit>
+#include <QtGui/QTabWidget>
 
 #include <QtCore/QDebug>
 
@@ -28,16 +30,42 @@
 #include "myToolTip.h"
 #include "pageView.h"
 #include "pdfScene.h"
+#include "toolBox.h"
+#include "pdfUtil.h"
 
 
 abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
 	editArea(EditArea), scene(Scene), toolBar(ToolBar), currentEditItem( NULL ) {
 	  cntxMenu = new QMenu();
+	
+	  contentEdit = new QTextEdit( EditArea );
+	  editor = new QTabWidget( EditArea );
+	  editor->addTab( contentEdit, QString( "Content" ) );
+  	
+	  connect( contentEdit, SIGNAL( textChanged() ), this, SLOT( updateContent() ) );
+	  editArea->addWidget( editor );
+
 	  QAction *delAct  = cntxMenu->addAction( "Delete" );
 	  QAction *proAct  = cntxMenu->addAction( "Properties...");
 	  connect( delAct, SIGNAL( triggered() ), this, SLOT( deleteCurrentAnnotation() ) );
 	  connect( proAct, SIGNAL( triggered() ), this, SLOT( editCurrentAnnotationProperties() ) );
 	}
+
+abstractTool::~abstractTool() {
+  editArea->removeWidget( editor );
+  toolBar->removeTool( this );
+  if ( editor ) delete editor;
+}
+
+void abstractTool::updateContent() {
+  if ( ! currentEditItem ) return;
+  currentEditItem->setContent( contentEdit->toPlainText() );
+}
+
+void abstractAnnotation::setContent( QString Content ) { 
+  content = Content;
+  setMyToolTip( content );
+}
 
 
 void abstractTool::deleteCurrentAnnotation() { 
@@ -72,15 +100,17 @@ void abstractTool::editItem( abstractAnnotation *item ) {
     currentEditItem = item;
     editArea->setCurrentWidget( editor );
     editArea->show();
-    editArea->setFocus();
+    contentEdit->setText( item->getContent() );
+    contentEdit->setFocus();
+    editor->setCurrentIndex( 0 );
   }
 }
 
 bool abstractTool::handleEvent( viewEvent *ev ) { 
   if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
     QPointF pos=ev->scenePos(), delta = ev->sceneDelta();
-    abstractAnnotation *annot = dynamic_cast<abstractAnnotation*>(ev->item());
     if ( ev->isClick() ) { 
+      abstractAnnotation *annot = ev->topItem();
       if ( annot ) editItem( annot );
       else newActionEvent( &pos );
       return true;
@@ -96,7 +126,19 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool ):
 	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ), haveToolTip(false), showingToolTip(false), movable( true )
 {
   setAcceptsHoverEvents( true );
+  setAuthor( tool->getAuthor() );
 }
+
+abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotation *annot, pdfCoords *transform ):
+	myTool( tool ), haveToolTip( false ), showingToolTip( false ), movable( true )
+{ 
+  setAcceptsHoverEvents( true );
+  setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
+  setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
+  PoDoFo::PdfRect ps = annot->GetRect();
+  setPos( transform->pdfToScene( &ps ) );
+}
+
 
 void abstractAnnotation::setMyToolTip(const QPixmap &pixMap) {
   setAcceptsHoverEvents(true);
@@ -170,6 +212,17 @@ QRectF abstractAnnotation::boundingRect() const {
 void abstractAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget ) {
   painter->drawPixmap( option->exposedRect, icon, option->exposedRect );
 }
+
+void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) { 
+  try { 
+    annot->SetOpen( false );
+    annot->SetContents( pdfUtil::qStringToPdf( getContent() ) );
+    annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
+  } catch ( PoDoFo::PdfError error ) { 
+    qWarning() << "Error setting annotation properties:" << error.what();
+  }
+}
+
 
 #include "abstractTool.moc"
 

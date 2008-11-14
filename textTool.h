@@ -26,27 +26,16 @@ class textTool : public abstractTool {
 
 	public:
 		textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
-		~textTool();
 
 		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
 		virtual void newActionEvent( const QPointF *ScenePos );
-		virtual void editItem( abstractAnnotation *item );
 		virtual bool acceptEventsFor( QGraphicsItem *item );
 		friend class textAnnotation;
-
-	protected slots:
-		void updateComment();
 };
 
 class textAnnotation : public abstractAnnotation { 
-	private:
-		QString comment;
 	public:
 		textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *textAnnot = NULL, pdfCoords *transform = NULL );
-		~textAnnotation();
-
-		void setText(QString comment);
-		QString getText() { return comment;}
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
 		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 

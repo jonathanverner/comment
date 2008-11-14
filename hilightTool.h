@@ -32,11 +32,9 @@ class hilightTool : public abstractTool {
 
 	public:
 		hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
-	         ~hilightTool();
 
 		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
 		virtual void newActionEvent( const QPointF *scPos );
-		virtual void editItem( abstractAnnotation *item ) { currentEditItem = item;};
 		virtual bool acceptEventsFor( QGraphicsItem *item );
 		virtual bool handleEvent( viewEvent *ev );
 

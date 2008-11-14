@@ -53,6 +53,7 @@ class viewEvent {
 		QPointF sceneDelta() { return SP-lastSP; };
 		QGraphicsScene *scene() { return SC;};
 		QGraphicsItem *item() { return IT;};
+		abstractAnnotation *topItem() { return topMostAll;};
 		eventType type() { return myType;};
 		bool isClick();
 

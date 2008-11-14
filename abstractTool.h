@@ -32,6 +32,8 @@ class toolBox;
 class viewEvent;
 class QLabel;
 class QMenu;
+class QTabWidget;
+class QTextEdit;
 
 namespace PoDoFo { 
   class PdfAnnotation;
@@ -46,15 +48,16 @@ class abstractTool : public QObject {
   Q_OBJECT
 	private:
 		QString toolName;
+		QString author;
 
 	protected:
 		QStackedWidget *editArea;
 		toolBox *toolBar;
 		pdfScene *scene;
-		QWidget *editor;
+		QTabWidget *editor;
+		QTextEdit *contentEdit;
 		QMenu *cntxMenu;
 		abstractAnnotation *currentEditItem;
-		QString author;
 
 
 		void setToolName( QString ToolName ) { toolName = ToolName; };
@@ -62,12 +65,14 @@ class abstractTool : public QObject {
 	protected slots:
 		void deleteCurrentAnnotation();
 		void editCurrentAnnotationProperties();
+		void updateContent();
 
 	public:
 		 abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea  );
+		 ~abstractTool();
 
 		 QString getAuthor() const { return author; };
-		 void setAuthor( QString Author ) { author = Author; };
+		 void setAuthor( QString Author ) { author = Author;};
 
 		 QString getToolName() { return toolName; };
 
@@ -110,7 +115,7 @@ class abstractAnnotation : public QGraphicsItem {
 		enum toolTipType { pixmap, text };
 		toolTipType tp;
 
-		QString author;
+		QString author,content;
 		QDate date;
 		QTime time;
 
@@ -123,6 +128,9 @@ class abstractAnnotation : public QGraphicsItem {
 		void setMyToolTip(const QPixmap &pixMap);
 		void setMyToolTip(const QString &richText);
 		void setIcon( const QPixmap &icon);
+
+		void saveInfo2PDF( PoDoFo::PdfAnnotation *annot );
+		abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotation *annot, pdfCoords *transform );
 
 
 
@@ -142,6 +150,8 @@ class abstractAnnotation : public QGraphicsItem {
 		bool hasToolTip();
 
 		bool isMovable() { return movable; };
+		QString getContent() const { return content; };
+		void setContent( QString Content );
 		void setAuthor( QString a ) { author = a; };
 		void setDate( QDate d ) { date = d; };
 		void setTime( QTime t ) { time = t; };
