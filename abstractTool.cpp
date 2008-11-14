@@ -72,6 +72,7 @@ void abstractTool::deleteCurrentAnnotation() {
   if ( currentEditItem ) {
     scene->removeItem( currentEditItem );
     delete currentEditItem;
+//    if ( editArea->isVisible() ) editArea->hide();
   }
   currentEditItem = NULL;
 }
@@ -133,10 +134,12 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotatio
 	myTool( tool ), haveToolTip( false ), showingToolTip( false ), movable( true )
 { 
   setAcceptsHoverEvents( true );
-  setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
-  setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
-  PoDoFo::PdfRect ps = annot->GetRect();
-  setPos( transform->pdfToScene( &ps ) );
+  if ( annot ) { 
+    setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
+    setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
+    PoDoFo::PdfRect ps = annot->GetRect();
+    setPos( transform->pdfToScene( &ps ) );
+  }
 }
 
 
@@ -218,6 +221,7 @@ void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) {
     annot->SetOpen( false );
     annot->SetContents( pdfUtil::qStringToPdf( getContent() ) );
     annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
+    annot->SetFlags( 0 ); // unset all flags to allow everything
   } catch ( PoDoFo::PdfError error ) { 
     qWarning() << "Error setting annotation properties:" << error.what();
   }
