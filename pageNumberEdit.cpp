@@ -49,10 +49,10 @@ void pageNumberEdit::cursorChanged( int old, int nw ) {
 };
 
 /* called whenever the page number edit is changed
- * if the change is valid, then it emits a 
- * goto page signal (but only if it really is a change), 
- * otherwise it reverts the change to the 
- * last valid pageNumber and does nothing */
+ * if the change is not valid, then it reverts the
+ * change to the last valid pageNumber and sets
+ * the cursor position to 0 before returning
+ */
 
 void pageNumberEdit::pageNumberChanged() { 
   QString pagePart = getPagePartOfEdit();
@@ -61,13 +61,11 @@ void pageNumberEdit::pageNumberChanged() {
   bool ok;
   int newPageNumber = pagePart.toInt(&ok);
   if ( ok && 1 <= newPageNumber && newPageNumber <= numberOfPages ) { 
-    setPageNumber( newPageNumber );
-    // Note that gotoPage is zero based as opposed to the pagenumber edit
-    if ( newPageNumber != lastValidPageNumber ) emit gotoPage( newPageNumber -1 );
+    return;
   } else { 
     setPageNumber( lastValidPageNumber );
+    pageEdit->setCursorPosition( 0 );
   }
-  pageEdit->setCursorPosition( cPos );
 }
 
 void pageNumberEdit::setPageNumber( int pgNum ) {
@@ -109,7 +107,7 @@ void pageNumberEdit::setMaxPageNum(int max) {
 
 void pageNumberEdit::wantGoTo() { 
   int cur = getCurrentPageNum();
-  if ( cur < numberOfPages && 0 < cur) { 
+  if ( cur <= numberOfPages && 0 < cur) { 
     emit gotoPage( cur );
   }
 }

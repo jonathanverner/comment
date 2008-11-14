@@ -64,7 +64,7 @@ class pageNumberEdit : public QToolBar {
 		void nextPage();
 		void prevPage();
 
-		/* WARNING: pgNumber is zero-based */
+		/* WARNING: pgNumber is 1-based */
 		void gotoPage( int pgNumber );
 };
 
