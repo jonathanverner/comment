@@ -25,7 +25,7 @@
 
 #include "testView.h"
 #include "pdfPageItem.h"
-#include "commentItem.h"
+//#include "commentItem.h"
 
 int main(int argc, char **argv) { 
   QApplication app( argc, argv );
@@ -78,7 +78,7 @@ int main(int argc, char **argv) {
   Poppler::Page *page = pdf->page( pgNum );
   QGraphicsScene scene;
 //  pdfPageItem pdfPage( page );
-  commentItem comment(100,100);
+//  commentItem comment(100,100);
   testView view( &scene );
   QPixmap comment_icon, hover;
   comment_icon.load("comment.png");
@@ -94,11 +94,11 @@ int main(int argc, char **argv) {
   };
 
 //  scene.addItem( &pdfPage );
-  scene.addItem( &comment );
+//  scene.addItem( &comment );
   scene.setBackgroundBrush(Qt::gray);
-  comment.setZValue( 1 );
-  comment.setIcon( comment_icon );
-  comment.setText(" Toto je testovaci comment " );
+ // comment.setZValue( 1 );
+//  comment.setIcon( comment_icon );
+//  comment.setText(" Toto je testovaci comment " );
 //  view.ignore_item_interaction( &pdfPage );
 //  comment.setToolTip( hover );
 //  scene.setSceneRect(0,0,600,800);
