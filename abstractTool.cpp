@@ -139,6 +139,8 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotatio
     setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
     PoDoFo::PdfRect ps = annot->GetRect();
     setPos( transform->pdfToScene( &ps ) );
+  } else { 
+    setAuthor( tool->getAuthor() );
   }
 }
 
@@ -222,6 +224,7 @@ void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) {
     annot->SetContents( pdfUtil::qStringToPdf( getContent() ) );
     annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
     annot->SetFlags( 0 ); // unset all flags to allow everything
+    annot->SetBorderStyle( 0, 0, 0 );
   } catch ( PoDoFo::PdfError error ) { 
     qWarning() << "Error setting annotation properties:" << error.what();
   }
