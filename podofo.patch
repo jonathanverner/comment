@@ -1,0 +1,180 @@
+Index: PdfAnnotation.h
+===================================================================
+--- PdfAnnotation.h	(revision 947)
++++ PdfAnnotation.h	(working copy)
+@@ -109,7 +109,7 @@
+      *
+      *  \see PdfPage::CreateAnnotation
+      */
+-    PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent );
++    PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent, PdfArray *quadPoints = NULL );
+ 
+     /** Create a PdfAnnotation from an existing object
+      *
+@@ -136,6 +136,59 @@
+      */
+     PdfRect GetRect() const;
+ 
++    /** Get the quad points associated with the annotation (if appropriate).
++     *  This array is used in text markup annotations to describe the
++     *  regions affected by the markup (i.e. the hilighted words, one
++     *  quadrilateral per word)
++     *
++     *  \returns a PdfArray of 8xn numbers describing the
++     *           x,y coordinates of BL BR TR TL corners of the
++     *           quadrilaterals. If inappropriate, returns
++     *           an empty array.
++     */
++
++    PdfArray GetQuadPoints() const;
++
++    /** Set the C key of the Annotation dictionary, which defines the
++     *  color of the annotation, as per 8.4 of the pdf spec. Parameters
++     *  give the color in rgb colorspace coordinates
++     *
++     *  \param r number from 0 to 1, the intensity of the red channel 
++     *  \param g number from 0 to 1, the intensity of the green channel 
++     *  \param b number from 0 to 1, the intensity of the blue channel 
++     */
++
++    void SetColor( double r, double g, double b );
++
++    /** Set the C key of the Annotation dictionary, which defines the
++     *  color of the annotation, as per 8.4 of the pdf spec. Parameters
++     *  give the color in cmyk colorspace coordinates
++     *
++     *  \param c number from 0 to 1, the intensity of the cyan channel 
++     *  \param m number from 0 to 1, the intensity of the magneta channel 
++     *  \param y number from 0 to 1, the intensity of the yellow channel 
++     *  \param k number from 0 to 1, the intensity of the black channel 
++     */
++
++    void SetColor( double c, double m, double y, double k );
++
++    /** Set the C key of the Annotation dictionary, which defines the
++     *  color of the annotation, as per 8.4 of the pdf spec. Parameters
++     *  give the color in grayscale colorspace coordinates
++     *
++     *  \param gray  number from 0 to 1, the intensity of the black
++     */
++
++    void SetColor( double gray );
++
++    /** Set the C key of the Annotation dictionary to an empty array, which,
++     *  as per 8.4 of the pdf spec., makes the annotation transparent
++     *
++     */
++
++    void SetColor();
++
++
+     /** Set the flags of this annotation.
+      *  \param uiFlags is an unsigned 32bit integer with different 
+      *                 EPdfAnnotationFlags OR'ed together.
+Index: PdfPage.cpp
+===================================================================
+--- PdfPage.cpp	(revision 947)
++++ PdfPage.cpp	(working copy)
+@@ -232,9 +232,9 @@
+     return pObj ? static_cast<int>(pObj->GetArray().size()) : 0;
+ }
+ 
+-PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect )
++PdfAnnotation* PdfPage::CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect, PdfArray *quadPoints )
+ {
+-    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, m_pObject->GetOwner() );
++    PdfAnnotation* pAnnot = new PdfAnnotation( this, eType, rRect, m_pObject->GetOwner(), quadPoints );
+     PdfObject*     pObj   = this->GetAnnotationsArray( true );
+     PdfReference   ref    = pAnnot->GetObject()->Reference();
+ 
+@@ -314,7 +314,7 @@
+     }
+ 
+     it = pObj->GetArray().begin();
+-    while( it != pObj->GetArray().begin() ) 
++    while( it != pObj->GetArray().end() ) 
+     {
+         if( (*it).GetReference() == ref ) 
+         {
+Index: PdfPage.h
+===================================================================
+--- PdfPage.h	(revision 947)
++++ PdfPage.h	(working copy)
+@@ -150,7 +150,7 @@
+      *
+      *  \returns the annotation object which is owned by the PdfPage
+      */
+-    PdfAnnotation* CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect );
++    PdfAnnotation* CreateAnnotation( EPdfAnnotation eType, const PdfRect & rRect, PdfArray *quadPoints = NULL );
+ 
+     /** Get the annotation with index index of the current page.
+      *  \param index the index of the annotation to retrieve
+Index: PdfAnnotation.cpp
+===================================================================
+--- PdfAnnotation.cpp	(revision 947)
++++ PdfAnnotation.cpp	(working copy)
+@@ -61,7 +61,7 @@
+     NULL
+ };
+ 
+-PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent )
++PdfAnnotation::PdfAnnotation( PdfPage* pPage, EPdfAnnotation eAnnot, const PdfRect & rRect, PdfVecObjects* pParent, PdfArray *quadPoints )
+     : PdfElement( "Annot", pParent ), m_eAnnotation( eAnnot ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
+ {
+     PdfVariant    rect;
+@@ -85,8 +85,14 @@
+     m_pObject->GetDictionary().AddKey( PdfName::KeyRect, rect );
+     m_pObject->GetDictionary().AddKey( "P", pPage->GetObject()->Reference() );
+     m_pObject->GetDictionary().AddKey( "M", sDate );
++    if ( eAnnot == ePdfAnnotation_Highlight ) { 
++      if ( ! quadPoints ) PODOFO_RAISE_ERROR( ePdfError_InvalidHandle );
++      m_pObject->GetDictionary().AddKey( "QuadPoints", *quadPoints );
++    }
+ }
+ 
++
++
+ PdfAnnotation::PdfAnnotation( PdfObject* pObject, PdfPage* pPage )
+     : PdfElement( "Annot", pObject ), m_eAnnotation( ePdfAnnotation_Unknown ), m_pAction( NULL ), m_pFileSpec( NULL ), m_pPage( pPage )
+ {
+@@ -107,6 +113,40 @@
+    return PdfRect();
+ }
+ 
++PdfArray PdfAnnotation::GetQuadPoints() const
++{
++  if( m_pObject->GetDictionary().HasKey( "QuadPoints" ) )
++    return PdfArray( m_pObject->GetDictionary().GetKey( "QuadPoints" )->GetArray() );
++  return PdfArray();
++}
++
++
++void PdfAnnotation::SetColor( double r, double g, double b ) {
++  PdfArray c;
++  c.push_back( PdfVariant( r ) );
++  c.push_back( PdfVariant( g ) );
++  c.push_back( PdfVariant( b ) );
++  m_pObject->GetDictionary().AddKey( "C", c );
++}
++void PdfAnnotation::SetColor( double C, double M, double Y, double K ) {
++  PdfArray c;
++  c.push_back( PdfVariant( C ) );
++  c.push_back( PdfVariant( M ) );
++  c.push_back( PdfVariant( Y ) );
++  c.push_back( PdfVariant( K ) );
++  m_pObject->GetDictionary().AddKey( "C", c );
++}
++
++void PdfAnnotation::SetColor( double gray ) {
++  PdfArray c;
++  c.push_back( PdfVariant( gray ) );
++  m_pObject->GetDictionary().AddKey( "C", c );
++}
++
++void PdfAnnotation::SetColor() {
++}
++
++
+ void PdfAnnotation::SetAppearanceStream( PdfXObject* pObject )
+ {
+     PdfDictionary dict;

@@ -165,6 +165,7 @@ void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::Pd
   PoDoFo::PdfArray quadPoints =  pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
   PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Highlight, *brect, &quadPoints );
   saveInfo2PDF( annot );
+  annot->SetColor( 0, 0, 1, 0 ); // Set the annotation to be yellow
   delete brect;
 }
 
