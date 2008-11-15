@@ -156,7 +156,6 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
 // pageNum is zero-based
 void pdfScene::addPageAnnotations( int pageNum, QGraphicsItem *pageItem ) { 
   if ( pageNum < annotations.size() ) { 
-    qreal x,y,w,h;
     foreach( abstractAnnotation *a, annotations[pageNum] ) { 
       a->setParentItem( pageItem );
     }
