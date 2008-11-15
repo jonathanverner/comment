@@ -42,14 +42,22 @@ void pdfCoords::setPage( PdfPage *pg ) {
  *        find it :-(
  * */
 QPointF pdfCoords::pdfToScene( PdfRect *pos ) { 
-  QPointF ret( (pos->GetLeft()-pos->GetWidth())-8, (pgSize-pos->GetBottom()-pos->GetHeight())-8 );
+  QPointF ret( pos->GetLeft(), pgSize-pos->GetBottom() );
   return ret;
 }
 
 PdfRect *pdfCoords::sceneToPdf( const QPointF &pos ) { 
-  return new PdfRect( pos.x()+8, (pgSize-pos.y())-8, 0, 0 );
+  return new PdfRect( pos.x(), (pgSize-pos.y()), 0, 0 );
 }
 
+PdfRect *pdfCoords::sceneToPdf( const QRectF &rect ) { 
+  return new PdfRect( rect.x(), ( pgSize-(rect.y()+rect.height()) ), rect.width(), rect.height() );
+}
+
+QRectF pdfCoords::pdfRectToScene( PdfRect *rect ) {
+  QRectF ret( rect->GetLeft(), ( pgSize-(rect->GetBottom()+rect->GetHeight()) ), rect->GetWidth(), rect->GetHeight() );
+  return ret;
+}
 
 PdfString pdfUtil::qStringToPdf( QString str ) { 
   QByteArray tmp = str.toUtf8();
@@ -63,27 +71,35 @@ QString pdfUtil::pdfStringToQ( PdfString str ) {
 
 namespace pdfUtil {
 void addBox( PdfArray &array, QRectF &box, pdfCoords *coords ) { 
-    PdfRect *rectBL, *rectTR;
-    rectBL = coords->sceneToPdf( box.bottomLeft() );
-    rectTR = coords->sceneToPdf( box.topRight() );
-    // BL
-    array.push_back( PdfVariant( rectBL->GetLeft() ) );
-    array.push_back( PdfVariant( rectBL->GetBottom() ) );
-    // BR
-    array.push_back( PdfVariant( rectTR->GetLeft() ) );
-    array.push_back( PdfVariant( rectBL->GetBottom() ) );
-    //TL
-    array.push_back( PdfVariant( rectBL->GetLeft() ) );
-    array.push_back( PdfVariant( rectTR->GetBottom() ) );
-    // TR
-    array.push_back( PdfVariant( rectTR->GetLeft() ) );
-    array.push_back( PdfVariant( rectTR->GetBottom() ) );
+    PdfRect *rect = coords->sceneToPdf( box );
 
-    delete rectBL;
-    delete rectTR;
+    // TL
+    array.push_back( PdfVariant( rect->GetLeft() ) );
+    array.push_back( PdfVariant( rect->GetBottom()+rect->GetHeight() ) );
+
+    //TR
+    array.push_back( PdfVariant( rect->GetLeft()+rect->GetWidth() ) );
+    array.push_back( PdfVariant( rect->GetBottom()+rect->GetHeight() ) );
+
+    // BL
+    array.push_back( PdfVariant( rect->GetLeft() ) );
+    array.push_back( PdfVariant( rect->GetBottom() ) );
+    // BR
+    array.push_back( PdfVariant( rect->GetLeft()+rect->GetWidth() ) );
+    array.push_back( PdfVariant( rect->GetBottom() ) );
+
+    delete rect;
 }
 
 QRectF getBox( std::vector<PdfObject>::iterator &pos, pdfCoords *coords ) { 
+  PdfVariant x4(*pos);
+  pos++;
+  PdfVariant y4(*pos);
+  pos++;
+  PdfVariant x3(*pos);
+  pos++;
+  PdfVariant y3(*pos);
+  pos++;
   PdfVariant x1(*pos);
   pos++;
   PdfVariant y1(*pos);
@@ -92,17 +108,8 @@ QRectF getBox( std::vector<PdfObject>::iterator &pos, pdfCoords *coords ) {
   pos++;
   PdfVariant y2(*pos);
   pos++;
-  PdfVariant x3(*pos);
-  pos++;
-  PdfVariant y3(*pos);
-  pos++;
-  PdfVariant x4(*pos);
-  pos++;
-  PdfVariant y4(*pos);
-  pos++;
-  PdfRect bl( x1.GetReal(), y1.GetReal(),0,0 ), tr( x4.GetReal(), y4.GetReal(),0,0 );
-  qDebug() << "PDFBOX: (" << x1.GetReal() <<","<<y1.GetReal()<<","<<x4.GetReal()-x1.GetReal()<<","<<y4.GetReal()-y1.GetReal()<<")";
-  return QRectF( coords->pdfToScene( &bl ), coords->pdfToScene( &tr ) );
+  PdfRect rect( x1.GetReal(), y1.GetReal(),x2.GetReal()-x1.GetReal(),y4.GetReal()-y1.GetReal() );
+  return  coords->pdfRectToScene( &rect );
 }
 
 

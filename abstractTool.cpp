@@ -138,7 +138,7 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotatio
     setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
     setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
     PoDoFo::PdfRect ps = annot->GetRect();
-    setPos( transform->pdfToScene( &ps ) );
+    setPos( transform->pdfRectToScene( &ps ).topLeft() );
   } else { 
     setAuthor( tool->getAuthor() );
   }

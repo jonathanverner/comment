@@ -73,7 +73,8 @@ bool textAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
 
 void textAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { 
   qDebug() << "Saving annotation for "<<getAuthor() <<" : " << pos();
-  PoDoFo::PdfRect *brect = coords->sceneToPdf( pos() );
+  QRectF bbox = mapToParent(boundingRect()).boundingRect();
+  PoDoFo::PdfRect *brect = coords->sceneToPdf( bbox );
   PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Text, *brect );
   saveInfo2PDF( annot );
   delete brect;

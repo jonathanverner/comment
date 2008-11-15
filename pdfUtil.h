@@ -38,8 +38,16 @@ class pdfCoords {
 		void setPage( PoDoFo::PdfPage *pg );
 
 
+		/* Note only call the point-methods for
+		 * rectangles with zero width and height
+		 * otherwise the results need not be what
+		 * you expect. */
 		QPointF pdfToScene( PoDoFo::PdfRect *pos );
 		PoDoFo::PdfRect *sceneToPdf( const QPointF &pos );
+
+		QRectF pdfRectToScene( PoDoFo::PdfRect *pos);
+		PoDoFo::PdfRect *sceneToPdf( const QRectF &rect);
+
 };
 
 

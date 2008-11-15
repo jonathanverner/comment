@@ -142,7 +142,6 @@ hilightAnnotation::hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *
 	    QList<QRectF> boxes = pdfUtil::quadPointsToQBoxes( quadPoints, transform );
 	    foreach( QRectF box, boxes ) { 
 	      tmp =  QRectF( box.x()-pos().x(), box.y()-pos().y(), box.width(), box.height() );
-	      qDebug() << "Box:" << box << "->" << tmp;
 	      hBoxes.append( tmp );
 	      exactShape.addRect( tmp );
 	    }
@@ -161,7 +160,7 @@ void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::Pd
   foreach( QRectF box, hBoxes ) { 
     pageBoxes.append( mapToParent(box).boundingRect() );
   }
-  PoDoFo::PdfRect *brect = coords->sceneToPdf( pos() );
+  PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(bBox).boundingRect() );
   PoDoFo::PdfArray quadPoints =  pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
   PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Highlight, *brect, &quadPoints );
   saveInfo2PDF( annot );
