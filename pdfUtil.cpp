@@ -25,8 +25,11 @@ pdfCoords::pdfCoords( PdfPage *pg ) {
 }
 
 void pdfCoords::setPage( PdfPage *pg ) { 
-  if ( pg ) pgSize = pg->GetPageSize().GetHeight();
-  else {
+  if ( pg ) {
+    pgSize = pg->GetPageSize().GetHeight();
+    originX = pg->GetCropBox().GetLeft();
+    originY = pg->GetCropBox().GetBottom();
+  } else {
     pgSize = 0;
     qWarning() << "pdfCoords: Warning, calling setPage with a null pointer;";
   }
@@ -42,20 +45,20 @@ void pdfCoords::setPage( PdfPage *pg ) {
  *        find it :-(
  * */
 QPointF pdfCoords::pdfToScene( PdfRect *pos ) { 
-  QPointF ret( pos->GetLeft(), pgSize-pos->GetBottom() );
+  QPointF ret( pos->GetLeft()-originX, pgSize-(pos->GetBottom()+originY) );
   return ret;
 }
 
 PdfRect *pdfCoords::sceneToPdf( const QPointF &pos ) { 
-  return new PdfRect( pos.x(), (pgSize-pos.y()), 0, 0 );
+  return new PdfRect( pos.x()+originX, (pgSize-pos.y())-originY, 0, 0 );
 }
 
 PdfRect *pdfCoords::sceneToPdf( const QRectF &rect ) { 
-  return new PdfRect( rect.x(), ( pgSize-(rect.y()+rect.height()) ), rect.width(), rect.height() );
+  return new PdfRect( rect.x()+originX, ( pgSize-(rect.y()+rect.height()) )-originY, rect.width(), rect.height() );
 }
 
 QRectF pdfCoords::pdfRectToScene( PdfRect *rect ) {
-  QRectF ret( rect->GetLeft(), ( pgSize-(rect->GetBottom()+rect->GetHeight()) ), rect->GetWidth(), rect->GetHeight() );
+  QRectF ret( rect->GetLeft()-originX, ( pgSize-(rect->GetBottom()+originY+rect->GetHeight()) ), rect->GetWidth(), rect->GetHeight() );
   return ret;
 }
 

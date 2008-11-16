@@ -33,6 +33,7 @@ class pdfCoords;
 class pdfCoords { 
 	private:
 		qreal pgSize;
+		qreal originX, originY;
 	public:
 		pdfCoords( PoDoFo::PdfPage *pg = NULL );
 		void setPage( PoDoFo::PdfPage *pg );
