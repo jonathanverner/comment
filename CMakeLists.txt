@@ -38,6 +38,8 @@ SET(ANNOT_SRC
   wordItem.cpp
   textLayer.cpp
   hilightTool.cpp
+  teXjob.cpp
+  renderTeX.cpp
 )
 
 SET(TEST_SRC
