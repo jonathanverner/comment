@@ -21,7 +21,7 @@
 
 class renderItem;
 
-class renderTeX public QObject { 
+class renderTeX : public QObject { 
   Q_OBJECT
 	private:
 		struct cachedPage { 
@@ -33,13 +33,13 @@ class renderTeX public QObject {
 		QVector<renderItem*> items;
 		QStack<int> available_ids;
 
-		QString preabmule;
+		QString preambule;
 
 	protected slots:
 		void renderingFinished( int i );
 
 	public:
-		renderTex( QString preamb="" );
+		renderTeX( QString preamb="" );
 
 		void setPaths( QString pdfLaTeX, QString ghostScript );
 		void setPreambule( QString preambule );
@@ -47,8 +47,8 @@ class renderTeX public QObject {
 		int addItem( QString source, QString preambule = "" );
 		void updateItem( int item, QString source, QString preambule = "" );
 		void deleteItem( int item );
-		QPixmap renderItem( int item, bool format_inline = false, qreal zoom = 1 );
-		void preRenderItem( int item, bool format_inline = false, qreal zoom = 1 );
+		QPixmap render( int item, bool format_inline = false, qreal zoom = 1 );
+		void preRender( int item, bool format_inline = false, qreal zoom = 1 );
 	signals:
 		void itemReady( int item );
 

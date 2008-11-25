@@ -17,13 +17,12 @@
 
 #include <QtCore/QEventLoop>
 #include <QtCore/QTemporaryFile>
+#include <QtCore/QProcess>
 
 #include <QtGui/QPixmap>
 
 
-
-
-class compileJob public QObject { 
+class compileJob : public QObject { 
   Q_OBJECT
 	protected:
 		static QString latexPath;
@@ -50,7 +49,8 @@ class compileJob public QObject {
 
 
 	public:
-		compileJob(): proc(NULL), jobStarted(false) {};
+		compileJob();
+		~compileJob();
 
 		static void setPaths( QString latex, QString gs );
 		static bool pathsOK();
@@ -64,15 +64,15 @@ class compileJob public QObject {
 };
 
 namespace Poppler { 
-  class PdfDocument;
-};
+  class Document;
+}
 
-class renderItem public QObject { 
+class renderItem : public QObject { 
   Q_OBJECT
 	private:
 		QString pre,src;
 		QRectF bBox;
-		Poppler::PdfDocument *pdf;
+		Poppler::Document *pdf;
 		int job_id;
 		compileJob job;
 		bool ready;
@@ -97,7 +97,7 @@ class renderItem public QObject {
 		void preRender( int jobID );
 
 	signals:
-		void ready( int jobID );
+		void renderingReady( int jobID );
 };
 
 

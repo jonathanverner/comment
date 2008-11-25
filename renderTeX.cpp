@@ -10,13 +10,13 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
-#include <QtCore/QDebuq>
+#include <QtCore/QDebug>
+
 
 #include "teXjob.h"
 #include "renderTeX.h"
 
-
-QCache<int, struct renderTeX::cachedPage> pdfPageItem::renderCache(20000);
+QCache<int, struct renderTeX::cachedPage> renderTeX::renderCache(20000);
 
 renderTeX::renderTeX( QString preamb ):
 	preambule( preamb )
@@ -59,30 +59,30 @@ void renderTeX::updateItem( int item, QString source, QString preamb ) {
   renderCache.remove( item );
 }
 
-QPixmap renderTeX::renderItem( int item, bool format_inline, qreal zoom ) { 
+QPixmap renderTeX::render( int item, bool format_inline, qreal zoom ) { 
   Q_ASSERT( 0 <= item && item < items.size() && items[item] );
   struct cachedPage *pg = renderCache.object( item );
   if ( pg ) { 
-    if ( pg->format_inline = format_inline && pg->zoom = zoom ) return pg->pix;
+    if ( pg->format_inline == format_inline && pg->zoom == zoom ) return pg->pix;
     if ( compileJob::pathsOK() ) { 
-      pg->pix = items[item]->renderItem( zoom, format_inline, pdfLaTeXPath, ghostScriptPath );
+      pg->pix = items[item]->render( zoom, format_inline );
       pg->format_inline = format_inline;
       pg->zoom = zoom;
       return pg->pix;
     } else { 
-      qWarning() << "renderTeX::renderItem: PdfLaTex or GhostScript not found.";
+      qWarning() << "renderTeX::render: PdfLaTex or GhostScript not found.";
       return QPixmap();
     }
   } else { 
     if ( compileJob::pathsOK() ) { 
       pg = new cachedPage;
-      pg->pix = items[item]->renderItem( zoom, format_inline );
+      pg->pix = items[item]->render( zoom, format_inline );
       pg->format_inline = format_inline;
       pg->zoom = zoom;
-      renderCache.insert( item, pg, items[item]->size()*zoom );
+      renderCache.insert( item, pg, (int) (items[item]->size()*zoom) );
       return pg->pix;
     } else { 
-      qWarning() << "renderTeX::renderItem: PdfLaTex or GhostScript not found.";
+      qWarning() << "renderTeX::render: PdfLaTex or GhostScript not found.";
       return QPixmap();
     }
   }

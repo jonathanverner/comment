@@ -11,10 +11,10 @@
  *CHANGES:
  ***************************************************************/
 
-#include <QtCore/QDebuq>
+#include <QtCore/QDebug>
 #include <QtCore/QProcess>
 
-#include <poppler/poppler-qt4.h>
+#include <poppler-qt4.h>
 
 #include "teXjob.h"
 
@@ -59,14 +59,14 @@ void compileJob::start( QString latexSource ) {
   }
   if ( ! tmpSRC.open() ) {
     qWarning() << "Cannot open temporary file.";
-    emit finished( "", false );
+    emit finished( QString(""), QRectF(0,0,0,0), false );
   }
   tmpSRC.write(latexSource.toLocal8Bit()); //FIXME: can fail if unexpected characters
   tmpSRC.flush();
   jobStarted=true;
   disconnect( proc, 0, 0, 0 );
-  connect( proc, SIGNAL( finished(int,QProcess::ExitStatus) ), this, texJobFinished(int,QProcess::ExitStatus) ); 
-  proc->start( latexPath , tmpSRC.fileName() );
+  connect( proc, SIGNAL( finished(int,QProcess::ExitStatus) ), this, SLOT(texJobFinished(int,QProcess::ExitStatus)) ); 
+  proc->start( latexPath , QStringList(tmpSRC.fileName()) );
 }
 
 void compileJob::restart( QString latexSource ) { 
@@ -87,7 +87,7 @@ void compileJob::kill() {
    }
    if ( jobStarted ) { 
      jobStarted=false;
-     emit finished( "", false );
+     emit finished( QString(""),QRectF(0,0,0,0), false );
    }
 }
 
@@ -98,28 +98,17 @@ bool compileJob::running() {
 void compileJob::texJobFinished( int eCode, QProcess::ExitStatus eStat ) {
   pdfFName = texName2Pdf(tmpSRC.fileName());
   disconnect( proc, 0, 0, 0 );
-  connect( proc, SIGNAL( finished(int,QProcess::ExitStatus) ), this, texJobFinished(int,QProcess::ExitStatus) ); 
-  proc->start( gsPath, "-sDEVICE=bbox -dBATCH -dNOPAUSE -f "+pdfFName );
+  connect( proc, SIGNAL( finished(int,QProcess::ExitStatus) ), this, SLOT(texJobFinished(int,QProcess::ExitStatus)) ); 
+  proc->start( gsPath, (QStringList() << "-sDEVICE=bbox" <<"-dBATCH"<<"-dNOPAUSE"<<"-f"<<pdfFName) );
 }
 
 void compileJob::gsJobFinished( int eCode, QProcess::ExitStatus eStat ) {
   removeTempFiles();
   disconnect( proc, 0, 0, 0 );
   jobStarted=false;
-  QRect bBox = parseGSOutput();
+  QRectF bBox = parseGSOutput();
   emit finished( pdfFName, bBox, true );
 }
-
-
-
-  
-
-
-
-  
-  
-
-
 
 
 renderItem::~renderItem() { 
@@ -146,12 +135,12 @@ void renderItem::pdfReady( QString pdfFName, bool status ) {
     pdf->setRenderHint( Poppler::Document::Antialiasing, true );
     ready = true;
   }
-  if ( waiting_for_ready ) {
+  if ( waiting_for_job ) {
     waiting_for_job = false;
     localLoop->exit();
   }
   if ( status && job_id > -1 ) {
-    emit ready( job_id );
+    emit renderingReady( job_id );
     job_id = -1;
   }
 }
@@ -176,21 +165,21 @@ void renderItem::preRender( int jobID ) {
 
  
 
-void renderItem::updateItem( QString source, QString preabmule ) { 
+void renderItem::updateItem( QString source, QString preambule ) { 
   src = source;
   pre = preambule;
   if ( pdf ) delete pdf;
   pdf = NULL;
   bBox = QRectF(0,0,0,0);
   ready = false;
-  if ( job.running() ) job.restart( getLaTeX( source, preabmule ) );
+  if ( job.running() ) job.restart( getLaTeX( source, preambule ) );
 }
 
-void renderItem::size() { 
-  return bBox.width()*bBox.height();
+int renderItem::size() { 
+  return (int) (bBox.width()*bBox.height());
 }
 
-QPixmap renderItem::render( qreal zoom, bool format_inline, QString latex, QString gs ) { 
+QPixmap renderItem::render( qreal zoom, bool format_inline ) { 
   if ( job.running() ) wait_for_job();
   if ( ! ready ) { 
     job.start( getLaTeX( src, pre ) );
