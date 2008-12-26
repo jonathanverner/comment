@@ -13,6 +13,8 @@
 #include <QtCore/QDebug>
 #include <QtGui/QIcon>
 #include <QtGui/QStackedWidget>
+#include <QtGui/QTextEdit>
+#include <QtGui/QTabWidget>
 
 
 #include "hilightTool.h"
@@ -26,7 +28,7 @@
 QPixmap *hilightTool::icon = NULL;
 
 hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
-	abstractTool( Scene, ToolBar, EditArea )
+	abstractTool( Scene, ToolBar, EditArea ), editingHilight(false)
 {
   setToolName( "Hilight Tool" );
   if ( ! icon ) icon = new QPixmap( "hilight.png" );
@@ -39,7 +41,7 @@ void hilightTool::newActionEvent( const QPointF *ScenePos ) {
   scene->placeAnnotation( hi, ScenePos );
   hi->setZValue( 9 );
   qDebug() << "Editing item";
-  editItem( hi );
+  editAnnotationExtent( hi );
 }
 
 void hilightTool::updateCurrentAnnotation( QPointF ScenePos ) { 
@@ -66,11 +68,50 @@ bool hilightTool::acceptEventsFor( QGraphicsItem *item ) {
   return dynamic_cast<hilightAnnotation*>( item );
 }
 
+void hilightTool::editItem( abstractAnnotation *item ) { 
+  qDebug() << "hilight::editItem";
+  if ( currentEditItem == item ) { 
+    currentEditItem = NULL;
+    editArea->hide();
+    setTeXToolTip( item );
+  } else {
+    currentEditItem = item;
+    editAnnotationText();
+  }
+}
+
+void hilightTool::editAnnotationExtent( abstractAnnotation *item ) { 
+   if ( currentEditItem == item ) { 
+     currentEditItem = NULL;
+     editArea->hide();
+     setTeXToolTip( item );
+   } else {
+     currentEditItem = item;
+     editingHilight = true;
+   }
+}
+
+void hilightTool::editAnnotationText() { 
+   editingHilight = false;
+   editArea->setCurrentWidget( editor );
+   editArea->show();
+   contentEdit->setText( currentEditItem->getContent() );
+   contentEdit->setFocus();
+   editor->setCurrentIndex( 0 );
+}
+void hilightTool::finishEditing() { 
+  if ( dynamic_cast<hilightAnnotation*>(currentEditItem) ) { 
+    editArea->hide();
+    setTeXToolTip( currentEditItem );
+    currentEditItem = NULL;
+  }
+}
+	
 bool hilightTool::handleEvent( viewEvent *ev ) { 
   hilightAnnotation *annot;
   if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::LeftButton ) ) {
     if ( annot = dynamic_cast<hilightAnnotation*>(ev->item()) ) { 
-      editItem( annot );
+      editAnnotationExtent( annot );
     } else {
       QPointF pos = ev->scenePos();
       newActionEvent( &pos );
@@ -79,22 +120,23 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
   } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
     if ( ! (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) return false;
     if ( ev->isClick() ) {
+      if ( editingHilight ) editAnnotationText();
+      else finishEditing();
       return true;
     }
     updateCurrentAnnotation( ev->scenePos() );
-    currentEditItem = NULL;
-    editArea->hide();
+    editAnnotationText();
     return true;
-  } else if ( ev->type() == viewEvent::VE_MOUSE_MOVE && (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) { 
-    updateCurrentAnnotation( ev->scenePos() );
-     if ( ! (ev->btnState() & Qt::LeftButton) ) { // Missed a mouse release, end editing annotation
-      qDebug() << "WARNING MISSED MOUSE RELEASE EVENT!!!";
-      currentEditItem=NULL;
-      editArea->hide();
-      return true;
-    };
-    return true;
-  }
+  } else if ( ev->type() == viewEvent::VE_MOUSE_MOVE && (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) {
+    if ( editingHilight ) {
+      updateCurrentAnnotation( ev->scenePos() );
+      if ( ! (ev->btnState() & Qt::LeftButton) ) { // Missed a mouse release, end editing annotation
+        qDebug() << "WARNING MISSED MOUSE RELEASE EVENT!!!";
+        editAnnotationText();
+      }
+    } else finishEditing();
+    return true;  
+  };
   return false;
 }
 

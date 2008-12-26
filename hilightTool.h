@@ -16,6 +16,7 @@
 
 
 
+
 #include <QtCore/QList>
 #include "abstractTool.h"
 
@@ -26,9 +27,14 @@ class hilightTool : public abstractTool {
   Q_OBJECT
 	private:
 	  static QPixmap *icon;
+	  bool editingHilight; // if true, mouse movement edits the extent
+	                       // of the current hilight
 
 	protected:
 	  void updateCurrentAnnotation( QPointF ScenePos );
+          void editAnnotationExtent( abstractAnnotation *item );
+	  void editAnnotationText();
+	  void finishEditing();
 
 	public:
 		hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
@@ -37,6 +43,7 @@ class hilightTool : public abstractTool {
 		virtual void newActionEvent( const QPointF *scPos );
 		virtual bool acceptEventsFor( QGraphicsItem *item );
 		virtual bool handleEvent( viewEvent *ev );
+		virtual void editItem( abstractAnnotation *item );
 
 		friend class hilightAnnotation;
 
@@ -50,7 +57,6 @@ class hilightAnnotation : public abstractAnnotation {
 	public:
 		hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL );
 		~hilightAnnotation() {};
-		
 
 		void updateSelection( QList<QRectF> newSelection );
 
