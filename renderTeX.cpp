@@ -16,7 +16,7 @@
 #include "teXjob.h"
 #include "renderTeX.h"
 
-QCache<int, struct renderTeX::cachedPage> renderTeX::renderCache(20000);
+QCache<int, struct renderTeX::cachedPage> renderTeX::renderCache(200000);
 
 renderTeX::renderTeX( QString preamb ):
 	preambule( preamb )
@@ -76,14 +76,19 @@ QPixmap renderTeX::render( int item, bool format_inline, qreal zoom ) {
     }
   } else { 
     if ( compileJob::pathsOK() ) { 
-      pg = new cachedPage;
-      pg->pix = items[item]->render( zoom, format_inline );
-      qDebug() << "Rendered PixMap: "<< pg->pix.width() << " x "<< pg->pix.height();
-      pg->format_inline = format_inline;
-      pg->zoom = zoom;
-      renderCache.insert( item, pg, (int) (items[item]->size()*zoom) );
-      return pg->pix; // FIXME: can crash if cache is too small and hence
-                      // deletes pg imediately
+      QPixmap ret = items[item]->render( zoom, format_inline );
+      int cost = (int) (items[item]->size()*zoom);
+      if ( cost >= renderCache.maxCost() ) { 
+	qWarning() << "Warning, render cache too small, result will not be cached !!!";
+	return ret;
+      } else {
+	pg = new cachedPage;
+        pg->pix = ret;
+	pg->format_inline = format_inline;
+	pg->zoom = zoom;
+	renderCache.insert( item, pg, (int) (items[item]->size()*zoom) );
+	return ret;
+      }
     } else { 
       qWarning() << "renderTeX::render: PdfLaTex or GhostScript not found.";
       return QPixmap();
