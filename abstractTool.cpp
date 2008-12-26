@@ -146,6 +146,9 @@ bool abstractTool::handleEvent( viewEvent *ev ) {
       else newActionEvent( &pos );
       return true;
     }
+  } if ( ev->type() == viewEvent::VE_MOUSE_MOVE && currentEditItem ) {
+      editItem( currentEditItem );
+      return true;
   } else return false;
 }
 
