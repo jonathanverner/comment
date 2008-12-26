@@ -32,6 +32,7 @@
 #include "pdfScene.h"
 #include "toolBox.h"
 #include "pdfUtil.h"
+#include "renderTeX.h"
 
 
 abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
@@ -44,11 +45,13 @@ abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *E
   	
 	  connect( contentEdit, SIGNAL( textChanged() ), this, SLOT( updateContent() ) );
 	  editArea->addWidget( editor );
+	  renderer = new renderTeX;
 
 	  QAction *delAct  = cntxMenu->addAction( "Delete" );
 	  QAction *proAct  = cntxMenu->addAction( "Properties...");
 	  connect( delAct, SIGNAL( triggered() ), this, SLOT( deleteCurrentAnnotation() ) );
 	  connect( proAct, SIGNAL( triggered() ), this, SLOT( editCurrentAnnotationProperties() ) );
+	  connect( renderer, SIGNAL( itemReady(int) ), this, SLOT( teXToolTipReady(int) ) );
 	}
 
 abstractTool::~abstractTool() {
@@ -67,6 +70,32 @@ void abstractAnnotation::setContent( QString Content ) {
   setMyToolTip( content );
 }
 
+
+int abstractTool::getApproxWidth( QString text ) { 
+  QLabel label( text );
+  qreal mm =  (label.width()/72)*10;
+  return qRound(mm);
+}
+
+
+
+void abstractTool::setTeXToolTip( abstractAnnotation *annot ) { 
+  QString content = annot->getContent();
+  if ( content.contains( "$" ) ) { 
+    int id = renderer->addItem( content );
+    if ( id < int2annot.size() ) int2annot[id] = annot;
+    else { 
+      int2annot.resize( id + 10 );
+      int2annot[id] = annot;
+    }
+    renderer->preRender( id, false, getApproxWidth( content ) );
+  }
+}
+
+void abstractTool::teXToolTipReady( int annotID ) { 
+  int2annot[annotID]->setMyToolTip( renderer->render( annotID, false, 1.5 ) );
+  renderer->deleteItem( annotID );
+}
 
 void abstractTool::deleteCurrentAnnotation() { 
   if ( currentEditItem ) {
@@ -97,6 +126,7 @@ void abstractTool::editItem( abstractAnnotation *item ) {
   if ( currentEditItem == item ) { 
     currentEditItem = NULL;
     editArea->hide();
+    setTeXToolTip( item );
   } else {
     currentEditItem = item;
     editArea->setCurrentWidget( editor );
@@ -139,6 +169,7 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotatio
     setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
     PoDoFo::PdfRect ps = annot->GetRect();
     setPos( transform->pdfRectToScene( &ps ).topLeft() );
+    tool->setTeXToolTip( this );
   } else { 
     setAuthor( tool->getAuthor() );
   }
@@ -157,11 +188,9 @@ void abstractAnnotation::setMyToolTip(const QString &richText) {
   setAcceptsHoverEvents(true);
   haveToolTip = true;
   tp = text;
-  toolTipRichText = richText;
+  toolTipRichText = richText; 
   if ( showingToolTip ) myToolTip::update( richText );
-}
-
-
+}		  
 
 bool abstractAnnotation::editSelf() {
   myTool->editItem( this );

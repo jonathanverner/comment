@@ -23,6 +23,7 @@
 class QToolBar;
 class QStackedWidget;
 class abstractAnnotation;
+class renderTeX;
 class QWidget;
 class QPoint;
 class pdfScene;
@@ -50,6 +51,10 @@ class abstractTool : public QObject {
 		QString toolName;
 		QString author;
 
+		renderTeX *renderer;
+		QVector<abstractAnnotation *> int2annot;
+
+
 	protected:
 		QStackedWidget *editArea;
 		toolBox *toolBar;
@@ -62,10 +67,15 @@ class abstractTool : public QObject {
 
 		void setToolName( QString ToolName ) { toolName = ToolName; };
 
+		void setTeXToolTip( abstractAnnotation *annotation );
+		int getApproxWidth( QString text );
+
 	protected slots:
 		void deleteCurrentAnnotation();
 		void editCurrentAnnotationProperties();
 		void updateContent();
+
+		void teXToolTipReady( int annotID );
 
 	public:
 		 abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea  );
@@ -131,6 +141,8 @@ class abstractAnnotation : public QGraphicsItem {
 
 		void saveInfo2PDF( PoDoFo::PdfAnnotation *annot );
 		abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotation *annot, pdfCoords *transform );
+		 friend class abstractTool;
+
 
 
 
@@ -165,6 +177,8 @@ class abstractAnnotation : public QGraphicsItem {
 
 
 		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) = 0;
+
+
 
 };
 
