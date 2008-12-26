@@ -48,7 +48,7 @@ class renderTeX : public QObject {
 		void updateItem( int item, QString source, QString preambule = "" );
 		void deleteItem( int item );
 		QPixmap render( int item, bool format_inline = false, qreal zoom = 1 );
-		void preRender( int item, bool format_inline = false, qreal zoom = 1 );
+		void preRender( int item, bool format_inline = false );
 	signals:
 		void itemReady( int item );
 

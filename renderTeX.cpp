@@ -55,7 +55,8 @@ void renderTeX::deleteItem( int item ) {
 void renderTeX::updateItem( int item, QString source, QString preamb ) { 
   Q_ASSERT( 0 <= item && item < items.size() && items[item] );
   if ( preamb == "" ) preamb = preambule;
-  items[item]->updateItem( source, preamb );
+  connect( items[item], SIGNAL(renderingReady(int)), this, SIGNAL(itemReady(int)) );
+  items[item]->updateItem( source, preamb, item );
   renderCache.remove( item );
 }
 
@@ -77,16 +78,36 @@ QPixmap renderTeX::render( int item, bool format_inline, qreal zoom ) {
     if ( compileJob::pathsOK() ) { 
       pg = new cachedPage;
       pg->pix = items[item]->render( zoom, format_inline );
+      qDebug() << "Rendered PixMap: "<< pg->pix.width() << " x "<< pg->pix.height();
       pg->format_inline = format_inline;
       pg->zoom = zoom;
       renderCache.insert( item, pg, (int) (items[item]->size()*zoom) );
-      return pg->pix;
+      return pg->pix; // FIXME: can crash if cache is too small and hence
+                      // deletes pg imediately
     } else { 
       qWarning() << "renderTeX::render: PdfLaTex or GhostScript not found.";
       return QPixmap();
     }
   }
 }
+
+void renderTeX::preRender( int item, bool format_inline ) { 
+  Q_ASSERT( 0 <= item && item < items.size() && items[item] );
+  if ( compileJob::pathsOK() ) { 
+    connect( items[item], SIGNAL(renderingReady(int)), this, SIGNAL(itemReady(int)) );
+    items[item]->preRender( item );
+  } else { 
+    qWarning() << "renderTeX::render: PdfLaTex or GhostScript not found.";
+  }
+}
+
+
+
+void renderTeX::renderingFinished( int i ) { 
+  Q_ASSERT( 0 <= i && i < items.size() && items[i] );
+  emit itemReady( i );
+}
+ 
 
 
   

@@ -47,6 +47,7 @@ SET(TEST_SRC
   testPdfPageItem.cpp
   testPODOFO.cpp
   testAnnotRM.cpp
+  testTeXRender.cpp
 )
 
 #SET(UI_FILES
@@ -117,6 +118,10 @@ TARGET_LINK_LIBRARIES(annot_rm ${LINK_LIBS})
 
 ADD_EXECUTABLE(testPageNumberEdit pageNumberEdit.cpp testPageNumberEdit.cpp)
 TARGET_LINK_LIBRARIES(testPageNumberEdit ${LINK_LIBS})
+
+ADD_EXECUTABLE(testTeXRender testTeXRender.cpp renderTeX.cpp teXjob.cpp)
+TARGET_LINK_LIBRARIES(testTeXRender ${LINK_LIBS})
+
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
 ADD_DEFINITIONS(

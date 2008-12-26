@@ -42,7 +42,7 @@ int main( int argc, char **argv ) {
   tst->SetTitle("Jonathan Verner");
   tst->SetContents( PdfString("Joniho testovaci anotace") );
   PdfXObject *obj = new PdfXObject( PdfRect(0,0,w,h), &pdfDoc ); 
-  annot->SetAppearanceStream( obj, annotAppearance );
+  annot->SetAppearanceStream( obj ); //, annotAppearance );
   aIcon->SetTitle("Testing annotation");
   aIcon->SetContents( PdfString("Contents of the annotation") );
   aIcon->SetOpen( true );

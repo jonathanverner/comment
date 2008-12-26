@@ -83,7 +83,7 @@ class renderItem : public QObject {
 		void wait_for_job();
 
 	private slots:
-		void pdfReady( QString pdfFName, bool status );
+		void pdfReady( QString pdfFName, QRectF bBox, bool status );
 
 	protected:
 		static QString getLaTeX( QString source, QString preambule );
@@ -91,7 +91,7 @@ class renderItem : public QObject {
 	public:
 		renderItem( QString source, QString preambule );
 		~renderItem();
-		void updateItem( QString source, QString preambule );
+		void updateItem( QString source, QString preambule, int jobID = 0 );
 		int size();
 		QPixmap render( qreal zoom, bool format_inline );
 		void preRender( int jobID );
