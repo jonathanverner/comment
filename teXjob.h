@@ -32,7 +32,7 @@ class compileJob : public QObject {
 
 		static QString texName2Pdf( QString fname );
 
-		QTemporaryFile tmpSRC;
+		QTemporaryFile *tmpSRC;
 		QString pdfFName;
 		void removeTempFiles();
 		QRectF parseGSOutput();

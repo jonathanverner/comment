@@ -27,11 +27,10 @@ QString compileJob::gsPath("/usr/bin/gs");
 bool compileJob::paths_ok = true;
 
 compileJob::compileJob():
-	proc(NULL), jobStarted(false)
+	proc(NULL), jobStarted(false), tmpSRC( NULL )
 {
   proc = new QProcess( this );
   proc->setWorkingDirectory( QDir::tempPath() );
-  tmpSRC.setFileTemplate( QDir::tempPath()+"/testTeXRenderXXXXXX" );
 }
 
 compileJob::~compileJob() { 
@@ -62,14 +61,15 @@ QString compileJob::texName2Pdf( QString fname ) {
 }
 
 void compileJob::removeTempFiles() { 
-  QFileInfo info( tmpSRC );
+  QFileInfo info( *tmpSRC );
   QString baseName=info.baseName();
   QDir dir = info.absoluteDir();
   dir.setNameFilters( QStringList(baseName +".*") );
   foreach( QString fl, dir.entryList() ) {
     if ( ! fl.endsWith( ".pdf" ) ) dir.remove( fl );
   }
-  tmpSRC.remove();
+  delete tmpSRC;
+  tmpSRC=NULL;
 }
 
 QRectF compileJob::parseGSOutput() { 
@@ -94,16 +94,17 @@ void compileJob::start( QString latexSource ) {
     qWarning() << "Cannot start while another job in progress. Please use the restart method";
     return;
   }
-  if ( ! tmpSRC.open() ) {
+  tmpSRC = new QTemporaryFile( QDir::tempPath()+"/testTeXRenderXXXXXX" );
+  if ( ! tmpSRC->open() ) {
     qWarning() << "Cannot open temporary file.";
     emit finished( QString(""), QRectF(0,0,0,0), false );
   }
-  tmpSRC.write(latexSource.toLocal8Bit()); //FIXME: can fail if unexpected characters
-  tmpSRC.flush();
+  tmpSRC->write(latexSource.toLocal8Bit()); //FIXME: can fail if unexpected characters
+  tmpSRC->flush();
   jobStarted=true;
   disconnect( proc, 0, 0, 0 );
   connect( proc, SIGNAL( finished(int,QProcess::ExitStatus) ), this, SLOT(texJobFinished(int,QProcess::ExitStatus)) ); 
-  proc->start( latexPath , ( QStringList() << "-interaction=nonstopmode" << tmpSRC.fileName() ) );
+  proc->start( latexPath , ( QStringList() << "-interaction=nonstopmode" << tmpSRC->fileName() ) );
 }
 
 void compileJob::restart( QString latexSource ) { 
@@ -133,7 +134,7 @@ bool compileJob::running() {
 }
 
 void compileJob::texJobFinished( int eCode, QProcess::ExitStatus eStat ) {
-  pdfFName = texName2Pdf(tmpSRC.fileName());
+  pdfFName = texName2Pdf(tmpSRC->fileName());
   disconnect( proc, 0, 0, 0 );
   connect( proc, SIGNAL( finished(int,QProcess::ExitStatus) ), this, SLOT(gsJobFinished(int,QProcess::ExitStatus)) ); 
   proc->start( gsPath, (QStringList() << "-sDEVICE=bbox" <<"-dBATCH"<<"-dNOPAUSE"<<"-f"<<pdfFName) );
@@ -233,7 +234,7 @@ QPixmap renderItem::render( qreal zoom, bool format_inline ) {
     Poppler::Page *pg = pdf->page(0);
     qreal pgHeight = pg->pageSizeF().height();
     qDebug() << "Rendering source ("<<72*zoom<<","<< 72*zoom<<","<< (int) bBox.x()<<","<<(int) (pg->pageSizeF().height()-bBox.y())<<","<<(int) bBox.width()<<","<<(int) bBox.height()<<")"; 
-    QImage image = pg->renderToImage( 72*zoom, 72*zoom/*, (int) bBox.x(),(int) (pg->pageSizeF().height()-bBox.y()),(int) bBox.width(),(int) bBox.height()*/ );
+    QImage image = pg->renderToImage( 72*zoom, 72*zoom );
     delete pg;
     QPixmap px = QPixmap::fromImage( image );
     qDebug() << "Rendered image: "<< image.width() << " x "<< image.height();
