@@ -99,7 +99,7 @@ void compileJob::start( QString latexSource ) {
     qWarning() << "Cannot open temporary file.";
     emit finished( QString(""), QRectF(0,0,0,0), false );
   }
-  tmpSRC->write(latexSource.toLocal8Bit()); //FIXME: can fail if unexpected characters
+  tmpSRC->write(latexSource.toUtf8());//.toLocal8Bit() FIXME: can fail if unexpected characters
   tmpSRC->flush();
   jobStarted=true;
   disconnect( proc, 0, 0, 0 );
@@ -193,41 +193,41 @@ void renderItem::wait_for_job() {
   }
 }
 
-QString renderItem::getLaTeX( QString Src, QString Pre ) {
-  return "\\documentclass[10pt,a4paper]{article}\n\\usepackage{amssymb}\n"+Pre+"\\begin{document}\n\\pagestyle{empty}\n\\begin{minipage}{5cm}\n"+Src+"\n\\end{minipage}\n\\end{document}\n";
+QString renderItem::getLaTeX( QString Src, QString Pre, int sizeHint ) {
+  return "\\documentclass[10pt,a4paper]{article}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb}\n\\usepackage{color}\n"+Pre+"\\begin{document}\n\\pagecolor[rgb]{1,1,0.862}\n\\pagestyle{empty}\n\\begin{minipage}{"+QString::number(sizeHint)+"mm}\n"+Src+"\n\\end{minipage}\n\\end{document}\n";
 }
 
 
 
-void renderItem::preRender( int jobID ) { 
+void renderItem::preRender( int jobID, bool format_inline, int sizeHint ) { 
   if ( job.running() ) { 
     if ( job_id == jobID ) return; // Probably already running, no need to run again.
     job.kill();
   };
   job_id = jobID;
-  job.start( getLaTeX( src, pre ) );
+  job.start( getLaTeX( src, pre, sizeHint ) );
 }
 
  
 
-void renderItem::updateItem( QString source, QString preambule, int jobID ) { 
+void renderItem::updateItem( QString source, QString preambule, int jobID, bool format_inline, int sizeHint ) { 
   src = source;
   pre = preambule;
   if ( pdf ) delete pdf; //FIXME: also delete the underlying file
   pdf = NULL;
   bBox = QRectF(0,0,0,0);
   ready = false;
-  preRender( jobID );
+  preRender( jobID, format_inline, sizeHint );
 }
 
 int renderItem::size() { 
   return (int) (bBox.width()*bBox.height());
 }
 
-QPixmap renderItem::render( qreal zoom, bool format_inline ) { 
+QPixmap renderItem::render( qreal zoom, bool format_inline, int sizeHint ) { 
   if ( job.running() ) wait_for_job();
   if ( ! ready ) { 
-    job.start( getLaTeX( src, pre ) );
+    job.start( getLaTeX( src, pre, sizeHint ) );
     wait_for_job();
   }
   if ( ready && pdf ) { 
@@ -235,10 +235,11 @@ QPixmap renderItem::render( qreal zoom, bool format_inline ) {
     qreal pgHeight = pg->pageSizeF().height();
     qDebug() << "Rendering source ("<<72*zoom<<","<< 72*zoom<<","<< (int) bBox.x()<<","<<(int) (pg->pageSizeF().height()-bBox.y())<<","<<(int) bBox.width()<<","<<(int) bBox.height()<<")"; 
     QImage image = pg->renderToImage( 72*zoom, 72*zoom );
+ 
     delete pg;
     QPixmap px = QPixmap::fromImage( image );
     qDebug() << "Rendered image: "<< image.width() << " x "<< image.height();
-    return px.copy( bBox.x()*zoom, (pgHeight-bBox.y()-bBox.height())*zoom, bBox.width()*zoom, bBox.height()*zoom);
+    return px.copy( qRound(bBox.x()*zoom)-1, qRound((pgHeight-bBox.y()-bBox.height())*zoom)-1, qRound(bBox.width()*zoom)+2, qRound(bBox.height()*zoom)+2);
   } else { 
     return QPixmap();
   }

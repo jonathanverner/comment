@@ -86,15 +86,15 @@ class renderItem : public QObject {
 		void pdfReady( QString pdfFName, QRectF bBox, bool status );
 
 	protected:
-		static QString getLaTeX( QString source, QString preambule );
+		static QString getLaTeX( QString source, QString preambule, int sizeHint );
 
 	public:
 		renderItem( QString source, QString preambule );
 		~renderItem();
-		void updateItem( QString source, QString preambule, int jobID = 0 );
+		void updateItem( QString source, QString preambule, int jobID = 0, bool format_inline = false, int sizeHint = 50 );
 		int size();
-		QPixmap render( qreal zoom, bool format_inline );
-		void preRender( int jobID );
+		QPixmap render( qreal zoom, bool format_inline, int sizeHint );
+		void preRender( int jobID, bool format_inline, int sizeHint );
 
 	signals:
 		void renderingReady( int jobID );

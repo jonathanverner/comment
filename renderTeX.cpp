@@ -31,6 +31,7 @@ void renderTeX::setPreambule( QString preamb ) {
   preambule = preamb;
 }
 
+/* This method should always succeed */
 int renderTeX::addItem( QString source, QString preamb ) { 
   if ( preamb == "" ) preamb = preambule;
   renderItem *it = new renderItem( source, preamb );
@@ -48,6 +49,7 @@ int renderTeX::addItem( QString source, QString preamb ) {
 void renderTeX::deleteItem( int item ) { 
   Q_ASSERT( 0 <= item && item < items.size() );
   delete items[item];
+  renderCache.remove( item );
   items[item]=NULL;
   available_ids.push(item);
 }
@@ -60,13 +62,13 @@ void renderTeX::updateItem( int item, QString source, QString preamb ) {
   renderCache.remove( item );
 }
 
-QPixmap renderTeX::render( int item, bool format_inline, qreal zoom ) { 
+QPixmap renderTeX::render( int item, bool format_inline, qreal zoom, int sizeHint ) { 
   Q_ASSERT( 0 <= item && item < items.size() && items[item] );
   struct cachedPage *pg = renderCache.object( item );
   if ( pg ) { 
     if ( pg->format_inline == format_inline && pg->zoom == zoom ) return pg->pix;
     if ( compileJob::pathsOK() ) { 
-      pg->pix = items[item]->render( zoom, format_inline );
+      pg->pix = items[item]->render( zoom, format_inline, sizeHint );
       pg->format_inline = format_inline;
       pg->zoom = zoom;
       return pg->pix;
@@ -76,7 +78,7 @@ QPixmap renderTeX::render( int item, bool format_inline, qreal zoom ) {
     }
   } else { 
     if ( compileJob::pathsOK() ) { 
-      QPixmap ret = items[item]->render( zoom, format_inline );
+      QPixmap ret = items[item]->render( zoom, format_inline, sizeHint );
       int cost = (int) (items[item]->size()*zoom);
       if ( cost >= renderCache.maxCost() ) { 
 	qWarning() << "Warning, render cache too small, result will not be cached !!!";
@@ -96,11 +98,11 @@ QPixmap renderTeX::render( int item, bool format_inline, qreal zoom ) {
   }
 }
 
-void renderTeX::preRender( int item, bool format_inline ) { 
+void renderTeX::preRender( int item, bool format_inline, int sizeHint ) { 
   Q_ASSERT( 0 <= item && item < items.size() && items[item] );
   if ( compileJob::pathsOK() ) { 
     connect( items[item], SIGNAL(renderingReady(int)), this, SIGNAL(itemReady(int)) );
-    items[item]->preRender( item );
+    items[item]->preRender( item, format_inline, sizeHint );
   } else { 
     qWarning() << "renderTeX::render: PdfLaTex or GhostScript not found.";
   }

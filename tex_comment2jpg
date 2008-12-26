@@ -5,12 +5,15 @@ OUT_NAME=$3;
 HDR=`echo '
 \documentclass[10pt,a4paper]{article}
 \usepackage{amssymb}
+\usepackage[utf8]{inputenc}
 \begin{document}
 \pagestyle{empty}
 \begin{minipage}{%HSIZEcm}' | sed -e"s/%HSIZE/$HSIZE/g"`;
 FTR="\\end{minipage}\\end{document}"
 TMP_FILE=comment-$$;
 TMP_DIR=/tmp
+CUR_DIR=$PWD;
+cd $TMP_DIR;
 echo $HDR>$TMP_DIR/$TMP_FILE.tex;
 while read -r;  do 
 	echo $REPLY >>$TMP_DIR/$TMP_FILE.tex;
@@ -18,8 +21,7 @@ done
 echo $FTR >>$TMP_DIR/$TMP_FILE.tex;
 pdfcslatex -interaction=nonstopmode $TMP_DIR/$TMP_FILE.tex 2>/dev/null >/dev/null
 pdfcrop $TMP_DIR/$TMP_FILE.pdf $TMP_DIR/crop-$TMP_FILE.pdf 2>/dev/null >/dev/null
-pdftoppm -r $DPI -f 1 -l 1 $TMP_DIR/crop-$TMP_FILE.pdf | ppmtojpeg > $OUT_NAME 2>/dev/null
-rm $TMP_DIR/$TMP_FILE.*
-rm $TMP_DIR/crop-$TMP_FILE.pdf
-
-
+pdftoppm -r $DPI -f 1 -l 1 $TMP_DIR/crop-$TMP_FILE.pdf | ppmtojpeg > $CUR_DIR/$OUT_NAME 2>/dev/null
+#rm $TMP_DIR/$TMP_FILE.*
+#rm $TMP_DIR/crop-$TMP_FILE.pdf
+cd $CUR_DIR;

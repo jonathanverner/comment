@@ -44,11 +44,13 @@ class renderTeX : public QObject {
 		void setPaths( QString pdfLaTeX, QString ghostScript );
 		void setPreambule( QString preambule );
 
+		/* This method should always succeed */
 		int addItem( QString source, QString preambule = "" );
 		void updateItem( int item, QString source, QString preambule = "" );
 		void deleteItem( int item );
-		QPixmap render( int item, bool format_inline = false, qreal zoom = 1 );
-		void preRender( int item, bool format_inline = false );
+		// sizeHint is the wanted width in millimeters
+		QPixmap render( int item, bool format_inline = false, qreal zoom = 1, int sizeHint = 50 );
+		void preRender( int item, bool format_inline = false, int sizeHint = 50 );
 	signals:
 		void itemReady( int item );
 
