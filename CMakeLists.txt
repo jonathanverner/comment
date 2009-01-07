@@ -40,6 +40,7 @@ SET(ANNOT_SRC
   hilightTool.cpp
   teXjob.cpp
   renderTeX.cpp
+  propertyTab.cpp
 )
 
 SET(TEST_SRC

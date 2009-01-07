@@ -35,6 +35,7 @@ class QLabel;
 class QMenu;
 class QTabWidget;
 class QTextEdit;
+class propertyTab;
 
 namespace PoDoFo { 
   class PdfAnnotation;
@@ -61,6 +62,7 @@ class abstractTool : public QObject {
 		pdfScene *scene;
 		QTabWidget *editor;
 		QTextEdit *contentEdit;
+		propertyTab *propertyEdit;
 		QMenu *cntxMenu;
 		abstractAnnotation *currentEditItem;
 
@@ -76,6 +78,9 @@ class abstractTool : public QObject {
 		void updateContent();
 
 		void teXToolTipReady( int annotID );
+
+		void nextEditorTab();
+		void prevEditorTab();
 
 	public:
 		 abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea  );

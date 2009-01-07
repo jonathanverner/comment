@@ -33,6 +33,21 @@
 #include "toolBox.h"
 #include "pdfUtil.h"
 #include "renderTeX.h"
+#include "propertyTab.h"
+
+void abstractTool::nextEditorTab() { 
+  int cur_pos = editor->currentIndex(), max = editor->count();
+  cur_pos++;
+  if ( cur_pos >= max ) cur_pos = 0;
+  editor->setCurrentIndex( cur_pos );
+}
+
+void abstractTool::prevEditorTab() { 
+  int cur_pos = editor->currentIndex(), max = editor->count();
+  cur_pos--;
+  if ( cur_pos < 0 ) cur_pos = max-1;
+  editor->setCurrentIndex( cur_pos );
+}
 
 
 abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
@@ -40,8 +55,20 @@ abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *E
 	  cntxMenu = new QMenu();
 	
 	  contentEdit = new QTextEdit( EditArea );
+	  propertyEdit = new propertyTab( EditArea );
+
 	  editor = new QTabWidget( EditArea );
 	  editor->addTab( contentEdit, QString( "Content" ) );
+	  editor->addTab( propertyEdit, QString( "Properties" ) );
+	  QAction *rightTab = new QAction( editor ), *leftTab = new QAction( editor );
+	  rightTab->setShortcut((QString) "Ctrl+.");
+	  leftTab->setShortcut((QString) "Ctrl+,");
+	  editor->addAction( rightTab );
+	  editor->addAction( leftTab );
+	  connect( rightTab, SIGNAL( triggered() ), this, SLOT( nextEditorTab() ) );
+	  connect( leftTab, SIGNAL( triggered() ), this, SLOT( prevEditorTab() ) );
+
+
   	
 	  connect( contentEdit, SIGNAL( textChanged() ), this, SLOT( updateContent() ) );
 	  editArea->addWidget( editor );
