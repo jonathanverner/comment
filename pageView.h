@@ -78,10 +78,13 @@ class pageView : public QGraphicsView {
 	  virtual void mouseReleaseEvent( QMouseEvent *e );
 	  virtual void mousePressEvent( QMouseEvent *e );
 	  virtual void keyPressEvent( QKeyEvent *e );
+	  int getLastPage();
+
 
 	public:
 		pageView( QGraphicsScene *scene, QWidget *parent = 0 );
-		int getCurrentPage();
+
+		QAction *newAction( QString shortCut, QObject *target, const char * ); 
 	signals:
 		void mouseNearBorder( const QPoint &pos );
 		void onPage( int num );
@@ -96,6 +99,8 @@ class pageView : public QGraphicsView {
 	  void right();
 	  void nextPage();
 	  void prevPage();
+	  void lastPage();
+	  void firstPage();
 	  void gotoPage( int num );
 	  void setCurrentTool( abstractTool *curTool );
 

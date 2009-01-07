@@ -54,29 +54,21 @@ mainWindow::mainWindow() {
   pgView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
   pgView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 
-  QAction *quitAct = new QAction( pgView );
-  QAction *saveAct = new QAction( pgView );
-  QAction *zoomInAct = new QAction( pgView );
-  QAction *zoomOutAct = new QAction( pgView );
-  QAction *pageGotoAct = new QAction( pgView );
+  QAction *quitAct = pgView->newAction( "Ctrl+Q", this, SIGNAL( quit() ) );
+  QAction *saveAct = pgView->newAction( "Ctrl+S", this, SLOT( save() ) );
+  QAction *zoomInAct = pgView->newAction( "Ctrl++", pgView, SLOT( zoomIN() ) );
+  QAction *zoomOutAct = pgView->newAction( "Ctrl+-", pgView, SLOT( zoomOUT() ) );
+  QAction *pageGotoAct = pgView->newAction( "F6", this, SLOT( pageNumEdit() ) );
+  QAction *nextPageAct = pgView->newAction( "PgDown", pgView, SLOT( nextPage() ) );
+  QAction *prevPageAct = pgView->newAction( "PgUp", pgView, SLOT( prevPage() ) );
+  QAction *upAct = pgView->newAction( "Up", pgView, SLOT( up() ) );
+  QAction *downAct = pgView->newAction( "Down", pgView, SLOT( down() ) );
+  QAction *rightAct = pgView->newAction( "Right", pgView, SLOT( right() ) );
+  QAction *leftAct = pgView->newAction( "Left", pgView, SLOT( left() ) );
+  QAction *startAct =  pgView->newAction( "Ctrl+Home", pgView, SLOT( firstPage() ) );
+  QAction *endAct = pgView->newAction( "Ctrl+End", pgView, SLOT( lastPage() ) );
 
-  saveAct->setShortcut((QString) "Ctrl+S");
-  quitAct->setShortcut((QString) "Ctrl+Q");
-  zoomInAct->setShortcut((QString) "Ctrl++");
-  zoomOutAct->setShortcut((QString) "Ctrl+-");
-  pageGotoAct->setShortcut( (QString) "F6" );
 
-  pgView->addAction(zoomInAct);
-  pgView->addAction(zoomOutAct);
-  pgView->addAction(quitAct);
-  pgView->addAction(saveAct);
-  pgView->addAction(pageGotoAct);
-
-  connect( quitAct, SIGNAL( triggered() ), this, SIGNAL( quit() ) );
-  connect( saveAct, SIGNAL( triggered() ), this, SLOT( save() ) );
-  connect( zoomInAct, SIGNAL( triggered() ), pgView, SLOT( zoomIN() ) );
-  connect( zoomOutAct, SIGNAL( triggered() ), pgView, SLOT( zoomOUT() ) );
-  connect( pageGotoAct, SIGNAL( triggered() ), this, SLOT( pageNumEdit() ) );
   connect( numberEdit, SIGNAL( prevPage() ), pgView, SLOT( prevPage() ) );
   connect( numberEdit, SIGNAL( nextPage() ), pgView, SLOT( nextPage() ) );
   connect( numberEdit, SIGNAL( gotoPage(int) ), pgView, SLOT( gotoPage(int) ) );

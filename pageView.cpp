@@ -27,6 +27,15 @@ bool viewEvent::isClick() {
   return distance < 10;
 };
 
+QAction *pageView::newAction( QString shortCut, QObject *target, const char* slot ) { 
+  QAction *ret = new QAction( this );
+  ret->setShortcut( shortCut );
+  addAction( ret );
+  connect( ret, SIGNAL( triggered() ), target, slot );
+  return ret;
+}
+
+
 pageView::pageView( QGraphicsScene *scene, QWidget *parent ) :
 	QGraphicsView( scene, parent ), zoom(1), currentPage(1), currentTool(NULL),
 	movingItem(NULL), toolTipItem(NULL) { 
@@ -180,16 +189,16 @@ void pageView::zoomOUT() {
   scale( 0.7, 0.7 ); 
 }
 
-int pageView::getCurrentPage() { 
+int pageView::getLastPage() {
+  int lastPageNum = 0;
   pageBeginItem *pg;
   foreach( QGraphicsItem *i, items() ) { 
-    if ( pg = dynamic_cast<pageBeginItem *>(i) ) { 
-      currentPage = pg->getPageNum();
-      return currentPage;
-    }
+    if ( pg = dynamic_cast<pageBeginItem *>(i) )
+      if ( pg->getPageNum() > lastPageNum ) lastPageNum = pg->getPageNum();
   }
-  return currentPage;
+  return lastPageNum;
 }
+		      
 
 void pageView::gotoPage( int num ) { 
   pageBeginItem *pg;
@@ -206,6 +215,14 @@ void pageView::gotoPage( int num ) {
   return;
 }
 
+void pageView::firstPage() { 
+  gotoPage( 1 );
+}
+
+void pageView::lastPage() { 
+  gotoPage( getLastPage() );
+}
+
 void pageView::nextPage() { 
   gotoPage( currentPage + 1 );
 }
@@ -215,15 +232,29 @@ void pageView::prevPage() {
 }
 
 void pageView::up() {
+  QScrollBar *hBar = horizontalScrollBar();
+  QScrollBar *vBar = verticalScrollBar();
+  int delta = 10;
+  vBar->setValue(vBar->value() - delta);
 }
 
 void pageView::down() {
+  QScrollBar *vBar = verticalScrollBar();
+  int delta = 10;
+  vBar->setValue(vBar->value() + delta);
 }
 
 void pageView::left() {
+  QScrollBar *hBar = horizontalScrollBar();
+  int delta = 10;
+  hBar->setValue(hBar->value() - delta);
+
 }
 
 void pageView::right() {
+  QScrollBar *hBar = horizontalScrollBar();
+  int delta = 10;
+  hBar->setValue(hBar->value() + delta);
 }
 
 #include "pageView.moc"
