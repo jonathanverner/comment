@@ -23,7 +23,7 @@
 #include "abstractTool.h" 
 #include "pdfScene.h"
 #include "pageBeginItem.h"
-#include "wordItem.h"
+// #include "wordItem.h"
 #include "textLayer.h"
 #include "pdfUtil.h"
 
@@ -41,6 +41,7 @@ pdfScene::pdfScene( const QSet<abstractTool *> &tools, QString fName ):
   setBackgroundBrush(Qt::gray);
   if ( fName != "" ) loadFromFile( fName );
 }
+
 
 
 void pdfScene::registerTool( abstractTool *tool ) {
@@ -118,7 +119,7 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
   pageBeginItem *beginMarker;
   pageCorners.clear();
   qreal y=pageSkip;
-  wordItem *it;
+//  wordItem *it;
   textLayer *txt;
   for(int i = 0; i < numPages; i++ ) {
     pageItem = new pdfPageItem( pdf->page( i ) );
@@ -136,10 +137,10 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
     beginMarker->setPos(0, pgSize.height()/2);
     y+=pageItem->boundingRect().height()+pageSkip;
 //    QList<poppler::TextBox*> textList = pageItem->getPage()->textList();
-    foreach( Poppler::TextBox *word, pageItem->getPage()->textList() ) { // add the text layer
+/*    foreach( Poppler::TextBox *word, pageItem->getPage()->textList() ) { // add the text layer
       it = new wordItem( word );
       it->setParentItem( pageItem );
-    }
+    }*/
     txt = new textLayer( pageItem->getPage() );
     txt->setParentItem( pageItem );
     addPageAnnotations( i, pageItem );

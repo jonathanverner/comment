@@ -18,11 +18,9 @@
 
 
 #include "hilightTool.h"
-#include "pageView.h"
-#include "textLayer.h"
+#include "pageView.h" /* needed for viewEvent */
 #include "toolBox.h"
 #include "pdfScene.h"
-#include "pdfPageItem.h"
 #include "pdfUtil.h"
 
 QPixmap *hilightTool::icon = NULL;
@@ -47,21 +45,9 @@ void hilightTool::newActionEvent( const QPointF *ScenePos ) {
 void hilightTool::updateCurrentAnnotation( QPointF ScenePos ) { 
   hilightAnnotation *annot = dynamic_cast<hilightAnnotation*>(currentEditItem); 
   Q_ASSERT( annot );
-  QPointF from = annot->pos();
-  QPointF to = annot->parentItem()->mapFromScene( ScenePos );
-  textLayer *txt;
-  foreach( QGraphicsItem *item, scene->items( ScenePos ) ) {
-	  if ( dynamic_cast<pdfPageItem*>(item) ) { 
-	    foreach( QGraphicsItem *i, item->children() ) { 
-	      if ( txt = dynamic_cast<textLayer*>(i) ) {
-		annot->updateSelection( txt->select( from, to ) );
-		return;
-	      }
-
-	    }
-	  }
-  }
-  return;
+  QPointF from = annot->scenePos();
+  QPointF to = ScenePos;
+  annot->updateSelection( scene->selectText(  from, to ) );
 }
 
 bool hilightTool::acceptEventsFor( QGraphicsItem *item ) {  
@@ -159,14 +145,14 @@ QPainterPath hilightAnnotation::shape() const {
   return exactShape;
 }
 
-void hilightAnnotation::updateSelection( QList<QRectF> newSelection ) { 
+void hilightAnnotation::updateSelection( QList<TextBox*> newSelection ) { 
   QPainterPath tmp;
   QRectF br;
   update();
   prepareGeometryChange();
   hBoxes.clear();
-  foreach( QRectF box, newSelection ) { 
-    br = mapFromParent( box ).boundingRect();
+  foreach( TextBox *box, newSelection ) { 
+    br = mapFromParent( box->boundingBox() ).boundingRect();
     hBoxes.append( br );
     tmp.addRect( br );
   }

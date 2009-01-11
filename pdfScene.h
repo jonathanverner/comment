@@ -19,6 +19,7 @@
 #include <QtCore/QString>
 #include <QtCore/QVector>
 #include <QtCore/QList>
+#include <QtGui/QPointF>
 
 class abstractTool;
 class abstractAnnotation;
@@ -38,6 +39,13 @@ namespace Poppler {
 
 
 class pdfCoords;
+
+class TextBox;
+
+QRectF TextBox::boundingBox() const;
+TextBox *TextBox::nextWord const;
+QString TextBox::text() const;
+
 
 class pdfScene : public QGraphicsScene {
 	private:
@@ -101,6 +109,50 @@ class pdfScene : public QGraphicsScene {
 		/* Places the annotation annot ( which must not be NULL )
 		 * on the page determined by the scene position scPos */
 		void placeAnnotation( abstractAnnotation *annot, const QPointF *scPos ); 
+
+		/****************************************************
+		 *             TEXT LAYER METHODS                   *
+		 ****************************************************/
+
+		/* Returns a list of wordBoxes containing all the
+		 * words to be selected starting from the point @from
+		 * to the point @to (both in scene coordinates).
+		 * If the rectangle given by (@from,@to) spans
+		 * multiple lines, the lines except for the first
+		 * and last will be selected entirely, while the first
+		 * one will be selected from the @from to the end of the line
+		 * and the last will be selected from the beginning of the line to @to.
+		 * Currently the granularity is along word boundaries
+		 * (i.e. you cannot select a single character) but in the
+		 * future this might change. 
+		 *
+		 * Note: The BBoxes in the returned lists are in scene
+		 * coordinates.
+		 *
+		 * Note: pdfScene retains ownership of the TextBoxes!
+		 */
+		QList<TextBox*> selectText( QPointF from, QPointF to );
+
+		/* Uses the last method to get a list of words and
+		 * then concatenates their text content together (i.e. discards
+		 * the bbox information) and returns it
+		 * both @from and @to are in scene coordinates */
+
+		QString selectedText( QPointF from, QPointF to );
+
+		/* Returns a list of words whose start matches @text,
+		 * optionally starting at @startPage (zero-based) and
+		 * optionally (if @endPage >=0) ending @endPage
+		 *
+		 * Note: The BBoxes in the returned lists are in scene
+		 * coordinates.
+		 *
+		 * Note: pdfScene retains ownership of the TextBoxes!
+		 */
+
+		QList<TextBox*> findText( QString text, int startPage = 0, int endPage = -1 );
+
+
 };
 		
 
