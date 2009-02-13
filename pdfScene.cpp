@@ -233,6 +233,25 @@ bool pdfScene::saveToFile( QString fileName ) {
  * */
 bool pdfScene::save() {
   saveToFile( myFileName );
+  /*
+  QTemporaryFile *tmpSave = new QTemporaryFile( QDir::tempPath()+"/tempSaveXXXXXX" );
+  tmpSave->setAutoRemove(false);
+  saveToFile( tmpSave->fileName() );
+  PoDoFo::PdfMemDocument pdfDoc;
+  try { 
+    pdfDoc.Load( tmpSave->fileName() );
+  } catch ( PoDoFo::PdfError error ) { 
+    qCritical() << "Cannot load the saved file:" << error.what();
+    qCritical() << "Saving backup to :" << myFileName+"~backup";
+    QFile::copy( tmpSave->fileName(), myFileName+"~backup" );
+    return false;
+  }
+  if ( pdfDoc.GetPageCount() != numPages ) { 
+    qCritical() << "Page count mismatch when saving file"
+    qCritical() << "Saving backup to :" << myFileName+"~backup";
+    QFile::copy( tmpSave->fileName(), myFileName+"~backup" );
+    return false;
+  }*/
 }
 
 void pdfScene::placeAnnotation( abstractAnnotation *annot, const QPointF *scPos ) { 

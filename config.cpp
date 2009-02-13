@@ -63,7 +63,7 @@ void configurator::load() {
   QTextStream in(&cfgFile);
   while( ! in.atEnd() ) { 
     QString line = in.readLine();
-    QRegExp exp(" *([^#= ]*) *= *([^;]*).*");
+    QRegExp exp(" *([^#= ]*) *= *([^ ][^;]*).*");
     if ( ! exp.exactMatch( line ) ) continue;
     QStringList list = exp.capturedTexts();
     cfg[list[1].toLower()]=list[2];

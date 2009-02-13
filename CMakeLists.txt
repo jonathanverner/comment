@@ -125,7 +125,7 @@ TARGET_LINK_LIBRARIES(annot_rm ${LINK_LIBS})
 ADD_EXECUTABLE(testPageNumberEdit pageNumberEdit.cpp testPageNumberEdit.cpp)
 TARGET_LINK_LIBRARIES(testPageNumberEdit ${LINK_LIBS})
 
-ADD_EXECUTABLE(testTeXRender testTeXRender.cpp renderTeX.cpp teXjob.cpp)
+ADD_EXECUTABLE(testTeXRender testTeXRender.cpp renderTeX.cpp teXjob.cpp config.cpp)
 TARGET_LINK_LIBRARIES(testTeXRender ${LINK_LIBS})
 
 
