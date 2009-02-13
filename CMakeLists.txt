@@ -45,6 +45,7 @@ SET(ANNOT_SRC
   searchBar.cpp
   search.cpp
   config.cpp
+  hiliteItem.cpp
 )
 
 SET(TEST_SRC
