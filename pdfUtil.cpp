@@ -12,10 +12,14 @@
  ***************************************************************/
 
 #include <QtCore/QByteArray>
+#include <QtCore/QDebug>
+
 #include "pdfUtil.h"
 #include "pdfScene.h"
+#include <poppler-qt4.h>
 
 using namespace PoDoFo;
+using namespace Poppler;
 
 
 
@@ -73,6 +77,18 @@ QString pdfUtil::pdfStringToQ( PdfString str ) {
 }
 
 namespace pdfUtil {
+
+void debugPrintTextBoxen( QList<TextBox *> boxen ) { 
+  QString print;
+  int sz=0;
+  foreach( TextBox *b, boxen ) { 
+    print = print + " + " + b->text();
+    sz+=b->text().size()+1;
+  }
+  qDebug() << print << "(size:"<<sz<<")";
+}
+
+
 void addBox( PdfArray &array, QRectF &box, pdfCoords *coords ) { 
     PdfRect *rect = coords->sceneToPdf( box );
 

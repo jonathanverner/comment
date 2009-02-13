@@ -24,6 +24,11 @@
 
 class pdfCoords;
 
+namespace Poppler { 
+  class TextBox;
+}
+
+
 
 /* pdfCoords --- translates from the pdfPageItem coordinates (top,left)-based
  *               into the PDF coordinages (bottom, left) based. For this it
@@ -60,6 +65,8 @@ namespace pdfUtil {
   PoDoFo::PdfArray qBoxesToQuadPoints( QList<QRectF> boxes, pdfCoords *coords );
   QList<QRectF> quadPointsToQBoxes( PoDoFo::PdfArray &quadPoints, pdfCoords *coords );
   QString pdfStringToQ( PoDoFo::PdfString str );
+
+  void debugPrintTextBoxen( QList<Poppler::TextBox *> boxen );
 
 
 }
