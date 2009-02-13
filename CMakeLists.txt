@@ -31,16 +31,19 @@ SET(ANNOT_SRC
   textTool.cpp
   toolBox.cpp
   pdfScene.cpp
+  sceneLayer.cpp
   pageNumberEdit.cpp
   pageView.cpp
   toolTips.cpp
   pdfUtil.cpp
   wordItem.cpp
-  textLayer.cpp
+  pageTextLayer.cpp
   hilightTool.cpp
   teXjob.cpp
   renderTeX.cpp
   propertyTab.cpp
+  searchBar.cpp
+  search.cpp
 )
 
 SET(TEST_SRC

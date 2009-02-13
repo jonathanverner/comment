@@ -24,6 +24,8 @@ class pageView;
 class pdfScene;
 class textTool;
 class pageNumberEdit;
+class searchBar;
+class searcher;
 
 class QStackedWidget;
 
@@ -36,6 +38,8 @@ class mainWindow : public QWidget {
 		pdfScene *scene;
 		QStackedWidget *editor;
 		textTool *textAnnotTool;
+		searchBar *searchDlg;
+		searcher *search;
 
 
 		void createToolBar();
@@ -47,10 +51,15 @@ class mainWindow : public QWidget {
 		mainWindow();
 		bool loadFile( QString fileName );
 
+	public slots:
+		void hideEditArea();
+		void ensureVisible( const QRectF &rect );
+
 	protected slots:
 		void mouseNearBorder(const QPoint &pos);
 		void pageNumEdit();
 		void save();
+		void showSearchBar();
 	signals:
 		void quit();
 

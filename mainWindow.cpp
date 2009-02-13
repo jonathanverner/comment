@@ -27,6 +27,8 @@
 #include "pdfScene.h"
 #include "pageView.h"
 #include "hilightTool.h"
+#include "searchBar.h"
+#include "search.h"
 
 
 
@@ -36,10 +38,13 @@ mainWindow::mainWindow() {
   toolBar = new toolBox( pgView );
   editor = new QStackedWidget( this );
   numberEdit = new pageNumberEdit( this );
+  searchDlg = new searchBar( this );
+  search = new searcher( scene );
 
 
 
   toolBar->addWidget( numberEdit );
+  editor->addWidget( searchDlg );
 
   textAnnotTool = new textTool( scene, toolBar, editor );
   textAnnotTool->setAuthor( "Jonathan Verner" );
@@ -67,6 +72,7 @@ mainWindow::mainWindow() {
   QAction *leftAct = pgView->newAction( "Left", pgView, SLOT( left() ) );
   QAction *startAct =  pgView->newAction( "Ctrl+Home", pgView, SLOT( firstPage() ) );
   QAction *endAct = pgView->newAction( "Ctrl+End", pgView, SLOT( lastPage() ) );
+  QAction *searchAct = pgView->newAction( "Ctrl+F", this, SLOT( showSearchBar() ) );
 
 
   connect( numberEdit, SIGNAL( prevPage() ), pgView, SLOT( prevPage() ) );
@@ -75,6 +81,17 @@ mainWindow::mainWindow() {
   connect( pgView, SIGNAL( mouseNearBorder(const QPoint&) ), this, SLOT( mouseNearBorder(const QPoint&) ) );
 //  connect( pgView, SIGNAL( newAnnotationAction(const QPointF&) ), this, SLOT( newAnnotation(const QPointF &) ) );
   connect( toolBar, SIGNAL( toolActivated(abstractTool*) ), pgView, SLOT( setCurrentTool(abstractTool*) ) );
+
+
+  connect( searchDlg, SIGNAL( textChanged(QString) ), search, SLOT( searchTermChanged(QString) ) );
+  connect( searchDlg, SIGNAL( nextMatch() ), search, SLOT( nextMatch() ) ); 
+  connect( searchDlg, SIGNAL( prevMatch() ), search, SLOT( prevMatch() ) );
+
+  connect( search, SIGNAL( matchFound(int) ), searchDlg, SLOT( setFound() ) );
+  connect( search, SIGNAL( matchNotFound() ), searchDlg, SLOT( setMissed() ) );
+  connect( search, SIGNAL( clear() ), searchDlg, SLOT( setNone() ) );
+  connect( search, SIGNAL( currentMatchPosition(const QRectF&) ), this, SLOT( ensureVisible(const QRectF&) ) );
+
 
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -88,7 +105,21 @@ mainWindow::mainWindow() {
   editor->hide();
 }
 
+void mainWindow::hideEditArea() { 
+  editor->hide();
+  pgView->setFocus();
+}
 
+void mainWindow::ensureVisible( const QRectF &rect ) { 
+  pgView->ensureVisible( rect );
+}
+
+void mainWindow::showSearchBar() { 
+  search->clearSearch();
+  editor->setCurrentWidget( searchDlg );
+  editor->show();
+  searchDlg->focus();
+}
 
 
 void mainWindow::save() { 
@@ -115,7 +146,10 @@ void mainWindow::mouseNearBorder( const QPoint &pos ) {
     if ( ! toolBar->isVisible() ) toolBar->resize( pgView->width(), toolBar->height() );
     toolBar->show();
   }
-  else toolBar->hide();
+  else { 
+    toolBar->hide();
+    pgView->setFocus();
+  }
 }
 
 
