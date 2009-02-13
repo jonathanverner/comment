@@ -19,6 +19,7 @@
 #include <QtCore/QDebug>
 #include <QtCore/QFile>
 #include "mainWindow.h"
+#include "config.h"
 
 int main(int argc, char **argv) { 
   QApplication app( argc, argv );
@@ -44,6 +45,8 @@ int main(int argc, char **argv) {
   mW.show();
   QObject::connect( &mW, SIGNAL( quit() ), &app, SLOT( quit() ) );
   app.exec();
+
+  config().save();
 
   return 0;
 }

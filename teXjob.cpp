@@ -20,6 +20,7 @@
 #include <poppler-qt4.h>
 
 #include "teXjob.h"
+#include "config.h"
 
 
 QString compileJob::latexPath("/usr/bin/pdflatex");
@@ -31,6 +32,8 @@ compileJob::compileJob():
 {
   proc = new QProcess( this );
   proc->setWorkingDirectory( QDir::tempPath() );
+  paths_ok = config().haveTeX();
+  setPaths( config()["tex"], config()["gs"] );
 }
 
 compileJob::~compileJob() { 
@@ -90,6 +93,10 @@ QRectF compileJob::parseGSOutput() {
 
 
 void compileJob::start( QString latexSource ) { 
+  if ( ! paths_ok ) {
+    qWarning() << " Could not find pdfTeX or GhostScript ";
+    return;
+  }
   if ( jobStarted ) { 
     qWarning() << "Cannot start while another job in progress. Please use the restart method";
     return;

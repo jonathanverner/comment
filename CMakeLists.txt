@@ -44,6 +44,7 @@ SET(ANNOT_SRC
   propertyTab.cpp
   searchBar.cpp
   search.cpp
+  config.cpp
 )
 
 SET(TEST_SRC

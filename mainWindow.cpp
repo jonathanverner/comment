@@ -29,6 +29,7 @@
 #include "hilightTool.h"
 #include "searchBar.h"
 #include "search.h"
+#include "config.h"
 
 
 
@@ -47,9 +48,9 @@ mainWindow::mainWindow() {
   editor->addWidget( searchDlg );
 
   textAnnotTool = new textTool( scene, toolBar, editor );
-  textAnnotTool->setAuthor( "Jonathan Verner" );
+  textAnnotTool->setAuthor( config()["author"] );
   hilightTool *hiTool = new hilightTool( scene, toolBar, editor );
-  hiTool->setAuthor( "Jonathan Verner" );
+  hiTool->setAuthor( config()["author"] );
   scene->registerTool( hiTool );
   scene->registerTool( textAnnotTool );
   toolBar->resize( pgView->width(), toolBar->height()+10 );
