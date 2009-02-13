@@ -19,7 +19,7 @@
 #include <QtCore/QString>
 #include <QtCore/QVector>
 #include <QtCore/QList>
-#include <QtGui/QPointF>
+//#include <QtGui/QPointF>
 
 class abstractTool;
 class abstractAnnotation;
@@ -35,16 +35,24 @@ namespace PoDoFo {
 
 namespace Poppler {
   class Document;
+  class TextBox;
 }
 
 
 class pdfCoords;
+class pageTextLayer;
+class sceneLayer;
 
-class TextBox;
 
-QRectF TextBox::boundingBox() const;
-TextBox *TextBox::nextWord const;
-QString TextBox::text() const;
+/*QRectF Poppler::TextBox::boundingBox() const;
+Poppler::TextBox *Poppler::TextBox::nextWord() const;
+QString Poppler::TextBox::text() const;*/
+
+struct pageSelections {
+	public:
+		QList< QList<Poppler::TextBox *> > selections;
+		int pageNum;
+};
 
 
 class pdfScene : public QGraphicsScene {
@@ -54,6 +62,8 @@ class pdfScene : public QGraphicsScene {
 		// it is cleared !!!!
 		QVector< QList<abstractAnnotation *> > annotations;
 		QVector<QPointF> pageCorners; // holds the top left corners of each page
+		QVector<pageTextLayer *> textLayer;
+		QList<sceneLayer *> sceneLayers;
 		qreal pageSkip; // amount of space to be left between the pages of the pdf
 		qreal leftSkip; // the left margin
 		QString myFileName; // the filename of the file currently opened
@@ -81,7 +91,6 @@ class pdfScene : public QGraphicsScene {
 
 		pdfPageItem *getPageItem( int pgNum );
 
-
 	public:
 		pdfScene();
 		pdfScene( const QSet<abstractTool *> &tools, QString fileName = "");
@@ -99,6 +108,7 @@ class pdfScene : public QGraphicsScene {
 
 		/* Always retuns a valid page number in [0,numPages) */
 		int posToPage( const QPointF &scenePos ); 
+
 		
 		/* Returns the Scene coordinates of the top left corner
 		 * of page page. If page is not a valid page number
@@ -109,6 +119,13 @@ class pdfScene : public QGraphicsScene {
 		/* Places the annotation annot ( which must not be NULL )
 		 * on the page determined by the scene position scPos */
 		void placeAnnotation( abstractAnnotation *annot, const QPointF *scPos ); 
+
+		/****************************************************
+		 * GENERAL LAYER FUNCTIONS                          *
+		 ****************************************************/
+
+		sceneLayer *addLayer();
+		void removeLayer( sceneLayer *layer );
 
 		/****************************************************
 		 *             TEXT LAYER METHODS                   *
@@ -125,13 +142,15 @@ class pdfScene : public QGraphicsScene {
 		 * Currently the granularity is along word boundaries
 		 * (i.e. you cannot select a single character) but in the
 		 * future this might change. 
+		 * Also note that currently selections spanning across
+		 * pages are not possible.
 		 *
-		 * Note: The BBoxes in the returned lists are in scene
-		 * coordinates.
+		 * Note: The BBoxes in the returned lists are in page
+		 * coordinates of the page containing the point from.
 		 *
-		 * Note: pdfScene retains ownership of the TextBoxes!
+		 * Note: pdfScene retains ownership of the Poppler::TextBoxes!
 		 */
-		QList<TextBox*> selectText( QPointF from, QPointF to );
+		QList<Poppler::TextBox*> selectText( QPointF from, QPointF to );
 
 		/* Uses the last method to get a list of words and
 		 * then concatenates their text content together (i.e. discards
@@ -144,13 +163,13 @@ class pdfScene : public QGraphicsScene {
 		 * optionally starting at @startPage (zero-based) and
 		 * optionally (if @endPage >=0) ending @endPage
 		 *
-		 * Note: The BBoxes in the returned lists are in scene
+		 * Note: The BBoxes in the returned lists are in page
 		 * coordinates.
 		 *
-		 * Note: pdfScene retains ownership of the TextBoxes!
+		 * Note: pdfScene retains ownership of the Poppler::TextBoxes!
 		 */
 
-		QList<TextBox*> findText( QString text, int startPage = 0, int endPage = -1 );
+		QList< pageSelections > findText( QString text, int startPage = 0, int endPage = -1 );
 
 
 };

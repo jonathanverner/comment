@@ -24,10 +24,11 @@
 #include "pdfScene.h"
 #include "pageBeginItem.h"
 // #include "wordItem.h"
-#include "textLayer.h"
+#include "pageTextLayer.h"
 #include "pdfUtil.h"
+#include "sceneLayer.h"
 
-
+using namespace Poppler;
 
 pdfScene::pdfScene(): 
 	pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10)
@@ -120,7 +121,6 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
   pageCorners.clear();
   qreal y=pageSkip;
 //  wordItem *it;
-  textLayer *txt;
   for(int i = 0; i < numPages; i++ ) {
     pageItem = new pdfPageItem( pdf->page( i ) );
     pageItem->setPageNum( i );
@@ -141,8 +141,9 @@ void pdfScene::loadPopplerPdf( QString fileName, QObject *pageInViewReceiver, co
       it = new wordItem( word );
       it->setParentItem( pageItem );
     }*/
-    txt = new textLayer( pageItem->getPage() );
-    txt->setParentItem( pageItem );
+    textLayer.append( new pageTextLayer( pageItem->getPage() ) );
+//    txt = new textLayer( pageItem->getPage() );
+//    txt->setParentItem( pageItem );
     addPageAnnotations( i, pageItem );
     qDebug() << "Page Size:" << pageItem->boundingRect();
     qDebug() << i;
@@ -226,6 +227,10 @@ bool pdfScene::saveToFile( QString fileName ) {
   return true;
 }
 
+/* FIXME: For safety reasons first save the file to a temporary 
+ * location and try to load it and do some sanity checks on it. 
+ * If it does not load, return false otherwise move it to myFilename. 
+ * */
 bool pdfScene::save() {
   saveToFile( myFileName );
 }
@@ -275,6 +280,52 @@ int pdfScene::posToPage( const QPointF &scenePos ) {
 QPointF pdfScene::topLeftPage( int page ) {
   if ( page < pageCorners.size() ) return pageCorners[page];
   return QPointF(0,0);
+}
+
+sceneLayer *pdfScene::addLayer() { 
+  sceneLayer *ret = new sceneLayer( this );
+  sceneLayers.append( ret );
+  return ret;
+}
+
+void pdfScene::removeLayer( sceneLayer *layer ) { 
+  sceneLayers.removeAll( layer );
+  delete layer;
+}
+
+QList<TextBox *> pdfScene::selectText( QPointF from, QPointF to ) { 
+  int pg = posToPage( from );
+  Q_ASSERT( pg < textLayer.size() );
+  QPointF fromP, toP;
+  pdfPageItem *Page = getPageItem( pg );
+  fromP = Page->mapFromScene( from );
+  toP = Page->mapFromScene( to );
+  return textLayer[pg]->select( fromP, toP );
+}
+
+QList< pageSelections > pdfScene::findText( QString text, int startPage, int endPage ) { 
+  int totalNumOfMatches = 0;
+  if ( endPage == -1 || endPage >= numPages ) endPage = numPages;
+  if ( startPage < 0 ) startPage = 0;
+  QList< pageSelections > ret;
+  pageSelections sel;
+  ret.clear();
+  for( int i = startPage; i < endPage; ++i ) { 
+    sel.pageNum = i;
+    sel.selections=textLayer[i]->findText( text );
+    if ( sel.selections.size() > 0 ) {
+      ret.append( sel );
+      totalNumOfMatches += sel.selections.size();
+    }
+  }
+  return ret;
+}
+
+QString pdfScene::selectedText( QPointF from, QPointF to ) { 
+  QList<TextBox*> selection = selectText( from, to );
+  QString ret;
+  foreach( TextBox *box, selection ) ret+=box->text();
+  return ret;
 }
 
 

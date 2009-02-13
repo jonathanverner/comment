@@ -16,6 +16,7 @@
 #include <QtGui/QTextEdit>
 #include <QtGui/QTabWidget>
 
+#include <poppler-qt4.h>
 
 #include "hilightTool.h"
 #include "pageView.h" /* needed for viewEvent */
@@ -23,7 +24,11 @@
 #include "pdfScene.h"
 #include "pdfUtil.h"
 
+using namespace Poppler;
+
 QPixmap *hilightTool::icon = NULL;
+
+
 
 hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
 	abstractTool( Scene, ToolBar, EditArea ), editingHilight(false)

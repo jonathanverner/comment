@@ -31,9 +31,9 @@ class pageTextLayer {
 		QVector<line*> lines;
 		QString pageText;
 
-		int findLine( qreal y );
+//		int findLine( qreal y );
 		template <class T> int findLine( T pos, int minLineHint=0 );
-		QList<TextBox*> interval( int startPos, int endPos );
+		QList<Poppler::TextBox*> interval( int startPos, int endPos );
 
 	public:
 		pageTextLayer( Poppler::Page *pg );
@@ -44,8 +44,8 @@ class pageTextLayer {
 		 * delete them yourself and do not dereference
 		 * the pointers after deleting pageTextLayer !!! */
 
-		QList<TextBox*> select( QPointF from, QPointF to );
-		QList<TextBox*> findText( QString text );
+		QList<Poppler::TextBox*> select( QPointF from, QPointF to );
+		QList< QList<Poppler::TextBox*> > findText( QString text );
 
 
 };

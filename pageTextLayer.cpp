@@ -15,6 +15,7 @@
 #include <poppler-qt4.h>
 
 #include "pageTextLayer.h"
+#include "pdfUtil.h"
 
 using namespace Poppler;
 
@@ -23,12 +24,14 @@ class line {
 		QString text;
 		QVector<TextBox*> boxes;
 		QVector<int> wordPosInText;
-		int sz,sPos,ePos;
+//		int sz,sPos,ePos;
 		int getIndex( qreal pos );
 		int getIndex( int textPos );
 		qreal minY, maxY;
 		QList<TextBox*> intervalBoxes( int s, int e );
 	public:
+		int sz,sPos,ePos;
+
 		line( int SPos );
 		~line();
 
@@ -47,9 +50,9 @@ class line {
 };
 
 
-line::line(int SPos): sz(0), sPos(SPos), ePos(SPos), minY(-1), maxY(-1) { 
+line::line(int SPos): sz(0), sPos(SPos), ePos(SPos), minY(-1), maxY(-1), text("") { 
   boxes.clear();
-  wordBoxes.clear();
+//  wordBoxes.clear();
   wordPosInText.clear();
 };
 
@@ -62,12 +65,12 @@ line::~line() {
 
 void line::add( TextBox *bx ) { 
   QString txt=bx->text();
-  int tsz=txt.size();
+  int tsz=txt.size()+1;
   qreal lY = bx->boundingBox().y();
   qreal uY = bx->boundingBox().y()+bx->boundingBox().height();
 
 
-  wordPosInText.append( text.size() );
+  wordPosInText.append( text.size()+sPos );
 
   /* We have too old a version, cannot do character-level selections:
    *
@@ -78,7 +81,7 @@ void line::add( TextBox *bx ) {
    */
 
   boxes.append( bx );
-  text+=txt;
+  text+=txt+" ";
   sz++;
 
   ePos +=tsz;
@@ -119,13 +122,15 @@ int line::getIndex( qreal pos ) {
   qreal minPivotVal,maxPivotVal;
   while( min < max ) { 
     dist=(max-min);
-    minPivotVal = boxes[pivot]->boundingBox.x();
-    maxPivotVal = minPivotVal+boxes[pivot]->boundingBox.width();
+    minPivotVal = boxes[pivot]->boundingBox().x();
+    maxPivotVal = minPivotVal+boxes[pivot]->boundingBox().width();
     if ( pos < minPivotVal ) max = pivot;
     else if ( maxPivotVal < pos ) min = pivot;
     else return pivot;
     pivot = min+(max-min)/2;
-    if ( (max-min) >=dist ) return max;
+//    if ( (max-min) >=dist ) return max;
+    if ( (max-min) >=dist ) return pivot;
+
   }
   return pivot;
 };
@@ -138,11 +143,15 @@ int line::getIndex( int textPos ) {
     dist=(max-min);
     minPivotVal = wordPosInText[pivot];
     maxPivotVal = boxes[pivot]->text().size();
-    if ( pos < minPivotVal ) max = pivot;
-    else if ( maxPivotVal < pos ) min = pivot;
-    else return pivot;
+    if ( textPos < minPivotVal ) max = pivot;
+    else if ( maxPivotVal < textPos ) min = pivot;
+    else {
+      return pivot;
+    }
     pivot = min+(max-min)/2;
-    if ( (max-min) >=dist ) return max;
+    if ( (max-min) >=dist ) {
+      return pivot;
+    }
   }
   return pivot;
 };
@@ -158,7 +167,6 @@ template <class T> QList<TextBox*> line::toEnd( T from ) {
 };
 
 template <class T> QList<TextBox*> line::fromStart( T to ) { 
-  qDebug() << " From Start to " << getIndex(to) <<"("<<to<<")";
   return intervalBoxes( 0, getIndex(to) );
 };
 
@@ -186,12 +194,15 @@ pageTextLayer::pageTextLayer( Page *pg ) {
   lines.clear();
   foreach( TextBox *box, pg->textList() ) { 
     if (box->boundingBox().x() < lastx ) { //newline
+//     qDebug() << "Adding line: ["<<ln->sPos<<"-"<<ln->ePos<<"]";
+//      pdfUtil::debugPrintTextBoxen( ln->all() );
       lines.append(ln);
       ln = new line( posInText );
     };
     ln->add( box );
     lastx = box->boundingBox().x();
-    posInText += box->text().size();
+    posInText += box->text().size() + 1;
+    pageText += " " + box->text();
   }
 }
 
@@ -215,7 +226,9 @@ template <class T> int pageTextLayer::findLine( T y, int minLineHint ) {
 	    case 0:
 		    return pivot;
 	    case 1:
-		    if ( min == pivot ) return min;
+		    if ( min == pivot ) {
+		      return min;
+		    }
 		    min = pivot;
     };
     pivot = min+(max-min)/2;
@@ -252,24 +265,29 @@ QList<TextBox*> pageTextLayer::interval( int sPos, int ePos ) {
   QList<TextBox*> ret;
   int lnS = findLine( sPos ), lnE = findLine( ePos, lnS );
   if ( lnS == lnE ) { 
-    ret=lines[lnS].interval( sPos, ePos );
+    ret=lines[lnS]->interval( sPos, ePos );
   } else { 
-    ret=lines[lnS].toEnd( sPos );
-    for(int i=lnS+1;i<lnE, ++i)
-      ret+=lines[i].all();
-    ret+=lines[lnE].fromStart( ePos );
+    ret=lines[lnS]->toEnd( sPos );
+    for(int i=lnS+1;i<lnE; ++i)
+      ret+=lines[i]->all();
+    ret+=lines[lnE]->fromStart( ePos );
   }
   return ret; 
 }
 
-QList<TextBox*> pageTextLayer::findText( QString text ) {
-  QList<TextBox*> ret;
+QList< QList<TextBox*> > pageTextLayer::findText( QString text ) {
+  QList< QList<TextBox*> > ret;
   ret.clear();
-  int pos=0, foundAt=0;
-  while ( (foundAt = pageTextLayer.indexOf( text, pos, )) >= 0 ) { 
-    ret+= interval( foundAt, foundAt + text.size() );
+  int pos=0, foundAt=pageText.indexOf( text, pos );
+
+  while ( foundAt >= 0 ) {
+ //   qDebug() << " interval( " << foundAt << ", " << foundAt + text.size() -1 << " );";
+//    pdfUtil::debugPrintTextBoxen( interval( foundAt, foundAt + text.size()-1 ) );
+    ret+=interval( foundAt, foundAt + text.size()-1 );
     pos=foundAt+text.size();
+    foundAt=pageText.indexOf( text, pos );
   }
+
   return ret;
 }
 

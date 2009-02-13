@@ -23,6 +23,10 @@
 class toolBox;
 class hilightAnnotation;
 
+namespace Poppler { 
+  class TextBox;
+};
+
 class hilightTool : public abstractTool { 
   Q_OBJECT
 	private:
@@ -58,7 +62,7 @@ class hilightAnnotation : public abstractAnnotation {
 		hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL );
 		~hilightAnnotation() {};
 
-		void updateSelection( QList<QRectF> newSelection );
+		void updateSelection( QList<Poppler::TextBox*> newSelection );
 
 		void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
 		QRectF boundingRect() const {return bBox;};
