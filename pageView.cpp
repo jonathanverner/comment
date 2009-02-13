@@ -62,7 +62,8 @@ viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) {
    mousePressStartPos.setY(-1);
    qDebug() << "Total: Distance:" << ret.distance;
  }
-  
+ 
+ ret.mousePressPosition=mapToScene(mousePressStartPos);
  ret.myType = tp;
  ret.SC = scene();
  ret.IT=NULL;

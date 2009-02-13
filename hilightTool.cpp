@@ -127,7 +127,7 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
       }
     } else finishEditing();
     return true;  
-  };
+  } else return abstractTool::handleEvent( ev );
   return false;
 }
 

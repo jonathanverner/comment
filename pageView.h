@@ -32,6 +32,7 @@ class viewEvent {
 		eventType myType;
 		QPoint evPos;
 		QPoint lastEvPos;
+		QPointF mousePressPosition;
 		qreal distance;
 		QPointF lastSP;
 		QPointF SP;
@@ -48,6 +49,7 @@ class viewEvent {
 
 		Qt::MouseButton btnCaused() { return bt_caused; };
 		Qt::MouseButtons btnState() { return bt_state; };
+		QPointF  mousePressPos() { return mousePressPosition; };
 		QPointF lastScenePos() { return lastSP;};
 		QPointF scenePos() { return SP;};
 		QPointF sceneDelta() { return SP-lastSP; };

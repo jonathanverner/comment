@@ -21,6 +21,8 @@
 #include <QtGui/QMenu>
 #include <QtGui/QTextEdit>
 #include <QtGui/QTabWidget>
+#include <QtGui/QClipboard>
+#include <QtGui/QApplication>
 
 #include <QtCore/QDebug>
 
@@ -34,6 +36,7 @@
 #include "pdfUtil.h"
 #include "renderTeX.h"
 #include "propertyTab.h"
+#include "hiliteItem.h"
 
 void abstractTool::nextEditorTab() { 
   int cur_pos = editor->currentIndex(), max = editor->count();
@@ -53,6 +56,10 @@ void abstractTool::prevEditorTab() {
 abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
 	editArea(EditArea), scene(Scene), toolBar(ToolBar), currentEditItem( NULL ) {
 	  cntxMenu = new QMenu();
+	  hi = new hiliteItem();
+	  hi->setColor( QColor(0,0,0,100) );
+	  hi->setZValue( 40 );
+	  scene->addItem(hi);
 	
 	  contentEdit = new QTextEdit( EditArea );
 	  propertyEdit = new propertyTab( EditArea );
@@ -85,6 +92,7 @@ abstractTool::~abstractTool() {
   editArea->removeWidget( editor );
   toolBar->removeTool( this );
   if ( editor ) delete editor;
+  delete hi;
 }
 
 void abstractTool::updateContent() {
@@ -176,6 +184,17 @@ bool abstractTool::handleEvent( viewEvent *ev ) {
   } if ( ev->type() == viewEvent::VE_MOUSE_MOVE && currentEditItem ) {
       editItem( currentEditItem );
       return true;
+  } if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::RightButton ) ) { 
+    hi->clear();
+    hi->setPos( scene->topLeftPage(scene->posToPage( ev->scenePos() ) ) );
+    hi->show();
+    selectedText = "";
+  } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && (ev->btnCaused() == Qt::RightButton ) ) {
+    qDebug() << "Selected: " << selectedText;
+    QApplication::clipboard()->setText( selectedText, QClipboard::Selection );
+  } else if ( ev->type() == viewEvent::VE_MOUSE_MOVE && (ev->btnState() & Qt::RightButton ) ) { 
+    hi->updateBBoxes( scene->selectText( ev->mousePressPos(), ev->scenePos() ) );
+    selectedText = scene->selectedText( ev->mousePressPos(), ev->scenePos() );
   } else return false;
 }
 

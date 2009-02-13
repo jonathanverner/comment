@@ -45,6 +45,7 @@ namespace PoDoFo {
 }
 
 class pdfCoords;
+class hiliteItem;
 
 class abstractTool : public QObject { 
   Q_OBJECT
@@ -54,7 +55,8 @@ class abstractTool : public QObject {
 
 		renderTeX *renderer;
 		QVector<abstractAnnotation *> int2annot;
-
+		hiliteItem *hi;
+		QString selectedText;
 
 	protected:
 		QStackedWidget *editArea;
