@@ -128,8 +128,8 @@ int line::getIndex( qreal pos ) {
     else if ( maxPivotVal < pos ) min = pivot;
     else return pivot;
     pivot = min+(max-min)/2;
-//    if ( (max-min) >=dist ) return max;
-    if ( (max-min) >=dist ) return pivot;
+    if ( (max-min) >=dist ) return max;
+//    if ( (max-min) >=dist ) return pivot;
 
   }
   return pivot;
