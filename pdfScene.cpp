@@ -324,7 +324,7 @@ QList< pageSelections > pdfScene::findText( QString text, int startPage, int end
 QString pdfScene::selectedText( QPointF from, QPointF to ) { 
   QList<TextBox*> selection = selectText( from, to );
   QString ret;
-  foreach( TextBox *box, selection ) ret+=box->text();
+  foreach( TextBox *box, selection ) ret+=box->text()+" ";
   return ret;
 }
 
