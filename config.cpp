@@ -29,6 +29,16 @@ configurator& config() {
   return *conf;
 }
 
+bool configurator::haveKey( const QString key ) const {
+  return cfg.contains( key.toLower() );
+}
+
+void configurator::removeKey( const QString key ) {
+  cfg.remove( key.toLower() );
+}
+
+  
+
 bool configurator::findTeX() {
   if ( cfg["tex"] != "" && QFile::exists( cfg["tex"] ) ) return true;
   if ( QFile::exists( "/usr/bin/pdflatex" ) ) {
@@ -78,12 +88,12 @@ void configurator::save() {
     return;
   QTextStream out(&cfgFile);
   foreach( QString key, cfg.keys() ) {
-    out << key << " = " << cfg[key] << ";" << endl;
+    out << key.toLower() << " = " << cfg[key] << ";" << endl;
   }
   cfgFile.close();
 }
 
 QString &configurator::operator[] (const QString key) { 
-  return cfg[key];
+  return cfg[key.toLower()];
 }
 

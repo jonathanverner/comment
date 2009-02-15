@@ -38,6 +38,9 @@ class configurator {
 		
 		bool haveTeX() { return haveTeXAndFriends; }
 
+		bool haveKey(const QString key) const;
+		void removeKey(const QString key );
+
 		QString &operator[] (const QString key);
 		
 };
