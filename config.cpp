@@ -30,11 +30,11 @@ configurator& config() {
 }
 
 bool configurator::haveKey( const QString key ) const {
-  return cfg.contains( key.toLower() );
+  return cfg.contains( key.toLower().replace(' ','_') );
 }
 
 void configurator::removeKey( const QString key ) {
-  cfg.remove( key.toLower() );
+  cfg.remove( key.toLower().replace(' ','_') );
 }
 
   
@@ -73,10 +73,10 @@ void configurator::load() {
   QTextStream in(&cfgFile);
   while( ! in.atEnd() ) { 
     QString line = in.readLine();
-    QRegExp exp(" *([^#= ]*) *= *([^ ][^;]*).*");
+    QRegExp exp(" *([^ ][^#= ]*) *= *([^ ][^;]*).*");
     if ( ! exp.exactMatch( line ) ) continue;
     QStringList list = exp.capturedTexts();
-    cfg[list[1].toLower()]=list[2];
+    cfg[list[1].toLower().replace(' ','_')]=list[2];
   }
   cfgFile.close();
 }
@@ -88,12 +88,12 @@ void configurator::save() {
     return;
   QTextStream out(&cfgFile);
   foreach( QString key, cfg.keys() ) {
-    out << key.toLower() << " = " << cfg[key] << ";" << endl;
+    out << key.toLower().replace(' ','_') << " = " << cfg[key] << ";" << endl;
   }
   cfgFile.close();
 }
 
 QString &configurator::operator[] (const QString key) { 
-  return cfg[key.toLower()];
+  return cfg[key.toLower().replace(' ','_')];
 }
 
