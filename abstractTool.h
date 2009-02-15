@@ -118,6 +118,7 @@ class abstractTool : public QObject {
 		 /* Returns the context menu for the item *it */
 		 virtual QMenu *contextMenu( QGraphicsItem *it );
 
+	public slots:
 		 virtual void hideEditor();
 
 		 friend class abstractAnnotation;

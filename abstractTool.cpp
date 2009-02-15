@@ -68,12 +68,16 @@ abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *E
 	  editor->addTab( contentEdit, QString( "Content" ) );
 	  editor->addTab( propertyEdit, QString( "Properties" ) );
 	  QAction *rightTab = new QAction( editor ), *leftTab = new QAction( editor );
+	  QAction *closeEdit = new QAction( editor );
 	  rightTab->setShortcut((QString) "Ctrl+.");
 	  leftTab->setShortcut((QString) "Ctrl+,");
+	  closeEdit->setShortcut((QString) "Esc");
 	  editor->addAction( rightTab );
 	  editor->addAction( leftTab );
+	  editor->addAction( closeEdit );
 	  connect( rightTab, SIGNAL( triggered() ), this, SLOT( nextEditorTab() ) );
 	  connect( leftTab, SIGNAL( triggered() ), this, SLOT( prevEditorTab() ) );
+	  connect( closeEdit, SIGNAL( triggered() ), this, SLOT( hideEditor() ) );
 
 
   	
