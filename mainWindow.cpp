@@ -157,6 +157,10 @@ void mainWindow::mouseNearBorder( const QPoint &pos ) {
 bool mainWindow::loadFile( QString fileName ) { 
   if ( scene->loadFromFile( fileName, numberEdit, SLOT( setPageNumber(int) )  ) ) { 
     numberEdit->setMaxPageNum( scene->getNumPages() );
+    if ( config().haveKey( fileName ) ) { 
+      qDebug() << "Goto page" << config()[fileName];
+      pgView->gotoPage( config()[fileName].toInt() );
+    }
     return true;
   }
   return false;

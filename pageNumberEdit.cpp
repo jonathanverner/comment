@@ -5,6 +5,7 @@
 #include <QtGui/QAction>
 
 #include "pageNumberEdit.h"
+#include "config.h"
 
 
 pageNumberEdit::pageNumberEdit( QWidget *main ):
@@ -73,6 +74,7 @@ void pageNumberEdit::setPageNumber( int pgNum ) {
   else lastValidPageNumber = pgNum;
   pageEdit->setText(QString::number( pgNum ) + QString(" / ") + QString::number( numberOfPages ) );
   pageEdit->setCursorPosition(0);
+  config()["current_page"]=QString::number(pgNum);
 }
 		  
 /* if the page edit text is of the form 
