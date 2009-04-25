@@ -31,7 +31,8 @@
 #include "search.h"
 #include "config.h"
 
-
+#include "pdfUtil.h"
+#include "ui_propertyDialog.h"
 
 mainWindow::mainWindow() { 
   scene = new pdfScene();
@@ -74,6 +75,7 @@ mainWindow::mainWindow() {
   QAction *startAct =  pgView->newAction( "Ctrl+Home", pgView, SLOT( firstPage() ) );
   QAction *endAct = pgView->newAction( "Ctrl+End", pgView, SLOT( lastPage() ) );
   QAction *searchAct = pgView->newAction( "Ctrl+F", this, SLOT( showSearchBar() ) );
+  QAction *infoAct = pgView->newAction( "Ctrl+I", this, SLOT( showInfoDlg() ) );
 
 
   connect( numberEdit, SIGNAL( prevPage() ), pgView, SLOT( prevPage() ) );
@@ -132,6 +134,30 @@ void mainWindow::save() {
   }
 }
 
+void mainWindow::showInfoDlg() { 
+  pdfProperties prop;
+  QDialog *dlg = new QDialog( (QWidget *) this );
+  Ui::Dialog propDlg;
+  propDlg.setupUi( dlg );
+  scene->getPdfProperties( prop );
+  propDlg.titleEdit->setText( prop.title );
+  propDlg.authorEdit->setText( prop.author );
+  propDlg.subjectEdit->setText( prop.subject );
+  propDlg.keywordsEdit->setText( prop.keywords );
+  dlg->show();
+  int result=dlg->exec();
+  if ( result == 0 ) return;
+  prop.title = propDlg.titleEdit->text();
+  prop.author = propDlg.authorEdit->text();
+  prop.subject = propDlg.subjectEdit->text();
+  prop.keywords = propDlg.keywordsEdit->toPlainText();
+  scene->setPdfProperties( prop );
+  delete dlg;
+}
+
+  
+
+  
 
 void mainWindow::pageNumEdit() { 
     if ( ! toolBar->isVisible() ) toolBar->resize( pgView->width(), toolBar->height() );

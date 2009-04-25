@@ -26,9 +26,11 @@ class abstractAnnotation;
 class QGraphicsItem;
 class QEvent;
 class pdfPageItem;
+struct pdfProperties;
 
 namespace PoDoFo { 
   class PdfDocument;
+  class PdfMemDocument;
   class PdfPage;
   class PdfRect;
 }
@@ -81,6 +83,9 @@ class pdfScene : public QGraphicsScene {
 		QByteArray tempFileName; // the temporary file 
 		int numPages; // number of pages;
 
+		struct pdfProperties *prop;
+		void fillPdfProperties();
+		void savePdfProperties( PoDoFo::PdfMemDocument *pdfDoc );
 		Poppler::Document *pdf; // When a document is loaded, this holds the poppler document
 
 		void processPage( PoDoFo::PdfDocument *pdf, int pgNum ); //
@@ -94,6 +99,7 @@ class pdfScene : public QGraphicsScene {
 	public:
 		pdfScene();
 		pdfScene( const QSet<abstractTool *> &tools, QString fileName = "");
+		~pdfScene();
 
 		/* Registers an annotation tool */
 		void registerTool( abstractTool *tool );
@@ -102,6 +108,8 @@ class pdfScene : public QGraphicsScene {
 		bool saveToFile( QString fileName );
 		bool save();
 
+		void setPdfProperties( struct pdfProperties& properties );
+		void getPdfProperties( struct pdfProperties& properties );
 	
 		/* Info Stuff */
 		int getNumPages() { return numPages; };

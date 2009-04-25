@@ -31,18 +31,27 @@
 using namespace Poppler;
 
 pdfScene::pdfScene(): 
-	pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10)
+	pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10), prop(NULL)
 {
   setBackgroundBrush(Qt::gray);
 }
 
 pdfScene::pdfScene( const QSet<abstractTool *> &tools, QString fName ):
-	tools(tools), pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10)
+	tools(tools), pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10),
+	prop(NULL)
 {
   setBackgroundBrush(Qt::gray);
   if ( fName != "" ) loadFromFile( fName );
 }
 
+pdfScene::~pdfScene() { 
+  delete prop;
+  delete pdf;
+  // FIXME: further cleanup needed
+  // cleanup sceneLayers
+  // cleanup textLayer
+  // cleanup annotations
+}
 
 
 void pdfScene::registerTool( abstractTool *tool ) {
@@ -189,6 +198,8 @@ bool pdfScene::loadFromFile( QString fileName, QObject *pageInViewReceiver, cons
   loadPopplerPdf( tempFileName, pageInViewReceiver, slot );
   annotations.clear();
   myFileName = fileName;
+  prop = new pdfProperties;
+  fillPdfProperties();
   return true;
 }
 
@@ -223,8 +234,36 @@ bool pdfScene::saveToFile( QString fileName ) {
       a->saveToPdfPage( &pdfDoc, pg, &coords );
     }
   }
+  savePdfProperties( &pdfDoc );
   pdfDoc.Write( QFile::encodeName( fileName ).data() );
   return true;
+}
+
+void pdfScene::savePdfProperties( PoDoFo::PdfMemDocument *doc ) {
+  PoDoFo::PdfInfo *info = doc->GetInfo();
+  info->SetAuthor( pdfUtil::qStringToPdf( prop->author ) );
+  info->SetTitle( pdfUtil::qStringToPdf( prop->title ) );
+  info->SetSubject( pdfUtil::qStringToPdf( prop->subject ) );
+  info->SetKeywords( pdfUtil::qStringToPdf( prop->keywords ) );
+};
+
+
+void pdfScene::setPdfProperties( struct pdfProperties& p ) { 
+  *prop = p;
+  return;
+}
+
+void pdfScene::getPdfProperties( struct pdfProperties& p ) { 
+  p = *prop;
+  return;
+}
+
+void pdfScene::fillPdfProperties() { 
+  prop->author=pdf->info("Author");
+  prop->title=pdf->info("Title");
+  prop->subject=pdf->info("Subject");
+  prop->keywords=pdf->info("Keywords");
+  return;
 }
 
 /* FIXME: For safety reasons first save the file to a temporary 

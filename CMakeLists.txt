@@ -21,6 +21,12 @@ INCLUDE_DIRECTORIES(
  ${LIBPODOFO_INCL}
 )
 
+SET(UI_FILES
+	propertyDialog.ui
+)
+
+QT4_WRAP_UI(UI_HDRS ${UI_FILES})
+
 SET(ANNOT_SRC
   pdfPageItem.cpp
   myToolTip.cpp
@@ -56,11 +62,6 @@ SET(TEST_SRC
   testTeXRender.cpp
 )
 
-#SET(UI_FILES
-#  interface.ui
-#  inviteDialog.ui
-#  qtGame.ui
-#)
 
 
 SET(LINK_LIBS
@@ -73,7 +74,6 @@ SET(LINK_LIBS
 )
 
 QT4_AUTOMOC(${ANNOT_SRC} ${TEST_SRC})
-#QT4_WRAP_UI(UI_HDRS ${UI_FILES})
 #QT4_WRAP_UI(QTBOARD_UI_HDRS ${QTBOARD_UI_FILES})
 
 INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR} )
@@ -105,7 +105,7 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Windows")
 #)
 
 
-ADD_EXECUTABLE(comment comment.cpp ${ANNOT_SRC})
+ADD_EXECUTABLE(comment comment.cpp ${ANNOT_SRC} ${UI_HDRS})
 TARGET_LINK_LIBRARIES(comment ${LINK_LIBS})
 
 ADD_EXECUTABLE(testPoppler ${ANNOT_SRC} testPoppler.cpp)

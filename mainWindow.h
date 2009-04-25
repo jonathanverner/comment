@@ -54,6 +54,7 @@ class mainWindow : public QWidget {
 	public slots:
 		void hideEditArea();
 		void ensureVisible( const QRectF &rect );
+		void showInfoDlg();
 
 	protected slots:
 		void mouseNearBorder(const QPoint &pos);

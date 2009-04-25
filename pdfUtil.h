@@ -57,7 +57,9 @@ class pdfCoords {
 };
 
 
-
+struct pdfProperties {
+  QString author, title, subject, keywords;
+};
 
 namespace pdfUtil { 
 
