@@ -48,7 +48,7 @@ abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotati
 }
 
 void textTool::newActionEvent( const QPointF *ScenePos ) {
-  qDebug() << "Creating new Annotation at " << *ScenePos;
+  qDebug() << "Creating new text Annotation at " << *ScenePos;
   textAnnotation *annot = new textAnnotation( this );
   annot->setZValue( 10 );
   scene->placeAnnotation( annot, ScenePos );
@@ -72,7 +72,7 @@ bool textAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
 
 
 void textAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { 
-  qDebug() << "Saving annotation for "<<getAuthor() <<" : " << pos();
+  qDebug() << "Saving text annotation for "<<getAuthor() <<" : " << pos();
   QRectF bbox = mapToParent(boundingRect()).boundingRect();
   PoDoFo::PdfRect *brect = coords->sceneToPdf( bbox );
   PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Text, *brect );

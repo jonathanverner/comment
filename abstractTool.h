@@ -78,6 +78,7 @@ class abstractTool : public QObject {
 		void deleteCurrentAnnotation();
 		void editCurrentAnnotationProperties();
 		void updateContent();
+		void updateAuthor();
 
 		void teXToolTipReady( int annotID );
 

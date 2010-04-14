@@ -78,9 +78,7 @@ abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *E
 	  connect( rightTab, SIGNAL( triggered() ), this, SLOT( nextEditorTab() ) );
 	  connect( leftTab, SIGNAL( triggered() ), this, SLOT( prevEditorTab() ) );
 	  connect( closeEdit, SIGNAL( triggered() ), this, SLOT( hideEditor() ) );
-
-
-  	
+	  connect( propertyEdit, SIGNAL( authorChanged() ), this, SLOT( updateAuthor() ) );  	
 	  connect( contentEdit, SIGNAL( textChanged() ), this, SLOT( updateContent() ) );
 	  editArea->addWidget( editor );
 	  renderer = new renderTeX;
@@ -103,6 +101,14 @@ void abstractTool::updateContent() {
   if ( ! currentEditItem ) return;
   currentEditItem->setContent( contentEdit->toPlainText() );
 }
+
+void abstractTool::updateAuthor() {
+  if ( ! currentEditItem ) return;
+  qDebug() << "updating Author to ..." << propertyEdit->getAuthor() << "\n";
+  currentEditItem->setAuthor( propertyEdit->getAuthor() );
+}
+
+
 
 void abstractAnnotation::setContent( QString Content ) { 
   content = Content;
@@ -170,6 +176,7 @@ void abstractTool::editItem( abstractAnnotation *item ) {
     currentEditItem = item;
     editArea->setCurrentWidget( editor );
     editArea->show();
+    propertyEdit->setAuthor( item->getAuthor() );
     contentEdit->setText( item->getContent() );
     contentEdit->setFocus();
     editor->setCurrentIndex( 0 );

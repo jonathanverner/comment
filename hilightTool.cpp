@@ -23,6 +23,7 @@
 #include "toolBox.h"
 #include "pdfScene.h"
 #include "pdfUtil.h"
+#include "propertyTab.h"
 
 using namespace Poppler;
 
@@ -67,6 +68,7 @@ void hilightTool::editItem( abstractAnnotation *item ) {
     setTeXToolTip( item );
   } else {
     currentEditItem = item;
+    propertyEdit->setAuthor( item->getAuthor() );
     editAnnotationText();
   }
 }

@@ -41,6 +41,9 @@ class propertyTab : public QWidget {
 
 	  QString getAuthor();
 	  QColor getColor();
+
+	signals:
+	  void authorChanged();
   
 };
 

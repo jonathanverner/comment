@@ -28,6 +28,7 @@ propertyTab::propertyTab( QWidget *parent) : QWidget( parent ) {
   addWidgetWithLabel( "Author", authorEdit );
   addWidgetWithLabel( "Color", colorPush );
   setLayout( layout );
+  connect( authorEdit, SIGNAL( textChanged( const QString & ) ), this, SIGNAL( authorChanged() ) );
 }
 
 void propertyTab::addWidgetWithLabel( QString Label, QWidget *w ) { 
