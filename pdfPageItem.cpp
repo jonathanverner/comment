@@ -35,8 +35,13 @@ QRectF pdfPageItem::boundingRect() const {
   return QRectF( 0, 0, sz.width(), sz.height() );
 }
 
+
 void pdfPageItem::paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget ) {
+#if QT_VERSION < 0x040600
   qreal zoom = option->levelOfDetail;
+#else
+  qreal zoom = option->levelOfDetailFromTransform( painter->worldTransform() );
+#endif
   cachedPage *page = renderCache.object( pageNum );
   QPixmap pix;
   
