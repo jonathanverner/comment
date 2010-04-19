@@ -78,6 +78,12 @@ QT4_AUTOMOC(${ANNOT_SRC} ${TEST_SRC})
 
 INCLUDE_DIRECTORIES( ${CMAKE_BINARY_DIR} )
 
+ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/comment.1.gz
+	COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/comment.1 | gzip -9 > ${CMAKE_CURRENT_BINARY_DIR}/comment.1.gz)
+ADD_CUSTOM_COMMAND(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/annot_rm.1.gz
+	COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/annot_rm.1 | gzip -9 > ${CMAKE_CURRENT_BINARY_DIR}/annot_rm.1.gz)
+SET(manpages ${CMAKE_CURRENT_SOURCE_DIR}/comment.1.gz ${CMAKE_CURRENT_SOURCE_DIR}/annot_rm.1.gz)
+
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Windows")
 #if(Win32 AND NOT UNIX)
@@ -195,8 +201,12 @@ INSTALL(FILES
     ${images}
     DESTINATION "share/${PROJECT_NAME}/images"
 )
-#INSTALL(
-#
+
+INSTALL(FILES
+	${manpages}
+	DESTINATION "share/man/1"
+)
+
 #INSTALL(FILES
 #    chess4skype.desktop
 #    DESTINATION "share/applnk/Games/Board"
