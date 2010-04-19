@@ -146,7 +146,7 @@ void abstractTool::deleteCurrentAnnotation() {
   if ( currentEditItem ) {
     scene->removeItem( currentEditItem );
     delete currentEditItem;
-//    if ( editArea->isVisible() ) editArea->hide();
+    if ( editArea->isVisible() ) editArea->hide();
   }
   currentEditItem = NULL;
 }
@@ -186,7 +186,8 @@ void abstractTool::editItem( abstractAnnotation *item ) {
 bool abstractTool::handleEvent( viewEvent *ev ) { 
   if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
     QPointF pos=ev->scenePos(), delta = ev->sceneDelta();
-    if ( ev->isClick() ) { 
+    if ( ev->isClick() ) {
+      qDebug() << "Single click...";
       abstractAnnotation *annot = ev->topItem();
       if ( annot ) editItem( annot );
       else newActionEvent( &pos );
@@ -218,6 +219,7 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool ):
 {
   setAcceptsHoverEvents( true );
   setAuthor( tool->getAuthor() );
+  connect( this, SIGNAL(needKeyFocus(bool)), tool, SIGNAL(needKeyFocus(bool)) );
 }
 
 abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotation *annot, pdfCoords *transform ):

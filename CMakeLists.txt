@@ -40,11 +40,11 @@ SET(ANNOT_SRC
   sceneLayer.cpp
   pageNumberEdit.cpp
   pageView.cpp
-  toolTips.cpp
   pdfUtil.cpp
   wordItem.cpp
   pageTextLayer.cpp
   hilightTool.cpp
+  inlineTextTool.cpp
   teXjob.cpp
   renderTeX.cpp
   propertyTab.cpp

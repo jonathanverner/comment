@@ -19,6 +19,7 @@
 
 #include <QtGui/QPixmap>
 #include <QtGui/QGraphicsItem>
+#include <QtGui/QGraphicsObject>
 
 class QToolBar;
 class QStackedWidget;
@@ -121,36 +122,39 @@ class abstractTool : public QObject {
 
 	public slots:
 		 virtual void hideEditor();
+		 
+	signals:
+		 void needKeyFocus( bool );
 
 		 friend class abstractAnnotation;
 
 };
 
-class abstractAnnotation : public QGraphicsItem { 
+class abstractAnnotation : public QGraphicsObject { 
+  Q_OBJECT
 	private:
 		QPixmap toolTipPixMap, icon;
 		QString toolTipRichText;
 		bool waitingForToolTip, haveToolTip, moved, showingToolTip;
 		enum toolTipType { pixmap, text };
 		toolTipType tp;
-
 		QString author,content;
 		QDate date;
 		QTime time;
 
-
-		abstractTool *myTool;
-
-
 	protected:
+	  	abstractTool *myTool;
 		bool movable;
-		void setMyToolTip(const QPixmap &pixMap);
-		void setMyToolTip(const QString &richText);
+		virtual void setMyToolTip(const QPixmap &pixMap);
+		virtual void setMyToolTip(const QString &richText);
 		void setIcon( const QPixmap &icon);
+		QPixmap getMyToolTipPixmap() const { return toolTipPixMap; };
+		bool havePixmapTooltip() const { return (tp == pixmap); };
+		
 
 		void saveInfo2PDF( PoDoFo::PdfAnnotation *annot );
 		abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotation *annot, pdfCoords *transform );
-		 friend class abstractTool;
+	        friend class abstractTool;
 
 
 
@@ -186,6 +190,9 @@ class abstractAnnotation : public QGraphicsItem {
 
 
 		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) = 0;
+		
+  signals:
+    void needKeyFocus( bool );
 
 
 

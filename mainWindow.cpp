@@ -24,9 +24,10 @@
 #include "pageNumberEdit.h"
 #include "toolBox.h"
 #include "textTool.h"
+#include "hilightTool.h"
+#include "inlineTextTool.h"
 #include "pdfScene.h"
 #include "pageView.h"
-#include "hilightTool.h"
 #include "searchBar.h"
 #include "search.h"
 #include "config.h"
@@ -50,10 +51,13 @@ mainWindow::mainWindow() {
 
   textAnnotTool = new textTool( scene, toolBar, editor );
   textAnnotTool->setAuthor( config()["author"] );
-  hilightTool *hiTool = new hilightTool( scene, toolBar, editor );
+  inlineTextTool *itTool = new inlineTextTool( scene, toolBar, editor );
+  itTool->setAuthor( config()["author"] );
+  hilightTool *hiTool = new hilightTool( scene, toolBar, editor ); 
   hiTool->setAuthor( config()["author"] );
   scene->registerTool( hiTool );
   scene->registerTool( textAnnotTool );
+  scene->registerTool( itTool );
   toolBar->resize( pgView->width(), toolBar->height()+10 );
 
 
@@ -78,6 +82,7 @@ mainWindow::mainWindow() {
   QAction *infoAct = pgView->newAction( "Ctrl+I", this, SLOT( showInfoDlg() ) );
 
 
+  connect( itTool, SIGNAL( needKeyFocus(bool) ), pgView, SLOT( disableActions(bool) ) );
   connect( numberEdit, SIGNAL( prevPage() ), pgView, SLOT( prevPage() ) );
   connect( numberEdit, SIGNAL( nextPage() ), pgView, SLOT( nextPage() ) );
   connect( numberEdit, SIGNAL( gotoPage(int) ), pgView, SLOT( gotoPage(int) ) );

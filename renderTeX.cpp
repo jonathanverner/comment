@@ -46,6 +46,18 @@ int renderTeX::addItem( QString source, QString preamb ) {
   return id;
 }
 
+void renderTeX::setItem( int itemID, QString source, QString preamb ) {
+  if ( preamb == "" ) preamb = preambule;
+  renderItem *it = new renderItem( source, preamb );
+  if ( items.size() <= itemID ) items.resize( itemID + 10 );
+  else {
+    deleteItem( itemID );
+    available_ids.pop();
+  }
+  items[itemID] = it;
+}
+  
+
 void renderTeX::deleteItem( int item ) { 
   Q_ASSERT( 0 <= item && item < items.size() );
   delete items[item];
@@ -106,6 +118,16 @@ void renderTeX::preRender( int item, bool format_inline, int sizeHint ) {
   } else { 
     qWarning() << "renderTeX::render: PdfLaTex or GhostScript not found.";
   }
+}
+
+QString renderTeX::getPDF(int item) {
+  Q_ASSERT( 0 <= item && item < items.size() && items[item] );
+  return items[item]->getPDFFileName();
+}
+
+QRectF renderTeX::getBBox(int item) {
+  Q_ASSERT( 0 <= item && item < items.size() && items[item] );
+  return items[item]->getBBox();
 }
 
 

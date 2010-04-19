@@ -71,6 +71,7 @@ class renderItem : public QObject {
   Q_OBJECT
 	private:
 		QString pre,src;
+		QString pdfFileName;
 		QRectF bBox;
 		Poppler::Document *pdf;
 		int job_id;
@@ -95,6 +96,8 @@ class renderItem : public QObject {
 		int size();
 		QPixmap render( qreal zoom, bool format_inline, int sizeHint );
 		void preRender( int jobID, bool format_inline, int sizeHint );
+		QString getPDFFileName() const { return pdfFileName; };
+		QRectF getBBox() const { return bBox; };
 
 	signals:
 		void renderingReady( int jobID );

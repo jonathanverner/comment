@@ -157,13 +157,19 @@ void compileJob::gsJobFinished( int eCode, QProcess::ExitStatus eStat ) {
 
 
 renderItem::~renderItem() { 
-  if ( pdf ) delete pdf; // FIXME: also delete the underlying file
+  if ( pdf ) {
+    delete pdf; // FIXME: also delete the underlying file
+    QFileInfo info( pdfFileName );
+    QDir dir = info.absoluteDir();
+    dir.remove( info.fileName() );
+    qDebug() << "Deleting PDF: "<< dir << "/" << info.fileName();
+  }
   delete localLoop;
 }
 
 renderItem::renderItem( QString source, QString preamb ):
 	src(source), pre(preamb), ready(false), bBox(0,0,0,0), job_id(-1), pdf(NULL),
-	waiting_for_job(false)
+	waiting_for_job(false), pdfFileName("")
 { 
   connect( &job, SIGNAL( finished(QString,QRectF,bool) ), this, SLOT( pdfReady(QString,QRectF,bool) ) );
   localLoop = new QEventLoop( this );
@@ -174,6 +180,7 @@ void renderItem::pdfReady( QString pdfFName, QRectF BBox, bool status ) {
     ready = false;
     qWarning() << "renderItem::pdfReady: Error compiling latex. Job failed.";
   } else { 
+    pdfFileName = pdfFName;
     if ( pdf ) delete pdf;
     pdf = Poppler::Document::load( pdfFName );
     pdf->setRenderHint( Poppler::Document::TextAntialiasing, true );
@@ -201,7 +208,7 @@ void renderItem::wait_for_job() {
 }
 
 QString renderItem::getLaTeX( QString Src, QString Pre, int sizeHint ) {
-  return "\\documentclass[10pt,a4paper]{article}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb}\n\\usepackage{color}\n"+Pre+"\\begin{document}\n\\pagecolor[rgb]{1,1,0.862}\n\\pagestyle{empty}\n\\begin{minipage}{"+QString::number(sizeHint)+"mm}\n"+Src+"\n\\end{minipage}\n\\end{document}\n";
+  return "\\documentclass[10pt,a4paper]{article}\n\\usepackage[utf8]{inputenc}\n\\usepackage{amssymb}\n\\usepackage{color}\n"+Pre+"\\begin{document}\n%\\pagecolor[rgb]{1,1,0.862}\n\\pagestyle{empty}\n\\begin{minipage}{"+QString::number(sizeHint)+"mm}\n"+Src+"\n\\end{minipage}\n\\end{document}\n";
 }
 
 

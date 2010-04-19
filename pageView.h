@@ -44,6 +44,8 @@ class viewEvent {
 		QWidget *viewPort;
 
 		QPoint eventDelta() { return lastEvPos-evPos; };
+		
+		QMouseEvent *original_event;
 
 	public:
 
@@ -58,6 +60,8 @@ class viewEvent {
 		abstractAnnotation *topItem() { return topMostAll;};
 		eventType type() { return myType;};
 		bool isClick();
+		
+		QMouseEvent *getOriginalEvent() { return original_event; };
 
 		friend class pageView;
 };
@@ -79,7 +83,7 @@ class pageView : public QGraphicsView {
 	  virtual void mouseMoveEvent( QMouseEvent *e );
 	  virtual void mouseReleaseEvent( QMouseEvent *e );
 	  virtual void mousePressEvent( QMouseEvent *e );
-	  virtual void keyPressEvent( QKeyEvent *e );
+	  //virtual void keyPressEvent( QKeyEvent *e );
 	  int getLastPage();
 
 
@@ -87,12 +91,15 @@ class pageView : public QGraphicsView {
 		pageView( QGraphicsScene *scene, QWidget *parent = 0 );
 
 		QAction *newAction( QString shortCut, QObject *target, const char * ); 
+
 	signals:
 		void mouseNearBorder( const QPoint &pos );
 		void onPage( int num );
 		void newAnnotationAction( const QPointF &scenePos );
 
+
 	public slots:
+	  void disableActions( bool );
 	  void zoomIN();
 	  void zoomOUT();
           void up();

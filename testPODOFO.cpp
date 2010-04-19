@@ -32,10 +32,10 @@ int main( int argc, char **argv ) {
   double iw= annIcon->GetPageSize().GetWidth(), ih = annIcon->GetPageSize().GetHeight();
   qDebug() << "(100,"<<400+h-ih/4<<","<<iw/4<<","<<ih/4<<")";
   qDebug() << "Page Size Width x Heigth:"<< firstPage->GetPageSize().GetWidth() <<" x "<< firstPage->GetPageSize().GetHeight();
-  PdfAnnotation *aIcon = firstPage->CreateAnnotation( ePdfAnnotation_FreeText, PdfRect(100,400+h-ih/4,iw/4,ih/4) );
-  PdfAnnotation *annot = firstPage->CreateAnnotation( ePdfAnnotation_Text, PdfRect(100,400+h-ih/4,iw/4,ih/4) );
-//  PdfAnnotation *annot = firstPage->CreateAnnotation( ePdfAnnotation_Text,  PdfRect(100,400,w,h) );
-  firstPage = pdfDoc.GetPage( 3 );
+  PdfAnnotation *aIcon = firstPage->CreateAnnotation( ePdfAnnotation_FreeText, PdfRect(100,400+h-ih,iw,ih) );
+//  PdfAnnotation *annot = firstPage->CreateAnnotation( ePdfAnnotation_Text, PdfRect(100,400+h-ih/4,iw/4,ih/4) );
+  PdfAnnotation *annot = firstPage->CreateAnnotation( ePdfAnnotation_Text,  PdfRect(100,400,w,h) );
+  firstPage = pdfDoc.GetPage( 1 );
   PdfAnnotation *tst = firstPage->CreateAnnotation( ePdfAnnotation_Text, PdfRect(200,400,20,20) );
   tst = firstPage->CreateAnnotation( ePdfAnnotation_FreeText, PdfRect(200,400,20,20) );
   tst->SetAppearanceStream( annIcon );

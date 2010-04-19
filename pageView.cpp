@@ -36,6 +36,13 @@ QAction *pageView::newAction( QString shortCut, QObject *target, const char* slo
   return ret;
 }
 
+void pageView::disableActions( bool b) {
+  qDebug() << "pageView: Disabling actions " << b;
+  QAction *act;
+  foreach( act, actions() ) {
+    act->setDisabled(b);
+  }
+}
 
 pageView::pageView( QGraphicsScene *scene, QWidget *parent ) :
 	QGraphicsView( scene, parent ), zoom(1), currentPage(1), currentTool(NULL),
@@ -49,6 +56,7 @@ viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) {
  abstractAnnotation *annot;
  ret.distance=0;
  ret.viewPort = viewport();
+ ret.original_event = e;
  if ( tp == viewEvent::VE_MOUSE_PRESS ) { 
    mousePressStartPos = e->pos();
  } else if ( tp == viewEvent::VE_MOUSE_MOVE && e->buttons() ) {
@@ -67,7 +75,11 @@ viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) {
  ret.myType = tp;
  ret.SC = scene();
  ret.IT=NULL;
- ret.topMostAll = dynamic_cast<abstractAnnotation*>(itemAt(e->pos()));
+ QList<QGraphicsItem*> itms = items(e->pos());
+ for( QList<QGraphicsItem*>::iterator it = itms.begin(); it != itms.end(); ++it ) {
+   ret.topMostAll = dynamic_cast<abstractAnnotation*>(*it);
+   if ( ret.topMostAll ) break;
+ }
  ret.lastSP=mapToScene( lastMouseEvPos );
  ret.SP=mapToScene( e->pos() );
  ret.bt_caused = e->button();
@@ -90,9 +102,9 @@ void pageView::setCurrentTool( abstractTool *tool ) {
   currentTool = tool;
 }
 
-void pageView::keyPressEvent( QKeyEvent *e ) { 
+/*void pageView::keyPressEvent( QKeyEvent *e ) { 
   return;
-};
+};*/
 
 void pageView::mouseMoveEvent( QMouseEvent *e ) { 
   viewEvent viewEv = eventToVE( e, viewEvent::VE_MOUSE_MOVE );
