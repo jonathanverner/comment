@@ -1,0 +1,20 @@
+Source: comment
+Section: universe/text
+Priority: optional
+Maintainer: Jonathan Verner <jonathan.verner@matfyz.cz>
+Build-Depends: debhelper (>= 7), cmake, libpodofo0-dev, libpoppler-qt4-dev, libqt4-dev
+Standards-Version: 3.8.4
+Homepage: http://jonathan.verner.matfyz.cz/
+
+Package: comment
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Recommends: ghostscript, texlive
+Description: A program for annotationg PDF files.
+ A program which allows one to annotate PDF files
+ and save the annotations as PDF annotations in the
+ file. It is planned to have extended features for
+ scientific papers annotation (bibliography support,
+ TeX support, etc.). Out of these advanced features
+ only support for displaying TeX formatted comments
+ is available.
