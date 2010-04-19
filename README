@@ -1,0 +1,9 @@
+The Debian Package comment
+----------------------------
+
+This is an alpha release only suitable for the adventurous.
+However it can read/write hilight, not, freetext annotations
+(with a bug affecting how Acrobat shows TeX freetext annotations),
+it can modify pdf metadata and has some search capabilities.
+
+ -- Jonathan Verner <jonathan.verner@matfyz.cz>  Mon, 19 Apr 2010 21:58:12 +0200
