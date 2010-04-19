@@ -20,6 +20,7 @@
 #include "pageView.h"
 #include "abstractTool.h"
 #include "myToolTip.h"
+#include "util.h"
 //#include "pdfScene.h"
 
 
@@ -48,7 +49,11 @@ pageView::pageView( QGraphicsScene *scene, QWidget *parent ) :
 	QGraphicsView( scene, parent ), zoom(1), currentPage(1), currentTool(NULL),
 	movingItem(NULL), toolTipItem(NULL) { 
 	  setDragMode( QGraphicsView::ScrollHandDrag );
+	  contextMenu = new QMenu();
+	  contextMenu->addSeparator();
+	  contextMenu->addAction( "pageView Action" );
 	}
+
 
 
 viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) { 
@@ -98,8 +103,10 @@ viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) {
  return ret;
 };
 
-void pageView::setCurrentTool( abstractTool *tool ) { 
+void pageView::setCurrentTool( abstractTool *tool ) {
+  deleteUpToSeparator( contextMenu );
   currentTool = tool;
+  prependMenu( tool->contextMenu(NULL), contextMenu );
 }
 
 /*void pageView::keyPressEvent( QKeyEvent *e ) { 
@@ -169,8 +176,9 @@ void pageView::mousePressEvent( QMouseEvent *e ) {
       }
     }
     if ( currentTool ) currentTool->handleEvent( &viewEv );
-  } else if ( (viewEv.bt_caused & Qt::RightButton) && viewEv.topMostAll ) { // popup-menu
-    viewEv.topMostAll->contextMenu()->popup( e->globalPos() );
+  } else if ( (viewEv.bt_caused & Qt::RightButton) ) { // popup-menu
+    if ( viewEv.topMostAll ) viewEv.topMostAll->contextMenu()->popup( e->globalPos() );
+    else contextMenu->popup( e->globalPos() );
   } else if ( currentTool ) currentTool->handleEvent( &viewEv );
 }
 

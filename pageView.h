@@ -24,6 +24,7 @@ class abstractTool;
 class QGraphicsItem;
 class QKeyEvent;
 class abstractAnnotation;
+class QMenu;
 
 class viewEvent { 
 	public:
@@ -76,7 +77,9 @@ class pageView : public QGraphicsView {
 		abstractAnnotation *toolTipItem;
 		QGraphicsItem *movingItem;
 		QPointF moveDelta;
+		QMenu *contextMenu;
 		abstractTool *currentTool;
+		QAction* separator;
 
 	protected:
 	  viewEvent eventToVE( QMouseEvent *e, viewEvent::eventType tp );

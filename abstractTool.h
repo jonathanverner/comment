@@ -48,6 +48,7 @@ namespace PoDoFo {
 class pdfCoords;
 class hiliteItem;
 
+
 class abstractTool : public QObject { 
   Q_OBJECT
 	private:
@@ -59,6 +60,7 @@ class abstractTool : public QObject {
 		hiliteItem *hi;
 		QString selectedText;
 
+
 	protected:
 		QStackedWidget *editArea;
 		toolBox *toolBar;
@@ -67,6 +69,7 @@ class abstractTool : public QObject {
 		QTextEdit *contentEdit;
 		propertyTab *propertyEdit;
 		QMenu *cntxMenu;
+		QMenu *annotMenu;
 		abstractAnnotation *currentEditItem;
 
 

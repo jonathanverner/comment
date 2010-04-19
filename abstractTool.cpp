@@ -37,6 +37,7 @@
 #include "renderTeX.h"
 #include "propertyTab.h"
 #include "hiliteItem.h"
+#include "util.h"
 
 void abstractTool::nextEditorTab() { 
   int cur_pos = editor->currentIndex(), max = editor->count();
@@ -56,10 +57,12 @@ void abstractTool::prevEditorTab() {
 abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
 	editArea(EditArea), scene(Scene), toolBar(ToolBar), currentEditItem( NULL ) {
 	  cntxMenu = new QMenu();
+	  annotMenu = new QMenu();
 	  hi = new hiliteItem();
 	  hi->setColor( QColor(0,0,0,100) );
 	  hi->setZValue( 40 );
 	  scene->addItem(hi);
+	 
 	
 	  contentEdit = new QTextEdit( EditArea );
 	  propertyEdit = new propertyTab( EditArea );
@@ -83,8 +86,9 @@ abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *E
 	  editArea->addWidget( editor );
 	  renderer = new renderTeX;
 
-	  QAction *delAct  = cntxMenu->addAction( "Delete" );
-	  QAction *proAct  = cntxMenu->addAction( "Properties...");
+	  cntxMenu->addAction( "ABOUT MY TOOL KILLLL" );
+	  QAction *delAct  = annotMenu->addAction( "Delete" );
+	  QAction *proAct  = annotMenu->addAction( "Properties...");
 	  connect( delAct, SIGNAL( triggered() ), this, SLOT( deleteCurrentAnnotation() ) );
 	  connect( proAct, SIGNAL( triggered() ), this, SLOT( editCurrentAnnotationProperties() ) );
 	  connect( renderer, SIGNAL( itemReady(int) ), this, SLOT( teXToolTipReady(int) ) );
@@ -162,6 +166,8 @@ void abstractTool::editCurrentAnnotationProperties() {
 
 QMenu *abstractTool::contextMenu( QGraphicsItem *it ) { 
   currentEditItem = dynamic_cast<abstractAnnotation*>(it);
+  if ( currentEditItem ) prependMenu( annotMenu, cntxMenu );
+  else deleteUpToSeparator( cntxMenu );
   return cntxMenu;
 }
 

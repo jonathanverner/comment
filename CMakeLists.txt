@@ -52,6 +52,7 @@ SET(ANNOT_SRC
   search.cpp
   config.cpp
   hiliteItem.cpp
+  util.cpp
 )
 
 SET(TEST_SRC
