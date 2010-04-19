@@ -107,6 +107,9 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES "Windows")
 
 ADD_EXECUTABLE(comment comment.cpp ${ANNOT_SRC} ${UI_HDRS})
 TARGET_LINK_LIBRARIES(comment ${LINK_LIBS})
+INSTALL(TARGETS comment
+	DESTINATION "bin"
+)
 
 ADD_EXECUTABLE(testPoppler ${ANNOT_SRC} testPoppler.cpp)
 TARGET_LINK_LIBRARIES(testPoppler ${LINK_LIBS})
@@ -120,9 +123,12 @@ TARGET_LINK_LIBRARIES(testPODOFO ${LINK_LIBS})
 
 ADD_EXECUTABLE(annot_rm testAnnotRM.cpp)
 TARGET_LINK_LIBRARIES(annot_rm ${LINK_LIBS})
+INSTALL(TARGETS annot_rm
+	DESTINATION "bin"
+)
 
 
-ADD_EXECUTABLE(testPageNumberEdit pageNumberEdit.cpp testPageNumberEdit.cpp)
+ADD_EXECUTABLE(testPageNumberEdit pageNumberEdit.cpp testPageNumberEdit.cpp config.cpp)
 TARGET_LINK_LIBRARIES(testPageNumberEdit ${LINK_LIBS})
 
 ADD_EXECUTABLE(testTeXRender testTeXRender.cpp renderTeX.cpp teXjob.cpp config.cpp)
@@ -146,7 +152,7 @@ ADD_DEFINITIONS(
 )
 
 FILE(GLOB docs doc/*)
-FILE(GLOB pics pics/*png)
+FILE(GLOB images images/*png)
 FILE(GLOB lang lang/*)
 
 
@@ -174,23 +180,22 @@ SET( QT_DLL_DIR /home/joni/.wine/drive_c/Qt/4.3.2/bin )
 
 ELSE(CMAKE_SYSTEM_NAME MATCHES "Windows")
 
-#INSTALL(FILES 
-#    ${docs}
-#    DESTINATION "share/doc/${PROJECT_NAME}"
-#)
-#
-#INSTALL(FILES
-#    ${lang}
-#    DESTINATION "share/${PROJECT_NAME}/locale"
-#)
-#
-#FILE(GLOB pics pics/*.png)
-#
-#INSTALL(FILES
-#    ${pics}
-#    chess4skype.png
-#    DESTINATION "share/${PROJECT_NAME}/pics"
-#)
+INSTALL(FILES 
+    ${docs}
+    DESTINATION "share/doc/${PROJECT_NAME}"
+)
+
+INSTALL(FILES
+    ${lang}
+    DESTINATION "share/${PROJECT_NAME}/locale"
+)
+
+
+INSTALL(FILES
+    ${images}
+    DESTINATION "share/${PROJECT_NAME}/images"
+)
+#INSTALL(
 #
 #INSTALL(FILES
 #    chess4skype.desktop
