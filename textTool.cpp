@@ -24,7 +24,7 @@
 #include "pdfScene.h"
 #include "pdfUtil.h"
 
-QPixmap *textTool::icon = NULL;
+QIcon textTool::icon;
 
 bool textTool::acceptEventsFor( QGraphicsItem *item ) {
   if ( dynamic_cast<textAnnotation*>(item) ) {
@@ -36,10 +36,9 @@ bool textTool::acceptEventsFor( QGraphicsItem *item ) {
 textTool::textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
 	abstractTool( Scene, ToolBar, EditArea )
 {
+  icon = QIcon::fromTheme("document-edit");
   setToolName( "Text Tool" );
-
-  if ( ! icon ) icon = new QPixmap( "comment.png" );
-  toolBar->addTool( QIcon(*icon), this );
+  toolBar->addTool( icon, this );
 }
 
 abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
@@ -60,7 +59,7 @@ void textTool::newActionEvent( const QPointF *ScenePos ) {
 textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment, pdfCoords *transform ):
 	abstractAnnotation( tool, Comment, transform )
 {
-  setIcon( textTool::icon->scaledToHeight(20) );
+  setIcon( QIcon::fromTheme("flag").pixmap(20) );
   setZValue( 10 );
 }
 

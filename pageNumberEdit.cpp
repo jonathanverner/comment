@@ -14,10 +14,10 @@ pageNumberEdit::pageNumberEdit( QWidget *main ):
 
   /* Create the Next, Prev actions and the line edit
    * and add them to the toolbar */
-  QAction *prevAct = addAction( QIcon("prev.png"), tr("&Previous Page"), this, SLOT( wantPrev() ) );
+  QAction *prevAct = addAction( QIcon::fromTheme("go-previous"), tr("&Previous Page"), this, SLOT( wantPrev() ) );
   pageEdit = new QLineEdit( this );
   addWidget( pageEdit );
-  QAction *nextAct = addAction( QIcon("next.png"), tr("&Next Page"), this, SLOT( wantNext() ) );
+  QAction *nextAct = addAction( QIcon::fromTheme("go-next"), tr("&Next Page"), this, SLOT( wantNext() ) );
 
  
   nextAct->setShortcut( QString( "Ctrl+N" ) );

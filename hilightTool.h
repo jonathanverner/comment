@@ -18,6 +18,7 @@
 
 
 #include <QtCore/QList>
+#include <QtGui/QIcon>
 #include "abstractTool.h"
 
 class toolBox;
@@ -30,7 +31,7 @@ namespace Poppler {
 class hilightTool : public abstractTool { 
   Q_OBJECT
 	private:
-	  static QPixmap *icon;
+	  static QIcon icon;
 	  bool editingHilight; // if true, mouse movement edits the extent
 	                       // of the current hilight
 

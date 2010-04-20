@@ -5,6 +5,7 @@
 
 #include "abstractTool.h"
 #include <QtGui/QGraphicsTextItem>
+#include <QtGui/QIcon>
 
 class toolBox;
 class inlineTextAnnotation;
@@ -13,7 +14,7 @@ class inlineTextAnnotation;
 class inlineTextTool : public abstractTool {
   Q_OBJECT
 	private:
-	  static QPixmap *icon;
+	  static QIcon icon;
 
 	protected:
 	  renderTeX *inlineRenderer;
