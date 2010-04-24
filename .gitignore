@@ -1,6 +1,13 @@
 examples
 build
 *~
-.kdev4
+*.kdev4
 tags
+PDF32000_2008.pdf
+#       comment.kdev4
+#       cpphdr
+#       drawTool.cpp
+#       drawTool.h
+#       prepend.sh
+
 
