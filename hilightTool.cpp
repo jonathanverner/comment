@@ -27,16 +27,16 @@
 
 using namespace Poppler;
 
-QPixmap *hilightTool::icon = NULL;
+QIcon hilightTool::icon;
 
 
 
 hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
 	abstractTool( Scene, ToolBar, EditArea ), editingHilight(false)
 {
+  icon = QIcon::fromTheme("format-text-underline");
   setToolName( "Hilight Tool" );
-  if ( ! icon ) icon = new QPixmap( "hilight.png" );
-  toolBar->addTool( QIcon(*icon), this );
+  toolBar->addTool( icon, this );
 }
 
 

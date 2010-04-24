@@ -16,13 +16,15 @@
 
 #include "abstractTool.h"
 
+#include <QtGui/QIcon>
+
 class toolBox;
 class textAnnotation;
 
 class textTool : public abstractTool { 
   Q_OBJECT
 	private:
-	  static QPixmap *icon;
+	  static QIcon icon;
 
 	public:
 		textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);

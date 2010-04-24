@@ -29,23 +29,20 @@
 
 using namespace Poppler;
 
-QPixmap *inlineTextTool::icon = NULL;
-
-
+QIcon inlineTextTool::icon;
 
 inlineTextTool::inlineTextTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
 	abstractTool( Scene, ToolBar, EditArea )
 {
+  icon = QIcon::fromTheme("draw-text");
   setToolName( "Inline Text Tool" );
-  if ( ! icon ) icon = new QPixmap( "inline_text.png" );
-  toolBar->addTool( QIcon(*icon), this );
+  toolBar->addTool( QIcon(icon), this );
   inlineRenderer = new renderTeX();
   connect( inlineRenderer, SIGNAL(itemReady(int)), this, SLOT(teXReady(int)) );
 }
 
 inlineTextTool::~inlineTextTool() {
   delete inlineRenderer;
-  if ( icon ) delete icon;
 }
 
 
