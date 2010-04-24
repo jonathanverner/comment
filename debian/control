@@ -1,5 +1,5 @@
 Source: comment
-Section: text
+Section: universe/text
 Priority: optional
 Maintainer: Jonathan Verner <jonathan.verner@matfyz.cz>
 Build-Depends: debhelper (>= 7), cmake, libpodofo0-dev, libpoppler-qt4-dev, libqt4-dev

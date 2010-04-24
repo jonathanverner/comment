@@ -1,3 +1,15 @@
+comment (0.1.1ubuntu1) lucid; urgency=low
+
+  * Moved package to universe (depends on libpodofo, which is a universe package)
+
+ -- Jonathan Verner <jonathan.verner@matfyz.cz>  Sun, 25 Apr 2010 00:49:39 +0200
+
+comment (0.1.1) lucid; urgency=low
+
+  * Use icons from the system theme
+
+ -- Jonathan Verner <jonathan.verner@matfyz.cz>  Sat, 24 Apr 2010 22:56:21 +0200
+
 comment (0.1) lucid; urgency=low
 
   * Initial Release.
