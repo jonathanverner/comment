@@ -56,8 +56,6 @@ void abstractTool::prevEditorTab() {
 
 abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
 	editArea(EditArea), scene(Scene), toolBar(ToolBar), currentEditItem( NULL ) {
-	  cntxMenu = new QMenu();
-	  annotMenu = new QMenu();
 	  hi = new hiliteItem();
 	  hi->setColor( QColor(0,0,0,100) );
 	  hi->setZValue( 40 );
@@ -86,11 +84,14 @@ abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *E
 	  editArea->addWidget( editor );
 	  renderer = new renderTeX;
 
-	  cntxMenu->addAction( "ABOUT MY TOOL KILLLL" );
-	  QAction *delAct  = annotMenu->addAction( "Delete" );
-	  QAction *proAct  = annotMenu->addAction( "Properties...");
+	  QAction *delAct  = new QAction( tr("Delete"), this );
+	  QAction *proAct  = new QAction( tr("Properties..."), this );
+	  contextActions.append( new QAction( tr("About my tool"), this ) );
+	  annotActions.append( delAct );
+	  annotActions.append( proAct );
 	  connect( delAct, SIGNAL( triggered() ), this, SLOT( deleteCurrentAnnotation() ) );
 	  connect( proAct, SIGNAL( triggered() ), this, SLOT( editCurrentAnnotationProperties() ) );
+	  
 	  connect( renderer, SIGNAL( itemReady(int) ), this, SLOT( teXToolTipReady(int) ) );
 	}
 

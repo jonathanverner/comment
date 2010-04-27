@@ -16,6 +16,7 @@
 #include <QtCore/QString>
 #include <QtCore/QDate>
 #include <QtCore/QTime>
+#include <QtCore/QList>
 
 #include <QtGui/QPixmap>
 #include <QtGui/QGraphicsItem>
@@ -37,6 +38,7 @@ class QMenu;
 class QTabWidget;
 class QTextEdit;
 class propertyTab;
+class QAction;
 
 namespace PoDoFo { 
   class PdfAnnotation;
@@ -68,8 +70,7 @@ class abstractTool : public QObject {
 		QTabWidget *editor;
 		QTextEdit *contentEdit;
 		propertyTab *propertyEdit;
-		QMenu *cntxMenu;
-		QMenu *annotMenu;
+		QList<QAction *> contextActions, annotActions;
 		abstractAnnotation *currentEditItem;
 
 
