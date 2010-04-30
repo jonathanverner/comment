@@ -22,6 +22,50 @@ namespace PoDoFo {
   class PdfOutlineItem;
 }
 
+class target : public QGraphicsObject {
+  Q_OBJECT
+  private:
+    QRectF area;
+    QString name;
+    
+  public:
+    target( const QRectF &Area, const QString &Name = "" ): area(Area), name(Name) {};
+    QRectF boundingRect() const { return area; };
+};
+
+
+class linkItem : public QGraphicsObject {
+  Q_OBJECT
+
+  private:
+    QRectF area;
+    target *tgt;
+
+  public:
+    linkItem( const QRectF &Area, target *Tgt = NULL );
+    QRectF boundingRect() const { return area; };
+    
+  signals:
+    void activated();
+};
+
+class tocItem {
+  Q_OBJECT
+  private:
+    QString title;
+    tocItem *parent;
+    QList<tocItem *> children;
+    target *tgt;
+    
+  public:
+    tocItem( const QString Title, tocItem *parent = NULL, target *Tgt = NULL );
+    ~tocItem();
+    
+    void appendChild( tocItem *child );
+    QMenu *menu();
+};
+    
+
 class linkItem : public QGraphicsObject {
   Q_OBJECT
     
