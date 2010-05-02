@@ -10,15 +10,17 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
-#include <QtGui/QPainter>
-#include <QtGui/QImage>
-#include <QtGui/QStyleOptionGraphicsItem>
-#include <QtCore/QDebug>
+
 
 
 #include <poppler-qt4.h>
 
 #include "pdfPageItem.h"
+
+#include <QtGui/QPainter>
+#include <QtGui/QImage>
+#include <QtGui/QStyleOptionGraphicsItem>
+#include <QtCore/QDebug>
 
 
 QCache<int, struct pdfPageItem::cachedPage> pdfPageItem::renderCache(200);

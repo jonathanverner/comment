@@ -16,8 +16,8 @@
 
 #include <QtCore/QVector>
 #include <QtCore/QList>
-
-#include "pdfScene.h"
+#include <QtCore/QString>
+#include <QtCore/QPointF>
 
 namespace Poppler { 
   class Page;

@@ -11,11 +11,12 @@
  *CHANGES:
  ***************************************************************/
 
+
+#include "hiliteItem.h"
+
 #include <QtCore/QDebug>
 
 #include <poppler-qt4.h>
-
-#include "hiliteItem.h"
 
 using namespace Poppler;
 

@@ -14,6 +14,9 @@
  *CHANGES:
  ***************************************************************/
 
+#include <QtGui/QAction>
+
+class abstractTool;
 
 class myAction : public QAction  {
   Q_OBJECT

@@ -10,6 +10,8 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
+ 
+#include "config.h"
 
 #include <QtCore/QDir>
 #include <QtCore/QFile>
@@ -17,8 +19,6 @@
 #include <QtCore/QRegExp>
 #include <QtCore/QStringList>
 #include <QtCore/QDebug>
- 
-#include "config.h"
 
 QString configurator::fName = "";
 QHash<QString,QString> configurator::cfg;

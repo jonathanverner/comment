@@ -10,14 +10,7 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
-#include <QtGui/QLineEdit>
-#include <QtGui/QAction>
-#include <QtGui/QToolBar>
-#include <QtGui/QGraphicsView>
-#include <QtGui/QVBoxLayout>
-#include <QtGui/QMouseEvent>
-#include <QtCore/QDebug>
-#include <QtGui/QStackedWidget>
+
 
 #include "mainWindow.h"
 #include "testView.h"
@@ -34,6 +27,15 @@
 
 #include "pdfUtil.h"
 #include "ui_propertyDialog.h"
+
+#include <QtGui/QLineEdit>
+#include <QtGui/QAction>
+#include <QtGui/QToolBar>
+#include <QtGui/QGraphicsView>
+#include <QtGui/QVBoxLayout>
+#include <QtGui/QMouseEvent>
+#include <QtCore/QDebug>
+#include <QtGui/QStackedWidget>
 
 mainWindow::mainWindow() { 
   scene = new pdfScene();

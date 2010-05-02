@@ -1,11 +1,12 @@
+
+#include "pageNumberEdit.h"
+#include "config.h"
+
 #include <QtCore/QDebug>
 #include <QtCore/QRegExp>
 
 #include <QtGui/QLineEdit>
 #include <QtGui/QAction>
-
-#include "pageNumberEdit.h"
-#include "config.h"
 
 
 pageNumberEdit::pageNumberEdit( QWidget *main ):

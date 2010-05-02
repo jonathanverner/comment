@@ -10,6 +10,18 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
+
+
+#include "abstractTool.h"
+#include "myToolTip.h"
+#include "pageView.h"
+#include "pdfScene.h"
+#include "toolBox.h"
+#include "pdfUtil.h"
+#include "renderTeX.h"
+#include "propertyTab.h"
+#include "hiliteItem.h"
+
 #include <QtGui/QStackedWidget>
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsSceneMouseEvent>
@@ -27,16 +39,6 @@
 #include <QtCore/QDebug>
 
 #include <podofo/podofo.h>
-
-#include "abstractTool.h"
-#include "myToolTip.h"
-#include "pageView.h"
-#include "pdfScene.h"
-#include "toolBox.h"
-#include "pdfUtil.h"
-#include "renderTeX.h"
-#include "propertyTab.h"
-#include "hiliteItem.h"
 
 void abstractTool::nextEditorTab() { 
   int cur_pos = editor->currentIndex(), max = editor->count();

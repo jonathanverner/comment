@@ -11,12 +11,13 @@
  *CHANGES:
  ***************************************************************/
 
+ 
+#include "sceneLayer.h"
+
 #include <QtGui/QGraphicsScene>
 #include <QtGui/QGraphicsItem>
 
 #include <QtCore/QDebug>
- 
-#include "sceneLayer.h"
 
 sceneLayer::sceneLayer( QGraphicsScene *SC):
 	scene(SC), cItem(0), zVal(0)

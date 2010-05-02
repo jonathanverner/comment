@@ -18,7 +18,10 @@
 #include <QtCore/QRectF>
 #include <QtCore/QCache>
 
-class Poppler::Page;
+namespace Poppler {
+  class Page;
+};
+
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;

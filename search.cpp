@@ -12,14 +12,16 @@
  ***************************************************************/
 
 
-#include <QtCore/QDebug>
 
-#include <poppler-qt4.h>
 
 #include "search.h"
 #include "pdfScene.h"
 #include "sceneLayer.h"
 #include "hiliteItem.h"
+
+#include <QtCore/QDebug>
+
+#include <poppler-qt4.h>
 
 using namespace Poppler;
 

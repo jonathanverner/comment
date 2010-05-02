@@ -11,11 +11,14 @@
  *CHANGES:
  ***************************************************************/
 
-#include <QtCore/QByteArray>
-#include <QtCore/QDebug>
+
 
 #include "pdfUtil.h"
 #include "pdfScene.h"
+
+#include <QtCore/QByteArray>
+#include <QtCore/QDebug>
+
 #include <poppler-qt4.h>
 
 using namespace PoDoFo;

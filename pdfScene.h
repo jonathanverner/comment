@@ -19,6 +19,7 @@
 #include <QtCore/QString>
 #include <QtCore/QVector>
 #include <QtCore/QList>
+#include <QtCore/QSet>
 //#include <QtGui/QPointF>
 
 class abstractTool;
