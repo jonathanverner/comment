@@ -27,7 +27,10 @@
 #include "toc.h"
 #include "linkLayer.h"
 
+#include "pdfUtil.h"
+
 #include <podofo/podofo.h>
+
 
 
 using namespace PoDoFo;
@@ -47,6 +50,7 @@ void tocItem::insertChild( tocItem* after, tocItem* child ) {
       children.insert( it, child );
       break;
     }
+  }
 }
 
 void tocItem::removeChild ( tocItem* child ) {
@@ -63,7 +67,7 @@ tocItem::~tocItem() {
 
 
 
-toc::toc ( PoDoFo::PdfDocument* doc, linkLayer* Links ): links(Links) {
+toc::toc( PoDoFo::PdfDocument* doc, linkLayer* Links ): links(Links) {
   PdfOutlineItem *toc_root = doc->GetOutlines();
   if ( ! toc_root ) return;
   PdfOutlineItem *child = toc_root->First();
@@ -75,21 +79,21 @@ toc::toc ( PoDoFo::PdfDocument* doc, linkLayer* Links ): links(Links) {
   }
 };
 
-tocItem* toc::loadOutLineItem( PdfOutlineItem* item, tocItem* parent, const QString& path ) { 
+tocItem* toc::loadOutlineItem( PdfOutlineItem* item, tocItem* parent, const QString& path ) { 
     PdfDestination *dest = item->GetDestination();
-    QString title = item->GetTitle();
+    QString title = pdfUtil::pdfStringToQ( item->GetTitle() );
     targetItem *tgt = links->addTarget( path+"/"+title, dest->GetPage()->GetPageNumber()-1, QRectF(0,0,0,0) );
     tocItem *me = new tocItem( title, parent, tgt );
     PdfOutlineItem *child = item->First();
     while( child ) {
-      tocItem *item = loadOutLineItem( child, me, path+"/"+title );
+      tocItem *item = loadOutlineItem( child, me, path+"/"+title );
       me->appendChild( item );
       child = child->Next();
     }
     return me;
 };
 
-toc::save ( PoDoFo::PdfDocument* doc )
+void toc::save ( PoDoFo::PdfDocument* doc )
 {
 
 }

@@ -52,6 +52,8 @@ SET(ANNOT_SRC
   search.cpp
   config.cpp
   hiliteItem.cpp
+  linkLayer.cpp
+  toc.cpp
 )
 
 SET(TEST_SRC

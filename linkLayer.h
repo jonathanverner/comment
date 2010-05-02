@@ -9,32 +9,43 @@
 
 #include "sceneLayer.h"
 
-#include <QtGui/QGraphicsObject>
+#include <QtGui/QGraphicsItem>
 #include <QtCore/QRectF>
 #include <QtCore/QHash>
 #include <QtCore/QString>
 
 class pdfScene;
 
-class targetItem;
-class linkItem;
-
-class QMenu;
 class QSignalMapper;
 
-namespace PoDoFo {
-  class PdfDocument;
-  class PdfOutlineItem;
+class targetItem : public QGraphicsObject {
+  Q_OBJECT
+  private:
+    QRectF area;
+    QString name;
+    
+  public:
+    targetItem( const QRectF &Area, const QString &Name = "" ): area(Area), name(Name) {};
+    QRectF boundingRect() const { return area; };
+    
+    virtual void paint( QPainter*, const QStyleOptionGraphicsItem*, QWidget* ) {};
+    
+  public slots:
+    
+    void activate();
+    
+  signals:
+    
+    void activated();
 };
 
-
-
 class linkLayer : public sceneLayer {
+  
+  Q_OBJECT
 
   private:
     QSignalMapper *mapper;
     QHash<QString, targetItem *> targets;
-    QList<linkItem *> links;
     
   private slots:
     
@@ -42,14 +53,12 @@ class linkLayer : public sceneLayer {
 
   public:
     
-    linkLayer( pdfScene *sc, PoDoFo::PdfDocument *doc );
+    linkLayer( pdfScene* sc );
 
-    
-    void addLink( const QRectF &area, const QString &target );
-    void addTarget( const QString &name, const QRectF &target );
+    targetItem *addTarget( const QString &name, const QRectF &target );
+    targetItem *addTarget( const QString &name, const int page, const QRectF &target );
     
     void removeTarget( const QString &name );
-    void removeLink( linkItem *item );
     
   signals:
     

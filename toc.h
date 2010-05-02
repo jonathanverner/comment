@@ -23,6 +23,7 @@
 
 #include <QtCore/QString>
 #include <QtCore/QList>
+#include <QtCore/QObject>
 
 class targetItem;
 class linkLayer;
@@ -32,7 +33,7 @@ namespace PoDoFo {
   class PdfOutlineItem;
 };
 
-class tocItem {
+class tocItem : public QObject {
   Q_OBJECT
   
   private:
@@ -48,7 +49,7 @@ class tocItem {
     ~tocItem();
     
     void appendChild( tocItem *child );
-    void insertChildAfter( tocItem *after, tocItem *child );
+    void insertChild( tocItem *after, tocItem *child );
     void removeChild( tocItem *child );
     
     QString getTitle() const { return title; };
@@ -58,7 +59,7 @@ class tocItem {
     QList<tocItem *>::iterator end() { return children.end(); };
 };
 
-class toc {
+class toc : public QObject {
 
   Q_OBJECT
   
@@ -71,8 +72,10 @@ class toc {
   
   public:
     
-    toc( PoDoFo::PdfDocument *doc, linkLayer *links );
-    save( PoDoFo::PdfDocument *doc );
+    toc( PoDoFo::PdfDocument* doc, linkLayer* links );
+    void save( PoDoFo::PdfDocument* doc );
+    
+    tocItem *getRoot() { return root; };
     
   signals:
     
