@@ -4,7 +4,7 @@
  *  File: toc.cpp
  *  Created: 2. 5. 2010
  *  Author: Jonathan Verner <jonathan.verner@matfyz.cz>
- *  Licence: GPL v2 or later
+ *  License: GPL v2 or later
  *
  *  Copyright (C) 2010 Jonathan Verner <jonathan.verner@matfyz.cz>
  *
