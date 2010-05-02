@@ -12,94 +12,29 @@
 #include <QtGui/QGraphicsObject>
 #include <QtCore/QRectF>
 #include <QtCore/QHash>
+#include <QtCore/QString>
 
 class pdfScene;
+
+class targetItem;
+class linkItem;
+
 class QMenu;
 class QSignalMapper;
 
 namespace PoDoFo {
   class PdfDocument;
   class PdfOutlineItem;
-}
-
-class target : public QGraphicsObject {
-  Q_OBJECT
-  private:
-    QRectF area;
-    QString name;
-    
-  public:
-    target( const QRectF &Area, const QString &Name = "" ): area(Area), name(Name) {};
-    QRectF boundingRect() const { return area; };
 };
 
 
-class linkItem : public QGraphicsObject {
-  Q_OBJECT
-
-  private:
-    QRectF area;
-    target *tgt;
-
-  public:
-    linkItem( const QRectF &Area, target *Tgt = NULL );
-    QRectF boundingRect() const { return area; };
-    
-  signals:
-    void activated();
-};
-
-class tocItem {
-  Q_OBJECT
-  private:
-    QString title;
-    tocItem *parent;
-    QList<tocItem *> children;
-    target *tgt;
-    
-  public:
-    tocItem( const QString Title, tocItem *parent = NULL, target *Tgt = NULL );
-    ~tocItem();
-    
-    void appendChild( tocItem *child );
-    QMenu *menu();
-};
-    
-
-class linkItem : public QGraphicsObject {
-  Q_OBJECT
-    
-  private:
-    QRectF area;
-    QString name;
-    linkItem *target, *parent;
-    
-  public:
-    linkItem( const QRectF &Area, const QString &Name = "" ): area(Area), name(Name), target(NULL), parent(NULL) {};
-    
-    void setTarget( linkItem *tgt ) { target = tgt; };
-    void setParent( linkItem *pnt ) { parent = pnt; };
- 
-    QString getName() const { return name; };
-    linkItem *getParent() const { return parent; };
-    linkItem *getTarget() const { return target; };
-    
-    QRectF boundingRect() const { return area; };
-
-    
-  signals:
-    
-    void activated();
-    
-};
 
 class linkLayer : public sceneLayer {
 
   private:
     QSignalMapper *mapper;
-    QHash<QString, linkItem *> items;
-    void loadToc( PoDoFo::PdfDocument* doc );
-    linkItem *loadOutlineItem( PoDoFo::PdfOutlineItem *item, linkItem *parent, const QString &path );
+    QHash<QString, targetItem *> targets;
+    QList<linkItem *> links;
     
   private slots:
     
@@ -108,15 +43,10 @@ class linkLayer : public sceneLayer {
   public:
     
     linkLayer( pdfScene *sc, PoDoFo::PdfDocument *doc );
+
     
-    QMenu *tocMenu();
-    
-    linkItem *addLink( const QRectF &area, const QString &target );
-    linkItem *addTOCItem( const QString &name, linkItem *parent, const QString &target );
-    linkItem *addTOCItem( const QString &name, linkItem *parent, linkItem *target );
-    linkItem *addTarget( const QString &name, const QRectF &target );
-    
-    linkItem *getTarget( const QString &name );
+    void addLink( const QRectF &area, const QString &target );
+    void addTarget( const QString &name, const QRectF &target );
     
     void removeTarget( const QString &name );
     void removeLink( linkItem *item );
@@ -124,7 +54,6 @@ class linkLayer : public sceneLayer {
   signals:
     
     void gotoTarget( QGraphicsItem *target );
-    void tocChanged();
 
 };
 
