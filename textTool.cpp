@@ -12,17 +12,19 @@
  ***************************************************************/
 
 
+
+#include "toolBox.h"
+#include "textTool.h"
+#include "pdfScene.h"
+#include "pdfUtil.h"
+
+
 #include <QtGui/QTextEdit>
 #include <QtGui/QStackedWidget>
 
 #include <QtCore/QDebug>
 
 #include <podofo/podofo.h>
-
-#include "toolBox.h"
-#include "textTool.h"
-#include "pdfScene.h"
-#include "pdfUtil.h"
 
 QIcon textTool::icon;
 

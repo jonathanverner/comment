@@ -10,14 +10,7 @@
 * TODO:
 *CHANGES:
  ***************************************************************/
-#include <QtCore/QDebug>
-#include <QtGui/QIcon>
-#include <QtGui/QStackedWidget>
-#include <QtGui/QTextEdit>
-#include <QtGui/QTabWidget>
-#include <QtGui/QStyleOption>
 
-#include <poppler-qt4.h>
 
 #include "inlineTextTool.h"
 #include "pageView.h" /* needed for viewEvent */
@@ -26,6 +19,15 @@
 #include "pdfUtil.h"
 #include "propertyTab.h"
 #include "renderTeX.h"
+
+#include <QtCore/QDebug>
+#include <QtGui/QIcon>
+#include <QtGui/QStackedWidget>
+#include <QtGui/QTextEdit>
+#include <QtGui/QTabWidget>
+#include <QtGui/QStyleOption>
+
+#include <poppler-qt4.h>
 
 using namespace Poppler;
 

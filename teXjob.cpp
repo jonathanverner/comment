@@ -11,6 +11,11 @@
  *CHANGES:
  ***************************************************************/
 
+
+
+#include "teXjob.h"
+#include "config.h"
+
 #include <QtCore/QDebug>
 #include <QtCore/QProcess>
 #include <QtCore/QDir>
@@ -18,9 +23,6 @@
 #include <QtCore/QRegExp>
 
 #include <poppler-qt4.h>
-
-#include "teXjob.h"
-#include "config.h"
 
 
 QString compileJob::latexPath("/usr/bin/pdflatex");

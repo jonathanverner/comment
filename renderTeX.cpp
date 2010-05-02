@@ -10,11 +10,12 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
-#include <QtCore/QDebug>
 
 
 #include "teXjob.h"
 #include "renderTeX.h"
+
+#include <QtCore/QDebug>
 
 QCache<int, struct renderTeX::cachedPage> renderTeX::renderCache(200000);
 

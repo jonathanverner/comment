@@ -10,12 +10,14 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
+
+#include "myToolTip.h"
+
 #include <QtGui/QToolTip>
 #include <QtGui/QPalette>
 #include <QtGui/QLabel>
 #include <QtCore/QTimer>
 #include <QtCore/QDebug>
-#include "myToolTip.h"
 
 QLabel *myToolTip::toolTip = NULL;
 bool myToolTip::waitingForDelay = false;

@@ -10,12 +10,14 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
-#include <QtCore/QDebug>
 
-#include <poppler-qt4.h>
 
 #include "pageTextLayer.h"
 #include "pdfUtil.h"
+
+#include <QtCore/QDebug>
+
+#include <poppler-qt4.h>
 
 using namespace Poppler;
 

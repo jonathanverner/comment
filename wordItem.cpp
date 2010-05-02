@@ -10,9 +10,11 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
+
+#include "wordItem.h"
+
 #include <QtGui/QPainter>
 #include <poppler-qt4.h> 
-#include "wordItem.h"
 
 using namespace Poppler;
 

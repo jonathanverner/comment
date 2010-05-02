@@ -10,17 +10,19 @@
  * TODO:
  *CHANGES:
  ***************************************************************/
+
+#include "pageBeginItem.h"
+#include "pageView.h"
+#include "abstractTool.h"
+#include "myToolTip.h"
+
 #include <QtCore/QDebug>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QGraphicsItem>
 #include <QtGui/QScrollBar>
 #include <QtGui/QMenu>
-#include "pageBeginItem.h"
-#include "pageView.h"
-#include "abstractTool.h"
-#include "myToolTip.h"
-//#include "pdfScene.h"
+
 
 
 bool viewEvent::isClick() { 

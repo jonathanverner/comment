@@ -11,6 +11,16 @@
  *CHANGES:
  ***************************************************************/
 
+
+
+#include "pdfPageItem.h"
+#include "abstractTool.h" 
+#include "pdfScene.h"
+#include "pageBeginItem.h"
+#include "pageTextLayer.h"
+#include "pdfUtil.h"
+#include "sceneLayer.h"
+
 #include <QtCore/QFile>
 #include <QtCore/QTemporaryFile>
 #include <QtCore/QDebug>
@@ -18,15 +28,6 @@
 
 #include <poppler-qt4.h>
 #include <podofo/podofo.h>
-
-#include "pdfPageItem.h"
-#include "abstractTool.h" 
-#include "pdfScene.h"
-#include "pageBeginItem.h"
-// #include "wordItem.h"
-#include "pageTextLayer.h"
-#include "pdfUtil.h"
-#include "sceneLayer.h"
 
 using namespace Poppler;
 

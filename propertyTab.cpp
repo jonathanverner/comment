@@ -12,14 +12,14 @@
  ***************************************************************/
 
 
+#include "propertyTab.h"
+
+
 #include <QtGui/QLineEdit>
 #include <QtGui/QPushButton>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
-
-
-#include "propertyTab.h"
 
 propertyTab::propertyTab( QWidget *parent) : QWidget( parent ) {
   layout = new QVBoxLayout;

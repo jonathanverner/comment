@@ -11,15 +11,17 @@
  *CHANGES:
  ***************************************************************/
 
+
+
+#include "toolBox.h"
+#include "abstractTool.h"
+#include "myAction.h"
+
 #include <QtCore/QDebug>
 
 #include <QtGui/QAction>
 #include <QtGui/QLineEdit>
 #include <QtGui/QPainter>
-
-#include "toolBox.h"
-#include "abstractTool.h"
-#include "myAction.h"
 
 
 myAction::myAction( const QIcon &icn, const QString text, QObject *parent, abstractTool *Tool ):
