@@ -29,7 +29,8 @@
 
 #include <QtCore/QString>
 #include <QtCore/QList>
-#include <QtCore/QObject>
+#include <QtCore/QAbstractItemModel>
+#include <QtCore/QVariant>
 
 class targetItem;
 class linkLayer;
@@ -39,9 +40,8 @@ namespace PoDoFo {
   class PdfOutlineItem;
 };
 
-class tocItem : public QObject {
-  Q_OBJECT
-  
+class tocItem {
+
   private:
     
     QString title;
@@ -60,12 +60,25 @@ class tocItem : public QObject {
     
     QString getTitle() const { return title; };
     void setTitle( const QString& ttl ) { title = ttl; };
+    int getPage() const;
+    targetItem *getTarget() { return tgt; };
+    void setTarget( targetItem *target ) { tgt = target;};
+    QVariant data( int column ) const;
     
+    int columnCount() const { return 2; };
+    
+    tocItem *parentItem() { return parent; }
+    
+    tocItem *child(int row);
+    int childCount() const;
+    int row() const;
+    
+
     QList<tocItem *>::iterator begin() { return children.begin(); };
     QList<tocItem *>::iterator end() { return children.end(); };
 };
 
-class toc : public QObject {
+class toc : public QAbstractItemModel {
 
   Q_OBJECT
   
@@ -80,6 +93,14 @@ class toc : public QObject {
     
     toc( linkLayer* Links, PoDoFo::PdfMemDocument *doc = NULL );
     ~toc();
+    
+    QVariant data( const QModelIndex &index, int role ) const;
+    Qt::ItemFlags flags( const QModelIndex &index ) const;
+    QVariant headerData( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
+    QModelIndex index( int row, int column, const QModelIndex &parent = QModelIndex() ) const;
+    QModelIndex parent( const QModelIndex &index ) const;
+    int rowCount( const QModelIndex &parent = QModelIndex() ) const;
+    int columnCount( const QModelIndex &parent = QModelIndex() ) const;
     
     void load( PoDoFo::PdfMemDocument* doc );
     void save( PoDoFo::PdfMemDocument* doc );

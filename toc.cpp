@@ -110,5 +110,96 @@ void toc::save ( PoDoFo::PdfMemDocument* doc )
 
 }
 
+QVariant tocItem::data(int column) const {
+    if ( column == 0 ) return getTitle();
+    else if ( column == 1 ) return getPage();
+    else return QVariant();
+
+}
+int tocItem::row() const {
+    if ( parent ) 
+      return parent->children.indexOf(const_cast<tocItem*>(this)); 
+    return 0;
+}
+
+tocItem* tocItem::child(int row) {
+    return children.value(row);
+}
+
+int tocItem::childCount() const {
+    return children.count();
+}
+
+int tocItem::getPage() const {
+  return tgt->getPage();
+}
+
+
+
+QModelIndex toc::index(int row, int column, const QModelIndex& parent) const {
+  if ( ! hasIndex( row, column, parent ) ) return QModelIndex();
+  
+  tocItem *pItem;
+  
+  if ( ! parent.isValid() ) pItem = root;
+  else pItem = static_cast<tocItem *>(parent.internalPointer());
+  
+  tocItem *chItem = pItem->child(row);
+  if ( chItem ) return createIndex( row, column, chItem );
+  else return QModelIndex();
+}
+
+QModelIndex toc::parent(const QModelIndex& index) const {
+  if ( ! index.isValid() ) return QModelIndex();
+  
+  tocItem *chItem = static_cast<tocItem *>(index.internalPointer());
+  tocItem *pItem = chItem->parentItem();
+  
+  if ( pItem == root ) return QModelIndex();
+  
+  return createIndex( pItem->row(), 0, pItem );
+}
+
+int toc::rowCount(const QModelIndex& parent) const {
+  tocItem * pItem;
+  if ( parent.column() > 0 ) return 0;
+  if ( ! parent.isValid() ) pItem = root;
+  else pItem = static_cast<tocItem *>(parent.internalPointer());
+  return pItem->childCount();
+}
+
+
+int toc::columnCount(const QModelIndex& parent) const {
+  if ( parent.isValid() ) return static_cast<tocItem *>(parent.internalPointer())->columnCount();
+  else return root->columnCount();
+}
+
+
+QVariant toc::data(const QModelIndex& index, int role) const {
+  if ( !index.isValid() ) return QVariant();
+  if ( role != Qt::DisplayRole ) return QVariant();
+  
+  tocItem *item = static_cast<tocItem *>(index.internalPointer());
+  return item->data(index.column());
+}
+
+Qt::ItemFlags toc::flags(const QModelIndex& index) const {
+  if ( ! index.isValid() ) return 0;  
+  return Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+}
+
+QVariant toc::headerData(int section, Qt::Orientation orientation, int role) const {
+  if ( orientation != Qt::Horizontal || role != Qt::DisplayRole ) return QVariant();
+  switch (section) { 
+    case 0:
+      return "Title";
+      break;
+    case 1:
+      return "Page";
+      break;
+  };
+}
+
+
 
 #include "toc.moc"
