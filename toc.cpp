@@ -67,39 +67,48 @@ tocItem::~tocItem() {
 
 
 
-toc::toc( PoDoFo::PdfDocument* doc, linkLayer* Links ): links(Links) {
+toc::toc( linkLayer* Links, PoDoFo::PdfMemDocument* doc ): links(Links), root(NULL) {
+  load( doc );
+};
+
+toc::~toc() {
+  delete root;
+}
+
+void toc::load( PoDoFo::PdfMemDocument* doc ) {
+  if ( ! doc ) return;
   PdfOutlineItem *toc_root = doc->GetOutlines();
   if ( ! toc_root ) return;
   PdfOutlineItem *child = toc_root->First();
+  delete root;
   root = new tocItem( tr("Table of Contents") );
   while( child ) {
-    tocItem *item = loadOutlineItem( child, root, "toc" );
-    root->appendChild( root );
+    tocItem *item = loadOutlineItem( doc, child, root, "toc" );
+    root->appendChild( item );
     child = child->Next();
   }
-};
+}
 
-tocItem* toc::loadOutlineItem( PdfOutlineItem* item, tocItem* parent, const QString& path ) { 
-    PdfDestination *dest = item->GetDestination();
+tocItem* toc::loadOutlineItem( PoDoFo::PdfMemDocument* doc, PdfOutlineItem* item, tocItem* parent, const QString& path ) { 
+    PdfDestination *dest = pdfUtil::getDestination(doc, item);
     QString title = pdfUtil::pdfStringToQ( item->GetTitle() );
-    targetItem *tgt = links->addTarget( path+"/"+title, dest->GetPage()->GetPageNumber()-1, QRectF(0,0,0,0) );
+    qDebug() << "Loading TOC item: " << path << "/" << title;
+    targetItem *tgt = NULL;
+    if ( dest ) tgt = links->addTarget( path+"/"+title, dest->GetPage()->GetPageNumber()-1, QRectF(0,0,0,0) );
     tocItem *me = new tocItem( title, parent, tgt );
     PdfOutlineItem *child = item->First();
     while( child ) {
-      tocItem *item = loadOutlineItem( child, me, path+"/"+title );
+      tocItem *item = loadOutlineItem( doc, child, me, path+"/"+title );
       me->appendChild( item );
       child = child->Next();
     }
     return me;
 };
 
-void toc::save ( PoDoFo::PdfDocument* doc )
+void toc::save ( PoDoFo::PdfMemDocument* doc )
 {
 
 }
-
-
-
 
 
 #include "toc.moc"

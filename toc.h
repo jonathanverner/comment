@@ -55,7 +55,7 @@ class targetItem;
 class linkLayer;
 
 namespace PoDoFo {
-  class PdfDocument;
+  class PdfMemDocument;
   class PdfOutlineItem;
 };
 
@@ -94,12 +94,15 @@ class toc : public QObject {
     tocItem *root;
     linkLayer *links;
     
-    tocItem* loadOutlineItem( PoDoFo::PdfOutlineItem* item, tocItem* parent, const QString& path );
+    tocItem* loadOutlineItem( PoDoFo::PdfMemDocument* doc, PoDoFo::PdfOutlineItem* item, tocItem* parent, const QString& path );
   
   public:
     
-    toc( PoDoFo::PdfDocument* doc, linkLayer* links );
-    void save( PoDoFo::PdfDocument* doc );
+    toc( linkLayer* Links, PoDoFo::PdfMemDocument *doc = NULL );
+    ~toc();
+    
+    void load( PoDoFo::PdfMemDocument* doc );
+    void save( PoDoFo::PdfMemDocument* doc );
     
     tocItem *getRoot() { return root; };
     

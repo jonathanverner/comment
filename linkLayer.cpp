@@ -29,7 +29,8 @@
 
 
 #include <QtCore/QSignalMapper>
-#include <QAction>
+#include <QtGui/QAction>
+#include <QtCore/QDebug>
 
 void targetItem::activate()
 {
@@ -59,7 +60,10 @@ targetItem* linkLayer::addTarget ( const QString& name, const QRectF& target ) {
 
 targetItem* linkLayer::addTarget ( const QString& name, const int page, const QRectF& target )
 {
-  if ( targets.contains( name ) ) return targets[name];
+  if ( targets.contains( name ) ) {
+    qDebug() << "Not replacing target named: " << name;
+    return targets[name];
+  }
   QRectF area = QRectF(QPointF(0,0),target.size());
   targetItem *tgt = new targetItem( target, name );
   connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
