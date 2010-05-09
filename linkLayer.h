@@ -42,10 +42,13 @@ class targetItem : public QGraphicsObject {
   private:
     QRectF area;
     QString name;
+    int pgNum;
     
   public:
-    targetItem( const QRectF &Area, const QString &Name = "" ): area(Area), name(Name) {};
+    targetItem( int Page, const QRectF &Area, const QString &Name = "" ): area(Area), name(Name), pgNum(Page) {};
     QRectF boundingRect() const { return area; };
+    
+    int getPage() const { return pgNum; };
     
     virtual void paint( QPainter*, const QStyleOptionGraphicsItem*, QWidget* ) {};
     

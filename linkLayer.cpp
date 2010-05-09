@@ -49,8 +49,9 @@ linkLayer::linkLayer(pdfScene* sc):
 
 targetItem* linkLayer::addTarget ( const QString& name, const QRectF& target ) {
   if ( targets.contains( name ) ) return targets[name];
+  pdfScene *sc = dynamic_cast<pdfScene *>(scene);
   QRectF area = QRectF(QPointF(0,0),target.size());
-  targetItem *tgt = new targetItem( area, name );
+  targetItem *tgt = new targetItem( sc->posToPage(area.topLeft()), area, name );
   connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
   mapper->setMapping( tgt, name );
   targets.insert( name, tgt );
@@ -65,7 +66,7 @@ targetItem* linkLayer::addTarget ( const QString& name, const int page, const QR
     return targets[name];
   }
   QRectF area = QRectF(QPointF(0,0),target.size());
-  targetItem *tgt = new targetItem( target, name );
+  targetItem *tgt = new targetItem( page, target, name );
   connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
   mapper->setMapping( tgt, name );
   targets.insert( name, tgt );
