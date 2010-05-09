@@ -59,9 +59,7 @@ void tocItem::removeChild ( tocItem* child ) {
 }
 
 tocItem::~tocItem() {
-  foreach( tocItem *child, children ) {
-    delete child;
-  };
+  qDeleteAll(children);
 };
 
 
