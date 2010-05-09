@@ -169,4 +169,40 @@ QList<QRectF> pdfUtil::quadPointsToQBoxes( PdfArray &quadPoints, pdfCoords *coor
   return ret;
 }
 
+PdfObject* resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
+  PdfObject *ret = ref;
+  while ( ret->IsReference() ) {
+    ret = doc->GetObjects().GetObject(ret->GetReference());
+    if ( ! ret ) return NULL;
+  }
+  return ret;
+}
+
+
+PdfDestination* pdfUtil::getDestination(PdfMemDocument *doc, PdfElement* e) {
+  PdfDestination *ret = NULL;
+  PdfOutlineItem *item = dynamic_cast<PdfOutlineItem*>(e);
+  if ( item ) { 
+    try {
+      ret = item->GetDestination();
+      if ( ret ) return ret;
+      PdfObject *a = e->GetObject()->GetDictionary().GetKey(PdfName("A"));
+      a = resolveRefs( doc, a );
+      if ( ! a ) {
+	qDebug() << "getDestination: Reference not found";
+	return NULL;
+      }
+      PdfDictionary s = a->GetDictionary();
+      if ( s.GetKey(PdfName("S"))->GetName() == PdfName("GoTo") ) {
+	PdfObject *d = a->GetDictionary().GetKey(PdfName("D"));
+	d->SetOwner(&doc->GetObjects());
+	ret  = new PdfDestination( d );
+      }
+    } catch ( PdfError e ) {
+      qDebug() << e.what();
+    }
+  }
+  return ret;
+};
+
 
