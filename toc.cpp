@@ -129,7 +129,8 @@ int tocItem::childCount() const {
 }
 
 int tocItem::getPage() const {
-  return tgt->getPage();
+  if ( tgt ) return tgt->getPage();
+  else return 0;
 }
 
 

@@ -57,6 +57,7 @@ targetItem* linkLayer::addTarget ( const QString& name, const QRectF& target ) {
   targets.insert( name, tgt );
   addItem( tgt );
   tgt->setPos( target.topLeft() );
+  return tgt;
 }
 
 targetItem* linkLayer::addTarget ( const QString& name, const int page, const QRectF& target )
@@ -73,6 +74,7 @@ targetItem* linkLayer::addTarget ( const QString& name, const int page, const QR
   addItem( tgt );
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
   tgt->setPos(target.topLeft()+sc->topLeftPage(page));
+  return tgt;
 }
 
 void linkLayer::removeTarget ( const QString& name ) {
