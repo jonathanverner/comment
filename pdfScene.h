@@ -151,6 +151,8 @@ class pdfScene : public QGraphicsScene {
 
 		sceneLayer *addLayer();
 		void removeLayer( sceneLayer *layer );
+		
+		toc* getToc() { return TOC; };
 
 		/****************************************************
 		 *             TEXT LAYER METHODS                   *

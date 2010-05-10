@@ -106,6 +106,7 @@ class toc : public QAbstractItemModel {
     void save( PoDoFo::PdfMemDocument* doc );
     
     tocItem *getRoot() { return root; };
+    tocItem *getItem( const QModelIndex &index );
     
   signals:
     

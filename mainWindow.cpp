@@ -37,6 +37,8 @@
 #include "searchBar.h"
 #include "search.h"
 #include "config.h"
+#include "toc.h"
+#include "linkLayer.h"
 
 #include "pdfUtil.h"
 #include "ui_propertyDialog.h"
@@ -46,13 +48,17 @@
 #include <QtGui/QToolBar>
 #include <QtGui/QGraphicsView>
 #include <QtGui/QVBoxLayout>
+#include <QtGui/QSplitter>
 #include <QtGui/QMouseEvent>
-#include <QtCore/QDebug>
 #include <QtGui/QStackedWidget>
+#include <QtGui/QTreeView>
+
+#include <QtCore/QDebug>
 
 mainWindow::mainWindow() { 
   scene = new pdfScene();
   pgView = new pageView( scene );
+  tocView = new QTreeView( this );
   toolBar = new toolBox( pgView );
   editor = new QStackedWidget( this );
   numberEdit = new pageNumberEdit( this );
@@ -95,6 +101,14 @@ mainWindow::mainWindow() {
   QAction *endAct = pgView->newAction( "Ctrl+End", pgView, SLOT( lastPage() ) );
   QAction *searchAct = pgView->newAction( "Ctrl+F", this, SLOT( showSearchBar() ) );
   QAction *infoAct = pgView->newAction( "Ctrl+I", this, SLOT( showInfoDlg() ) );
+  QAction *toggleTocAct = pgView->newAction( "Ctrl+H", this, SLOT( toggleToc() ) );
+  
+  tocView->addAction( quitAct );
+  tocView->addAction( pageGotoAct );
+  tocView->addAction( saveAct );
+  tocView->addAction( searchAct );
+  tocView->addAction( infoAct );
+  tocView->addAction( toggleTocAct );
 
 
   connect( itTool, SIGNAL( needKeyFocus(bool) ), pgView, SLOT( disableActions(bool) ) );
@@ -114,19 +128,29 @@ mainWindow::mainWindow() {
   connect( search, SIGNAL( matchNotFound() ), searchDlg, SLOT( setMissed() ) );
   connect( search, SIGNAL( clear() ), searchDlg, SLOT( setNone() ) );
   connect( search, SIGNAL( currentMatchPosition(const QRectF&) ), this, SLOT( ensureVisible(const QRectF&) ) );
+  
+  connect( tocView, SIGNAL( activated(const QModelIndex &) ), this, SLOT( tocItemActivated(const QModelIndex &) ) );
 
 
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
- // mainLayout->addWidget( toolBar );
-  mainLayout->addWidget( pgView );
+  QSplitter *docSplitter = new QSplitter;
+  docSplitter->addWidget( tocView );
+  docSplitter->addWidget( pgView );
+  mainLayout->addWidget( docSplitter );
   mainLayout->addWidget( editor );
   mainLayout->setSpacing( 0 );
   mainLayout->setContentsMargins( 0, 0, 0, 0 );
   setLayout( mainLayout );
 
   editor->hide();
+  tocView->hide();
 }
+
+void mainWindow::tocItemActivated(const QModelIndex& itemIndex) {
+ pgView->centerOn( scene->getToc()->getItem( itemIndex )->getTarget()->pos() );
+}
+
 
 void mainWindow::hideEditArea() { 
   editor->hide();
@@ -144,6 +168,11 @@ void mainWindow::showSearchBar() {
   searchDlg->focus();
 }
 
+void mainWindow::toggleToc() {
+  if ( tocView->isVisible() ) tocView->hide();
+  else tocView->show();
+}
+
 
 void mainWindow::save() { 
   qDebug() << "mainWindow::save(): Saving...";
@@ -153,6 +182,7 @@ void mainWindow::save() {
     qWarning() << "mainWindow::save(): pdfScene is a null pointer";
   }
 }
+
 
 void mainWindow::showInfoDlg() { 
   pdfProperties prop;
@@ -207,6 +237,8 @@ bool mainWindow::loadFile( QString fileName ) {
       qDebug() << "Goto page" << config()[fileName];
       pgView->gotoPage( config()[fileName].toInt() );
     }
+    tocView->setModel( scene->getToc() );
+    tocView->hideColumn(1);
     return true;
   }
   return false;

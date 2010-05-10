@@ -175,12 +175,29 @@ int toc::columnCount(const QModelIndex& parent) const {
 
 
 QVariant toc::data(const QModelIndex& index, int role) const {
+
   if ( !index.isValid() ) return QVariant();
-  if ( role != Qt::DisplayRole ) return QVariant();
   
   tocItem *item = static_cast<tocItem *>(index.internalPointer());
-  return item->data(index.column());
+
+  if ( role == Qt::ToolTipRole ) {
+    QString ret = "Page "+ QString::number(item->getPage()+1);
+    return ret;
+  }
+  
+  if ( role == Qt::DisplayRole ) {
+    return item->data(index.column());
+  }
+
+  return QVariant();
+
 }
+
+tocItem* toc::getItem(const QModelIndex& index ) {
+  if ( !index.isValid() ) return NULL;
+  return static_cast<tocItem *>(index.internalPointer());
+}
+
 
 Qt::ItemFlags toc::flags(const QModelIndex& index) const {
   if ( ! index.isValid() ) return 0;  
@@ -191,7 +208,7 @@ QVariant toc::headerData(int section, Qt::Orientation orientation, int role) con
   if ( orientation != Qt::Horizontal || role != Qt::DisplayRole ) return QVariant();
   switch (section) { 
     case 0:
-      return "Title";
+      return "Table of Contents";
       break;
     case 1:
       return "Page";
