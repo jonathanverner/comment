@@ -49,12 +49,10 @@ class linkTool : public abstractTool {
 private:
   
     static QIcon icon;
-    linkLayer *targets;
-
 
 public:
-    linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea, linkLayer *Targets);
-    virtual abstractAnnotation *processAnnotation( PoDoFo::PdfMemDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform );
+    linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea );
+    virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation* annotation, pdfCoords* transform );
     virtual void newActionEvent( const QPointF *ScenePos );
     virtual bool acceptEventsFor( QGraphicsItem *item );
     friend class linkAnnotation;
@@ -65,7 +63,7 @@ class linkAnnotation : public abstractAnnotation {
     targetItem *tgt;
   
     public:
-        linkAnnotation( PoDoFo::PdfMemDocument* doc, linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform = 0 );
+        linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform = 0 );
         static bool isA( PoDoFo::PdfAnnotation *annotation );
         virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 };

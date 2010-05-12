@@ -179,7 +179,7 @@ PdfObject* resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
 }
 
 
-PdfDestination* pdfUtil::getDestination(PdfMemDocument *doc, PdfElement* e) {
+PdfDestination* pdfUtil::getDestination(PdfElement* e) {
   PdfDestination *ret = NULL;
   PdfOutlineItem *outLineItem = dynamic_cast<PdfOutlineItem*>(e);
   PdfAnnotation *linkAnnot = dynamic_cast<PdfAnnotation*>(e);
@@ -189,7 +189,7 @@ PdfDestination* pdfUtil::getDestination(PdfMemDocument *doc, PdfElement* e) {
   else if ( linkAnnot ) ret = new PdfDestination(linkAnnot->GetDestination()); // Memory leak ??
   if ( ret ) return ret;
   PdfObject *a = e->GetObject()->GetDictionary().GetKey(PdfName("A"));
-  a = resolveRefs( doc, a );
+  if ( a->IsReference() ) a = e->GetObject()->GetOwner()->GetObject( a->GetReference() );
   if ( ! a ) {
     qDebug() << "getDestination: Reference not found";
     return NULL;
@@ -197,7 +197,7 @@ PdfDestination* pdfUtil::getDestination(PdfMemDocument *doc, PdfElement* e) {
   PdfDictionary s = a->GetDictionary();
   if ( s.GetKey(PdfName("S"))->GetName() == PdfName("GoTo") ) {
     PdfObject *d = a->GetDictionary().GetKey(PdfName("D"));
-    d->SetOwner(&doc->GetObjects());
+    d->SetOwner( e->GetObject()->GetOwner() );
     ret  = new PdfDestination( d );
   }
   } catch ( PdfError e ) {

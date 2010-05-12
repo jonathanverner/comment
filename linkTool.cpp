@@ -47,7 +47,7 @@ bool linkTool::acceptEventsFor( QGraphicsItem *item ) {
   return false;
 }
 
-linkTool::linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
+linkTool::linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
         abstractTool( Scene, ToolBar, EditArea )
 {
   setToolName( "Link Tool" );
@@ -77,10 +77,10 @@ QString linkTool::addDestination( PoDoFo::PdfDestination &dest ) {
    
 
 
-abstractAnnotation *linkTool::processAnnotation( PoDoFo::PdfMemDocument *doc, PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
+abstractAnnotation *linkTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
   if ( ! linkAnnotation::isA( annotation ) ) return NULL;
   try {
-    return new linkAnnotation( doc, this, annotation, transform );
+    return new linkAnnotation( this, annotation, transform );
   } catch (...) {
     return NULL;
   }
@@ -96,10 +96,10 @@ void linkTool::newActionEvent( const QPointF *ScenePos ) {
 
 
 
-linkAnnotation::linkAnnotation(PoDoFo::PdfMemDocument* doc, linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform ):
+linkAnnotation::linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform ):
         abstractAnnotation( tool, Link, transform )
 {
-  PoDoFo::PdfDestination *dest = pdfUtil::getDestination( doc, link );
+  PoDoFo::PdfDestination *dest = pdfUtil::getDestination( Link );
   if ( ! dest ) throw;
   QString tgtName = pdfUtil::pdfStringToQ(link->GetDictionary().GetKey(PoDoFo::PdfName("comment_target_name")));
   tgt = tool->targets->addTarget( tgtName, dest );
