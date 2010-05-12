@@ -88,8 +88,8 @@ targetItem* linkLayer::addTarget(QString& name, PoDoFo::PdfDestination* dest) {
   targets.insert( name, tgt );
   addItem( tgt );
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
-  tgt->setPos(tgtRect.topLeft()+sc->topLeftPage(dest->GetPage()->GetPageNumber()-1));
-  qDebug() << "Target: " << name << "Position:" << tgtRect << " (on page " << page << ")";
+  tgt->setPos(tgtRect.topLeft()+sc->topLeftPage(page));
+  qDebug() << "Target: " << name << "Position:" << tgtRect << " (on page " << page << ", "<<sc->topLeftPage(page)<<")";
   return tgt;
 }
 
@@ -105,6 +105,15 @@ void linkLayer::removeTarget ( const QString& name ) {
 
 void linkLayer::emitGOTO(const QString& name) {
   if ( targets.contains( name ) ) emit gotoTarget( targets[name] );
+}
+
+PoDoFo::PdfDestination *targetItem::getPdfDest(PoDoFo::PdfPage* pg) {
+  pdfCoords transform( pg );
+  PoDoFo::PdfRect *rect = transform.sceneToPdf( brect );
+  PoDoFo::PdfDestination *ret = new PoDoFo::PdfDestination( pg, *rect );
+  ret->GetObject()->GetDictionary().AddKey(PoDoFo::PdfName("comment_target_name"),pdfUtil::qStringToPdf(name));
+  delete rect;
+  return ret;
 }
 
 

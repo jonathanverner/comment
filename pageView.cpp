@@ -244,6 +244,12 @@ void pageView::gotoPage( int num ) {
   return;
 }
 
+void pageView::gotoPoint(const QPointF& point) {
+  centerOn( point );
+  //FIXME: Need to emit onPage
+}
+
+
 void pageView::firstPage() { 
   gotoPage( 1 );
 }

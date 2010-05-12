@@ -55,6 +55,7 @@ SET(ANNOT_SRC
   linkLayer.cpp
   toc.cpp
   gwenview_splittercollapser.cpp
+  linkTool.cpp
 )
 
 SET(TEST_SRC

@@ -153,6 +153,7 @@ class pdfScene : public QGraphicsScene {
 		void removeLayer( sceneLayer *layer );
 		
 		toc* getToc() { return TOC; };
+		linkLayer *getLinkTargets() { return links; };
 
 		/****************************************************
 		 *             TEXT LAYER METHODS                   *

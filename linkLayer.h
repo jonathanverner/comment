@@ -39,6 +39,7 @@ class QSignalMapper;
 
 namespace PoDoFo {
   class PdfDestination;
+  class PdfPage;
 };
 
 class targetItem : public QGraphicsObject {
@@ -56,10 +57,12 @@ class targetItem : public QGraphicsObject {
     QString getName() const { return name; };
     
     virtual void paint( QPainter*, const QStyleOptionGraphicsItem*, QWidget* ) {};
+    PoDoFo::PdfDestination *getPdfDest(PoDoFo::PdfPage* pg);
     
   public slots:
     
     void activate();
+
     
   signals:
     

@@ -171,6 +171,7 @@ QList<QRectF> pdfUtil::quadPointsToQBoxes( PdfArray &quadPoints, pdfCoords *coor
 
 PdfObject* resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
   PdfObject *ret = ref;
+  if ( ret->IsReference() )
   while ( ret->IsReference() ) {
     ret = doc->GetObjects().GetObject(ret->GetReference());
     if ( ! ret ) return NULL;
@@ -186,7 +187,7 @@ PdfDestination* pdfUtil::getDestination(PdfElement* e) {
   if ( ! linkAnnot && ! outLineItem ) return ret;
   try {
   if ( outLineItem ) ret = outLineItem->GetDestination();
-  else if ( linkAnnot ) ret = new PdfDestination(linkAnnot->GetDestination()); // Memory leak ??
+  else if ( linkAnnot && linkAnnot->HasDestination() ) ret = new PdfDestination(linkAnnot->GetDestination()); // Memory leak ??
   if ( ret ) return ret;
   PdfObject *a = e->GetObject()->GetDictionary().GetKey(PdfName("A"));
   if ( a->IsReference() ) a = e->GetObject()->GetOwner()->GetObject( a->GetReference() );

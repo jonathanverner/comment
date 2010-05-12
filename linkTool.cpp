@@ -25,6 +25,13 @@
 
 #include "linkTool.h"
 
+#include "toolBox.h"
+#include "linkTool.h"
+#include "pdfScene.h"
+#include "pdfUtil.h"
+#include "linkLayer.h"
+#include "pageView.h"
+
 #include <QtGui/QTextEdit>
 #include <QtGui/QStackedWidget>
 
@@ -32,11 +39,7 @@
 
 #include <podofo/podofo.h>
 
-#include "toolBox.h"
-#include "linkTool.h"
-#include "pdfScene.h"
-#include "pdfUtil.h"
-#include "linkLayer.h"
+
 
 QIcon linkTool::icon;
 
@@ -55,33 +58,12 @@ linkTool::linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea 
   toolBar->addTool( QIcon(icon), this );
 }
 
-QString linkTool::addDestination( PoDoFo::PdfDestination &dest ) {
-    struct destination tgt;
-    pdfCoords transform( dest.GetPage() );
-    tgt.name = QString::number( nameCounter++ );
-    tgt.page = dest.GetPage()->GetPageNumber();
-    tgt.type = dest.GetType();
-    if ( tgt.type == "XYZ" ) {
-        PoDoFo::PdfRect rect( dest.GetLeft(), dest.GetTop(), 0, 0 );
-        tgt.viewPort = transform->pdfToScene( & rect );
-    } else if ( tgt.type == "FitR" ) {
-        PoDoFo::PdfRect rect = dest.GetRect();
-        tgt.viewPort = transform->pdfRectToScene( & rect );
-    } else {
-        tgt.viewPort = QRectF(0,0,0,0);
-        tgt.value = dest.GetValue();
-    }
-    targets.push_back( tgt );
-    return tggt.name;
-}
-   
-
-
 abstractAnnotation *linkTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
   if ( ! linkAnnotation::isA( annotation ) ) return NULL;
   try {
     return new linkAnnotation( this, annotation, transform );
   } catch (...) {
+    qDebug() << "Error adding annotation";
     return NULL;
   }
 }
@@ -99,11 +81,22 @@ void linkTool::newActionEvent( const QPointF *ScenePos ) {
 linkAnnotation::linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform ):
         abstractAnnotation( tool, Link, transform )
 {
+  movable = false;
   PoDoFo::PdfDestination *dest = pdfUtil::getDestination( Link );
   if ( ! dest ) throw;
-  QString tgtName = pdfUtil::pdfStringToQ(link->GetDictionary().GetKey(PoDoFo::PdfName("comment_target_name")));
-  tgt = tool->targets->addTarget( tgtName, dest );
+  QString tgtName="";
+  if ( dest->GetObject()->IsString() ) {
+    tgtName = pdfUtil::pdfStringToQ(dest->GetObject()->GetString());
+  } else if ( dest->GetObject()->GetDictionary().HasKey(PoDoFo::PdfName("comment_target_name")) ) {
+    tgtName = pdfUtil::pdfStringToQ(dest->GetObject()->GetDictionary().GetKey(PoDoFo::PdfName("comment_target_name"))->GetString());
+  }
+  tgt = tool->scene->getLinkTargets()->addTarget( tgtName, dest );
+  PoDoFo::PdfRect pdfRect = Link->GetRect();
+  QRectF pgRect = transform->pdfRectToScene( &pdfRect );
+  activeArea=QRectF(QPointF(0,0),pgRect.size());
+  setPos(pgRect.topLeft());
   setZValue( 10 );
+  qDebug() << "Created new link from " << pos() << " ["<<activeArea<<"] to " << tgt->pos() << " ["<<tgt->boundingRect()<<"]";
 }
 
 
@@ -114,9 +107,53 @@ bool linkAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
 
 
 void linkAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) {
+  qDebug() << "Saving Link annotation for "<<getAuthor()<<" : " << pos();
+  PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(activeArea).boundingRect() );
+  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Link, *brect );
+  PoDoFo::PdfDestination *dest = tgt->getPdfDest(pg);
+  annot->SetDestination( *dest );
+  saveInfo2PDF( annot );
+  delete brect;
+  delete dest;
+  
 }
 
+void linkAnnotation::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
+  painter->fillRect( activeArea, QColor( 155, 155, 0, 100 ) );
+}
 
+bool linkTool::handleEvent(viewEvent* ev) {
+  linkAnnotation *annot;
+  if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::LeftButton ) ) {
+    if ( annot = dynamic_cast<linkAnnotation*>(ev->item()) ) { 
+      //editAnnotationExtent( annot );
+    } else {
+      QPointF pos = ev->scenePos();
+      newActionEvent( &pos );
+    }
+    return true;
+  } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
+    if ( ev->isClick() && (annot = dynamic_cast<linkAnnotation*>(ev->item())) ) {
+      qDebug() << "Going to " << annot->tgt->getName() << " at " << annot->tgt->scenePos();
+      emit gotoPos( annot->tgt->scenePos() );
+      return true;
+    }
+    if ( ! (annot=dynamic_cast<linkAnnotation*>(currentEditItem)) ) return false;
+    //updateCurrentAnnotation( ev->scenePos() );
+    //editAnnotationText();
+    return true;
+  } else if ( ev->type() == viewEvent::VE_MOUSE_MOVE && (annot=dynamic_cast<linkAnnotation*>(currentEditItem)) ) {
+    /*if ( editingHilight ) {
+      updateCurrentAnnotation( ev->scenePos() );
+      if ( ! (ev->btnState() & Qt::LeftButton) ) { // Missed a mouse release, end editing annotation
+        qDebug() << "WARNING MISSED MOUSE RELEASE EVENT!!!";
+        editAnnotationText();
+      }
+    } else finishEditing();*/
+    return true;  
+  } else return abstractTool::handleEvent( ev );
+  return false;
+}
 
 
 #include "linkTool.moc"
