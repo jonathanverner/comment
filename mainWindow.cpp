@@ -43,6 +43,8 @@
 #include "pdfUtil.h"
 #include "ui_propertyDialog.h"
 
+#include "gwenview_splittercollapser.h"
+
 #include <QtGui/QLineEdit>
 #include <QtGui/QAction>
 #include <QtGui/QToolBar>
@@ -135,6 +137,7 @@ mainWindow::mainWindow() {
 
   QVBoxLayout *mainLayout = new QVBoxLayout;
   QSplitter *docSplitter = new QSplitter;
+  Gwenview::SplitterCollapser *collapser = new Gwenview::SplitterCollapser( docSplitter, tocView );
   docSplitter->addWidget( tocView );
   docSplitter->addWidget( pgView );
   mainLayout->addWidget( docSplitter );
