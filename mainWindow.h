@@ -28,8 +28,11 @@
 */
 
 #include <QtGui/QWidget>
+
 #include <QtCore/QPoint>
 #include <QtCore/QString>
+#include <QtCore/QModelIndex>
+
 #include <poppler-qt4.h>
 
 
@@ -42,6 +45,9 @@ class searchBar;
 class searcher;
 
 class QStackedWidget;
+class QTreeView;
+class QAction;
+
 
 class mainWindow : public QWidget { 
   Q_OBJECT
@@ -49,6 +55,7 @@ class mainWindow : public QWidget {
 	  	pageNumberEdit *numberEdit;
 		toolBox *toolBar;
 		pageView *pgView;
+		QTreeView *tocView;
 		pdfScene *scene;
 		QStackedWidget *editor;
 		textTool *textAnnotTool;
@@ -69,12 +76,14 @@ class mainWindow : public QWidget {
 		void hideEditArea();
 		void ensureVisible( const QRectF &rect );
 		void showInfoDlg();
+		void tocItemActivated( const QModelIndex &itemIndex );
 
 	protected slots:
 		void mouseNearBorder(const QPoint &pos);
 		void pageNumEdit();
 		void save();
 		void showSearchBar();
+		void toggleToc();
 	signals:
 		void quit();
 

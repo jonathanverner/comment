@@ -52,6 +52,9 @@ SET(ANNOT_SRC
   search.cpp
   config.cpp
   hiliteItem.cpp
+  linkLayer.cpp
+  toc.cpp
+  gwenview_splittercollapser.cpp
 )
 
 SET(TEST_SRC

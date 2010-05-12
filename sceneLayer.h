@@ -36,7 +36,7 @@ class QGraphicsItem;
 
 class sceneLayer : public QObject { 
   Q_OBJECT
-	private:
+  protected:
 	  QGraphicsScene *scene;
 	  QList< QGraphicsItem *> items;
 	  QList< bool > reference;

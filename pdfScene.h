@@ -57,6 +57,8 @@ namespace Poppler {
 class pdfCoords;
 class pageTextLayer;
 class sceneLayer;
+class linkLayer;
+class toc;
 
 
 /*QRectF Poppler::TextBox::boundingBox() const;
@@ -78,6 +80,8 @@ class pdfScene : public QGraphicsScene {
 		QVector< QList<abstractAnnotation *> > annotations;
 		QVector<QPointF> pageCorners; // holds the top left corners of each page
 		QVector<pageTextLayer *> textLayer;
+		linkLayer *links;
+		toc *TOC;
 		QList<sceneLayer *> sceneLayers;
 		qreal pageSkip; // amount of space to be left between the pages of the pdf
 		qreal leftSkip; // the left margin
@@ -147,6 +151,8 @@ class pdfScene : public QGraphicsScene {
 
 		sceneLayer *addLayer();
 		void removeLayer( sceneLayer *layer );
+		
+		toc* getToc() { return TOC; };
 
 		/****************************************************
 		 *             TEXT LAYER METHODS                   *

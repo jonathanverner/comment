@@ -33,6 +33,16 @@
 #include "pageTextLayer.h"
 #include "pdfUtil.h"
 #include "sceneLayer.h"
+#include "linkLayer.h"
+#include "toc.h"
+
+#include <QtCore/QFile>
+#include <QtCore/QTemporaryFile>
+#include <QtCore/QDebug>
+#include <QtCore/QEvent>
+
+#include <poppler-qt4.h>
+#include <podofo/podofo.h>
 
 #include <QtCore/QFile>
 #include <QtCore/QTemporaryFile>
@@ -45,15 +55,17 @@
 using namespace Poppler;
 
 pdfScene::pdfScene(): 
-	pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10), prop(NULL)
+	pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10), prop(NULL), TOC(NULL)
 {
+  links = new linkLayer( this );
   setBackgroundBrush(Qt::gray);
 }
 
 pdfScene::pdfScene( const QSet<abstractTool *> &tools, QString fName ):
 	tools(tools), pdf(NULL), tempFileName(""), numPages(0), leftSkip(10), pageSkip(10),
-	prop(NULL)
+	prop(NULL), TOC(NULL)
 {
+  links = new linkLayer( this );
   setBackgroundBrush(Qt::gray);
   if ( fName != "" ) loadFromFile( fName );
 }
@@ -61,6 +73,8 @@ pdfScene::pdfScene( const QSet<abstractTool *> &tools, QString fName ):
 pdfScene::~pdfScene() { 
   delete prop;
   delete pdf;
+  delete links;
+  delete TOC;
   // FIXME: further cleanup needed
   // cleanup sceneLayers
   // cleanup textLayer
@@ -214,6 +228,8 @@ bool pdfScene::loadFromFile( QString fileName, QObject *pageInViewReceiver, cons
   myFileName = fileName;
   prop = new pdfProperties;
   fillPdfProperties();
+  delete TOC;
+  TOC = new toc( links, &pdfDoc );
   return true;
 }
 
