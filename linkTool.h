@@ -28,13 +28,18 @@
 
 #include "abstractTool.h"
 
+#include <QtGui/QIcon>
+
 #include <QtCore/QString>
 
+class targetItem;
 class toolBox;
 class linkAnnotation;
+class linkLayer;
 
 namespace PoDoFo {
     class PdfDestination;
+    class PdfMemDocument;
 }
 
 
@@ -42,31 +47,25 @@ namespace PoDoFo {
 class linkTool : public abstractTool {
     Q_OBJECT
 private:
+  
+    static QIcon icon;
+    linkLayer *targets;
 
-    struct destination {
-        int page;
-        QString name,type;
-        QRectF viewPort;
-        double value;
-    };
-
-    QList<destination> targets;
-    QString addDestination( int page, QRectF viewPort, QString name = "" );
-    QString addDestination( PoDoFo::PdfDestination &dest );
-    static QPixmap *icon;
-    static int nameCounter;
 
 public:
-    linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
-    virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
+    linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea, linkLayer *Targets);
+    virtual abstractAnnotation *processAnnotation( PoDoFo::PdfMemDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform );
     virtual void newActionEvent( const QPointF *ScenePos );
     virtual bool acceptEventsFor( QGraphicsItem *item );
     friend class linkAnnotation;
 };
 
 class linkAnnotation : public abstractAnnotation {
+  private:
+    targetItem *tgt;
+  
     public:
-        linkAnnotation( linkTool *tool, PoDoFo::PdfAnnotation *linkAnnot = NULL, pdfCoords *transform = NULL );
+        linkAnnotation( PoDoFo::PdfMemDocument* doc, linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform = 0 );
         static bool isA( PoDoFo::PdfAnnotation *annotation );
         virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 };

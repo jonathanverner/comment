@@ -36,9 +36,9 @@
 #include "linkTool.h"
 #include "pdfScene.h"
 #include "pdfUtil.h"
+#include "linkLayer.h"
 
-QPixmap *linkTool::icon = NULL;
-int linkTool::nameCounter = 0;
+QIcon linkTool::icon;
 
 bool linkTool::acceptEventsFor( QGraphicsItem *item ) {
  if ( dynamic_cast<linkAnnotation*>(item) ) {
@@ -51,9 +51,8 @@ linkTool::linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea)
         abstractTool( Scene, ToolBar, EditArea )
 {
   setToolName( "Link Tool" );
-
-  if ( ! icon ) icon = new QPixmap( "link.png" );
-  toolBar->addTool( QIcon(*icon), this );
+  icon = QIcon::fromTheme("link");
+  toolBar->addTool( QIcon(icon), this );
 }
 
 QString linkTool::addDestination( PoDoFo::PdfDestination &dest ) {
@@ -75,41 +74,35 @@ QString linkTool::addDestination( PoDoFo::PdfDestination &dest ) {
     targets.push_back( tgt );
     return tggt.name;
 }
-
-QString linkTool::addDestination( int page, QRectF viewPort, QString name ) {
-    struct destination tgt;
-    if ( name == "" ) {
-        tgt.name = QString::number( nameCounter++ );
-    } else tgt.name = name;
-    tgt.page = page;
-    tgt.type="FitR";
-    tgt.viewPort = viewPort;
-    return tgt.name();
-}
+   
 
 
-abstractAnnotation *linkTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
+abstractAnnotation *linkTool::processAnnotation( PoDoFo::PdfMemDocument *doc, PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
   if ( ! linkAnnotation::isA( annotation ) ) return NULL;
-  return new linkAnnotation( this, annotation, transform );
+  try {
+    return new linkAnnotation( doc, this, annotation, transform );
+  } catch (...) {
+    return NULL;
+  }
 }
 
 void linkTool::newActionEvent( const QPointF *ScenePos ) {
-  qDebug() << "Creating new Linl Annotation at " << *ScenePos;
+/*  qDebug() << "Creating new Link Annotation at " << *ScenePos;
   linkAnnotation *annot = new linkAnnotation( this );
   annot->setZValue( 10 );
   scene->placeAnnotation( annot, ScenePos );
-  editItem( annot );
+  editItem( annot );*/
 }
 
 
 
-linkAnnotation::linkAnnotation( linkTool *tool, PoDoFo::PdfAnnotation *Link, pdfCoords *transform ):
+linkAnnotation::linkAnnotation(PoDoFo::PdfMemDocument* doc, linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform ):
         abstractAnnotation( tool, Link, transform )
 {
-  setIcon( linkTool::icon->scaledToHeight(20) );
-  if ( Link->HasDestination() ) {
-      tool->addDestination( Link->GetDestination() );
-  }
+  PoDoFo::PdfDestination *dest = pdfUtil::getDestination( doc, link );
+  if ( ! dest ) throw;
+  QString tgtName = pdfUtil::pdfStringToQ(link->GetDictionary().GetKey(PoDoFo::PdfName("comment_target_name")));
+  tgt = tool->targets->addTarget( tgtName, dest );
   setZValue( 10 );
 }
 
@@ -121,12 +114,6 @@ bool linkAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
 
 
 void linkAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) {
-  qDebug() << "Saving annotation for "<<getAuthor() <<" : " << pos();
-  QRectF bbox = mapToParent(boundingRect()).boundingRect();
-  PoDoFo::PdfRect *brect = coords->sceneToPdf( bbox );
-  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Text, *brect );
-  saveInfo2PDF( annot );
-  delete brect;
 }
 
 
