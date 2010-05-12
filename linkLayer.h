@@ -37,18 +37,23 @@ class pdfScene;
 
 class QSignalMapper;
 
+namespace PoDoFo {
+  class PdfDestination;
+};
+
 class targetItem : public QGraphicsObject {
   Q_OBJECT
   private:
-    QRectF area;
+    QRectF brect;
     QString name;
     int pgNum;
     
   public:
-    targetItem( int Page, const QRectF &Area, const QString &Name = "" ): area(Area), name(Name), pgNum(Page) {};
-    QRectF boundingRect() const { return area; };
+    targetItem( int Page, const QSizeF &Area, const QString &Name = "" ): brect(QPointF(0,0),Area), name(Name), pgNum(Page) {};
+    QRectF boundingRect() const { return brect; };
     
     int getPage() const { return pgNum; };
+    QString getName() const { return name; };
     
     virtual void paint( QPainter*, const QStyleOptionGraphicsItem*, QWidget* ) {};
     
@@ -66,8 +71,11 @@ class linkLayer : public sceneLayer {
   Q_OBJECT
 
   private:
+    int generation;
     QSignalMapper *mapper;
     QHash<QString, targetItem *> targets;
+    
+    QString generateName();
     
   private slots:
     
@@ -77,8 +85,8 @@ class linkLayer : public sceneLayer {
     
     linkLayer( pdfScene* sc );
 
-    targetItem *addTarget( const QString &name, const QRectF &target );
-    targetItem *addTarget( const QString &name, const int page, const QRectF &target );
+    targetItem *addTarget( QString& name, const int page, const QRectF& target );
+    targetItem *addTarget( QString& name, PoDoFo::PdfDestination* dest );
     
     void removeTarget( const QString &name );
     

@@ -32,6 +32,14 @@
 #include <QtGui/QAction>
 #include <QtCore/QDebug>
 
+#include <podofo/podofo.h>
+#include "pdfUtil.h"
+
+QString linkLayer::generateName() {
+  return "generated."+QString::number(generation++);
+}
+
+
 void targetItem::activate()
 {
   emit activated();
@@ -41,43 +49,50 @@ void targetItem::activate()
 
 
 linkLayer::linkLayer(pdfScene* sc):
-  sceneLayer(sc)
+  sceneLayer(sc), generation(0)
 {
   mapper = new QSignalMapper( this );
   connect( mapper, SIGNAL(mapped(const QString &)), this, SLOT(emitGOTO(const QString &)) );
 }
 
-targetItem* linkLayer::addTarget ( const QString& name, const QRectF& target ) {
-  if ( targets.contains( name ) ) return targets[name];
-  pdfScene *sc = dynamic_cast<pdfScene *>(scene);
-  QRectF area = QRectF(QPointF(0,0),target.size());
-  targetItem *tgt = new targetItem( sc->posToPage(area.topLeft()), area, name );
-  connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
-  mapper->setMapping( tgt, name );
-  targets.insert( name, tgt );
-  addItem( tgt );
-  tgt->setPos( target.topLeft() );
-  qDebug() << "Target: " << name << "Position:" << target.topLeft();
-  return tgt;
-}
 
-targetItem* linkLayer::addTarget ( const QString& name, const int page, const QRectF& target )
+targetItem* linkLayer::addTarget ( QString& name, const int page, const QRectF& target )
 {
+  if ( name == "" ) name = generateName();
   if ( targets.contains( name ) ) {
     qDebug() << "Not replacing target named: " << name;
     return targets[name];
   }
-  QRectF area = QRectF(QPointF(0,0),target.size());
-  targetItem *tgt = new targetItem( page, target, name );
+  targetItem *tgt = new targetItem( page, target.size(), name );
   connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
   mapper->setMapping( tgt, name );
   targets.insert( name, tgt );
   addItem( tgt );
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
   tgt->setPos(target.topLeft()+sc->topLeftPage(page));
-  qDebug() << "Target: " << name << "Position:" << target.topLeft() + sc->topLeftPage(page) << " (on page " << page << ")";
+  qDebug() << "Target: " << name << "Position:" << target << " (on page " << page << ")";
   return tgt;
 }
+
+targetItem* linkLayer::addTarget(QString& name, PoDoFo::PdfDestination* dest) {
+  if ( name == "" ) name = generateName();
+  if ( targets.contains( name ) ) {
+    qDebug() << "Not replacing target named: " << name;
+    return targets[name];
+  }
+  QRectF tgtRect = pdfUtil::destinationToQRect( dest );
+  int page = dest->GetPage()->GetPageNumber()-1;
+  targetItem *tgt = new targetItem( page, tgtRect.size() , name );
+  connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
+  mapper->setMapping( tgt, name );
+  targets.insert( name, tgt );
+  addItem( tgt );
+  pdfScene *sc = dynamic_cast<pdfScene *>(scene);
+  tgt->setPos(tgtRect.topLeft()+sc->topLeftPage(dest->GetPage()->GetPageNumber()-1));
+  qDebug() << "Target: " << name << "Position:" << tgtRect << " (on page " << page << ")";
+  return tgt;
+}
+
 
 void linkLayer::removeTarget ( const QString& name ) {
   if ( ! targets.contains( name ) ) return;

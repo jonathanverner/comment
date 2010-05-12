@@ -90,13 +90,14 @@ void toc::load( PoDoFo::PdfMemDocument* doc ) {
 tocItem* toc::loadOutlineItem( PoDoFo::PdfMemDocument* doc, PdfOutlineItem* item, tocItem* parent, const QString& path ) { 
     PdfDestination *dest = pdfUtil::getDestination(doc, item);
     QString title = pdfUtil::pdfStringToQ( item->GetTitle() );
-    qDebug() << "Loading TOC item: " << path << "/" << title;
+    qDebug() << "Loading TOC item: " << path << "." << title;
     targetItem *tgt = NULL;
-    if ( dest ) tgt = links->addTarget( path+"/"+title, dest->GetPage()->GetPageNumber()-1, QRectF(0,0,0,0) );
+    QString nm = path+"."+title;
+    if ( dest ) tgt = links->addTarget( nm, dest );
     tocItem *me = new tocItem( title, parent, tgt );
     PdfOutlineItem *child = item->First();
     while( child ) {
-      tocItem *item = loadOutlineItem( doc, child, me, path+"/"+title );
+      tocItem *item = loadOutlineItem( doc, child, me, path+"."+title );
       me->appendChild( item );
       child = child->Next();
     }

@@ -181,28 +181,52 @@ PdfObject* resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
 
 PdfDestination* pdfUtil::getDestination(PdfMemDocument *doc, PdfElement* e) {
   PdfDestination *ret = NULL;
-  PdfOutlineItem *item = dynamic_cast<PdfOutlineItem*>(e);
-  if ( item ) { 
-    try {
-      ret = item->GetDestination();
-      if ( ret ) return ret;
-      PdfObject *a = e->GetObject()->GetDictionary().GetKey(PdfName("A"));
-      a = resolveRefs( doc, a );
-      if ( ! a ) {
-	qDebug() << "getDestination: Reference not found";
-	return NULL;
-      }
-      PdfDictionary s = a->GetDictionary();
-      if ( s.GetKey(PdfName("S"))->GetName() == PdfName("GoTo") ) {
-	PdfObject *d = a->GetDictionary().GetKey(PdfName("D"));
-	d->SetOwner(&doc->GetObjects());
-	ret  = new PdfDestination( d );
-      }
-    } catch ( PdfError e ) {
-      qDebug() << e.what();
-    }
+  PdfOutlineItem *outLineItem = dynamic_cast<PdfOutlineItem*>(e);
+  PdfAnnotation *linkAnnot = dynamic_cast<PdfAnnotation*>(e);
+  if ( ! linkAnnot && ! outLineItem ) return ret;
+  try {
+  if ( outLineItem ) ret = outLineItem->GetDestination();
+  else if ( linkAnnot ) ret = new PdfDestination(linkAnnot->GetDestination()); // Memory leak ??
+  if ( ret ) return ret;
+  PdfObject *a = e->GetObject()->GetDictionary().GetKey(PdfName("A"));
+  a = resolveRefs( doc, a );
+  if ( ! a ) {
+    qDebug() << "getDestination: Reference not found";
+    return NULL;
+  }
+  PdfDictionary s = a->GetDictionary();
+  if ( s.GetKey(PdfName("S"))->GetName() == PdfName("GoTo") ) {
+    PdfObject *d = a->GetDictionary().GetKey(PdfName("D"));
+    d->SetOwner(&doc->GetObjects());
+    ret  = new PdfDestination( d );
+  }
+  } catch ( PdfError e ) {
+    qDebug() << e.what();
   }
   return ret;
+}
+
+QRectF pdfUtil::destinationToQRect(PdfDestination* dest) {
+  try {
+    pdfCoords transform( dest->GetPage() );
+    PdfArray dst = dest->GetArray();
+    PdfName tp = dst[1].GetName();
+    QRectF ret;
+    PdfRect pRect;
+    if ( tp == PdfName("XYZ" ) ) { 
+      PdfRect rect(dst[2].GetReal(),dst[3].GetReal(),0,0);
+      return transform.pdfRectToScene( &rect );
+    } else if ( tp == PdfName("FitR") ) {
+      PdfRect rect(dst[2].GetReal(),dst[3].GetReal(),dst[4].GetReal(),dst[5].GetReal());
+      return transform.pdfRectToScene(&rect);
+    } else if ( tp == PdfName("FitH") ) {
+      PdfRect rect(0,dst[2].GetReal(),0,0);
+      return transform.pdfRectToScene(&rect);
+    } else if ( tp == PdfName("FitV") ) {
+       return QRectF( 0,dst[2].GetReal(),0,0 );
+    }
+  } catch (PdfError e) {
+    qDebug() << e.what();
+  }
+ return QRectF(0,0,0,0);
 };
-
-
