@@ -53,6 +53,7 @@ linkLayer::linkLayer(pdfScene* sc):
 {
   mapper = new QSignalMapper( this );
   connect( mapper, SIGNAL(mapped(const QString &)), this, SLOT(emitGOTO(const QString &)) );
+  connect( sc, SIGNAL(finishedLoading()), this, SLOT(placeOnPages()) );
 }
 
 
@@ -73,6 +74,17 @@ targetItem* linkLayer::addTarget ( QString& name, const int page, const QRectF& 
   qDebug() << "Target: " << name << "Position:" << target << " (on page " << page << ")";
   return tgt;
 }
+
+void linkLayer::placeOnPages() {
+  targetItem *tgt;
+  pdfScene *sc = dynamic_cast<pdfScene *>(scene);
+  foreach( QGraphicsItem *item, items ) {
+    if ( (tgt = dynamic_cast<targetItem*>(item)) ) {
+      tgt->setPos(tgt->pos()+sc->topLeftPage(tgt->getPage()));
+    }
+  }
+}
+
 
 targetItem* linkLayer::addTarget(QString& name, PoDoFo::PdfDestination* dest) {
   if ( name == "" ) name = generateName();

@@ -230,6 +230,7 @@ bool pdfScene::loadFromFile( QString fileName, QObject *pageInViewReceiver, cons
   fillPdfProperties();
   delete TOC;
   TOC = new toc( links, &pdfDoc );
+  emit finishedLoading();
   return true;
 }
 
@@ -417,3 +418,4 @@ QString pdfScene::selectedText( QPointF from, QPointF to ) {
 }
 
 
+#include "pdfScene.moc"

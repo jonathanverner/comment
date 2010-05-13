@@ -83,6 +83,7 @@ class linkLayer : public sceneLayer {
   private slots:
     
     void emitGOTO( const QString &name );
+    void placeOnPages();
 
   public:
     
