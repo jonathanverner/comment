@@ -27,9 +27,6 @@
 #include "linkLayer.h"
 #include "pdfScene.h"
 
-
-#include <QtCore/QSignalMapper>
-#include <QtGui/QAction>
 #include <QtCore/QDebug>
 
 #include <podofo/podofo.h>
@@ -39,20 +36,9 @@ QString linkLayer::generateName() {
   return "generated."+QString::number(generation++);
 }
 
-
-void targetItem::activate()
-{
-  emit activated();
-}
-
-
-
-
 linkLayer::linkLayer(pdfScene* sc):
   sceneLayer(sc), generation(0)
 {
-  mapper = new QSignalMapper( this );
-  connect( mapper, SIGNAL(mapped(const QString &)), this, SLOT(emitGOTO(const QString &)) );
   connect( sc, SIGNAL(finishedLoading()), this, SLOT(placeOnPages()) );
 }
 
@@ -65,8 +51,6 @@ targetItem* linkLayer::addTarget ( QString& name, const int page, const QRectF& 
     return targets[name];
   }
   targetItem *tgt = new targetItem( page, target.size(), name );
-  connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
-  mapper->setMapping( tgt, name );
   targets.insert( name, tgt );
   addItem( tgt );
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
@@ -95,8 +79,6 @@ targetItem* linkLayer::addTarget(QString& name, PoDoFo::PdfDestination* dest) {
   QRectF tgtRect = pdfUtil::destinationToQRect( dest );
   int page = dest->GetPage()->GetPageNumber()-1;
   targetItem *tgt = new targetItem( page, tgtRect.size() , name );
-  connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
-  mapper->setMapping( tgt, name );
   targets.insert( name, tgt );
   addItem( tgt );
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
@@ -114,10 +96,6 @@ void linkLayer::removeTarget ( const QString& name ) {
 }
 
 
-
-void linkLayer::emitGOTO(const QString& name) {
-  if ( targets.contains( name ) ) emit gotoTarget( targets[name] );
-}
 
 PoDoFo::PdfDestination *targetItem::getPdfDest(PoDoFo::PdfPage* pg) {
   pdfCoords transform( pg );

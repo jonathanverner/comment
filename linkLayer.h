@@ -35,15 +35,13 @@
 
 class pdfScene;
 
-class QSignalMapper;
 
 namespace PoDoFo {
   class PdfDestination;
   class PdfPage;
 };
 
-class targetItem : public QGraphicsObject {
-  Q_OBJECT
+class targetItem : public QGraphicsItem {
   private:
     QRectF brect;
     QString name;
@@ -58,15 +56,6 @@ class targetItem : public QGraphicsObject {
     
     virtual void paint( QPainter*, const QStyleOptionGraphicsItem*, QWidget* ) {};
     PoDoFo::PdfDestination *getPdfDest(PoDoFo::PdfPage* pg);
-    
-  public slots:
-    
-    void activate();
-
-    
-  signals:
-    
-    void activated();
 };
 
 class linkLayer : public sceneLayer {
@@ -74,15 +63,15 @@ class linkLayer : public sceneLayer {
   Q_OBJECT
 
   private:
+
     int generation;
-    QSignalMapper *mapper;
+    
     QHash<QString, targetItem *> targets;
     
     QString generateName();
     
   private slots:
     
-    void emitGOTO( const QString &name );
     void placeOnPages();
 
   public:
@@ -93,10 +82,6 @@ class linkLayer : public sceneLayer {
     targetItem *addTarget( QString& name, PoDoFo::PdfDestination* dest );
     
     void removeTarget( const QString &name );
-    
-  signals:
-    
-    void gotoTarget( QGraphicsItem *target );
 
 };
 
