@@ -218,7 +218,7 @@ QRectF pdfUtil::destinationToQRect(PdfDestination* dest) {
       PdfRect rect(dst[2].GetReal(),dst[3].GetReal(),0,0);
       return transform.pdfRectToScene( &rect );
     } else if ( tp == PdfName("FitR") ) {
-      PdfRect rect(dst[2].GetReal(),dst[3].GetReal(),dst[4].GetReal(),dst[5].GetReal());
+      PdfRect rect(dst[2].GetReal(),dst[3].GetReal(),dst[4].GetReal()-dst[2].GetReal(),dst[5].GetReal()-dst[3].GetReal());
       return transform.pdfRectToScene(&rect);
     } else if ( tp == PdfName("FitH") ) {
       PdfRect rect(0,dst[2].GetReal(),0,0);

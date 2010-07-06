@@ -99,7 +99,7 @@ void linkLayer::removeTarget ( const QString& name ) {
 
 PoDoFo::PdfDestination *targetItem::getPdfDest(PoDoFo::PdfPage* pg) {
   pdfCoords transform( pg );
-  PoDoFo::PdfRect *rect = transform.sceneToPdf( brect );
+  PoDoFo::PdfRect *rect = transform.sceneToPdf( brect.translated(pgPos) );
   PoDoFo::PdfDestination *ret = new PoDoFo::PdfDestination( pg, *rect );
   ret->GetObject()->GetDictionary().AddKey(PoDoFo::PdfName("comment_target_name"),pdfUtil::qStringToPdf(name));
   delete rect;
