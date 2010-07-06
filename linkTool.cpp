@@ -83,7 +83,7 @@ linkAnnotation::linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, pdf
 {
   movable = false;
   PoDoFo::PdfDestination *dest = pdfUtil::getDestination( Link );
-  if ( ! dest ) throw;
+  if ( ! dest ) throw 5;
   QString tgtName="";
   if ( dest->GetObject()->IsString() ) {
     tgtName = pdfUtil::pdfStringToQ(dest->GetObject()->GetString());
