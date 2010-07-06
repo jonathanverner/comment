@@ -43,15 +43,17 @@ namespace PoDoFo {
 
 class targetItem : public QGraphicsItem {
   private:
+    QPointF pgPos;
     QRectF brect;
     QString name;
     int pgNum;
     
   public:
-    targetItem( int Page, const QSizeF &Area, const QString &Name = "" ): brect(QPointF(0,0),Area), name(Name), pgNum(Page) {};
+    targetItem( int Page, const QSizeF &Area, const QPointF PgPos, const QString &Name = "" ): brect(QPointF(0,0),Area), name(Name), pgNum(Page), pgPos(PgPos) {};
     QRectF boundingRect() const { return brect; };
     
     int getPage() const { return pgNum; };
+    QPointF getPagePos() const { return pgPos; };
     QString getName() const { return name; };
     
     virtual void paint( QPainter*, const QStyleOptionGraphicsItem*, QWidget* ) {};

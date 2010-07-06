@@ -50,7 +50,7 @@ targetItem* linkLayer::addTarget ( QString& name, const int page, const QRectF& 
     qDebug() << "Not replacing target named: " << name;
     return targets[name];
   }
-  targetItem *tgt = new targetItem( page, target.size(), name );
+  targetItem *tgt = new targetItem( page, target.size(), target.topLeft(), name );
   targets.insert( name, tgt );
   addItem( tgt );
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
@@ -64,7 +64,7 @@ void linkLayer::placeOnPages() {
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
   foreach( QGraphicsItem *item, items ) {
     if ( (tgt = dynamic_cast<targetItem*>(item)) ) {
-      tgt->setPos(tgt->pos()+sc->topLeftPage(tgt->getPage()));
+      tgt->setPos(tgt->getPagePos()+sc->topLeftPage(tgt->getPage()));
     }
   }
 }
@@ -78,7 +78,7 @@ targetItem* linkLayer::addTarget(QString& name, PoDoFo::PdfDestination* dest) {
   }
   QRectF tgtRect = pdfUtil::destinationToQRect( dest );
   int page = dest->GetPage()->GetPageNumber()-1;
-  targetItem *tgt = new targetItem( page, tgtRect.size() , name );
+  targetItem *tgt = new targetItem( page, tgtRect.size(), tgtRect.topLeft(), name );
   targets.insert( name, tgt );
   addItem( tgt );
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
