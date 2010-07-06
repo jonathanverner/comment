@@ -39,6 +39,8 @@ class pdfScene;
 namespace PoDoFo {
   class PdfDestination;
   class PdfPage;
+  class PdfMemDocument;
+  class PdfDocument;
 };
 
 class targetItem : public QGraphicsItem {
@@ -79,6 +81,8 @@ class linkLayer : public sceneLayer {
   public:
     
     linkLayer( pdfScene* sc );
+    void loadFromDoc( PoDoFo::PdfMemDocument* doc );
+    void saveToDoc( PoDoFo::PdfDocument* doc );
 
     targetItem *addTarget( QString& name, const int page, const QRectF& target );
     targetItem *addTarget( QString& name, PoDoFo::PdfDestination* dest );

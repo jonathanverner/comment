@@ -218,6 +218,7 @@ bool pdfScene::loadFromFile( QString fileName, QObject *pageInViewReceiver, cons
     qDebug() << "Error loading file:" << error.what();
     return false;
   }
+  links->loadFromDoc( &pdfDoc );
   numPages = pdfDoc.GetPageCount();
   annotations.resize( numPages );
   for(int i = 0; i< numPages; i++ ) processPage( &pdfDoc, i );
@@ -248,6 +249,7 @@ bool pdfScene::saveToFile( QString fileName ) {
     qDebug() << "Error loading file:" << error.what();
     return false;
   } 
+  links->saveToDoc( &pdfDoc );
   foreach( QGraphicsItem *item, items() ) { 
     if ( a = dynamic_cast< abstractAnnotation *>(item) ) {
       pgItem = dynamic_cast<pdfPageItem*>(a->parentItem());

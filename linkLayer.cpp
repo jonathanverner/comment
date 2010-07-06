@@ -40,6 +40,64 @@ linkLayer::linkLayer(pdfScene* sc):
   sceneLayer(sc), generation(0)
 {
   connect( sc, SIGNAL(finishedLoading()), this, SLOT(placeOnPages()) );
+
+}
+
+void linkLayer::loadFromDoc(PoDoFo::PdfMemDocument* doc) {
+  qDebug() << "linkLayer: Loading named destinations ...";
+  try {
+    PoDoFo::PdfNamesTree* pNames = doc->GetNamesTree( PoDoFo::ePdfDontCreateObject );
+    if( ! pNames ) return;
+    PoDoFo::PdfDictionary destsDict;
+    pNames->ToDictionary( PoDoFo::PdfName("Dests"), destsDict );
+    PoDoFo::TKeyMap keyMap = destsDict.GetKeys();
+    QString tName;
+    PoDoFo::PdfDestination *dest;
+    PoDoFo::PdfObject *obj;
+    for(PoDoFo::TKeyMap::const_iterator it = keyMap.begin(); it != keyMap.end(); ++it ) {
+      try {
+	tName = QString::fromUtf8( it->first.GetName().c_str() );
+	qDebug() << "Processing "<< tName;
+        obj = pdfUtil::resolveRefs( doc, it->second );
+	if ( obj->IsArray() ) dest = new PoDoFo::PdfDestination( obj );
+	else if ( obj->IsDictionary() ) {
+	  obj->GetDictionary().GetKey("D")->SetOwner( &doc->GetObjects() );
+	  dest = new PoDoFo::PdfDestination( obj->GetDictionary().GetKey("D") );
+	}
+	else {
+	  qDebug() << "Element is neither an array, nor a dictionary:"<< obj->GetDataTypeString();
+	  continue;
+	}
+	addTarget( tName, dest );
+      } catch ( PoDoFo::PdfError e ) {
+	qDebug() << "linkLayer: Error adding named destination ("<<tName<<"):"<<e.what();
+      }
+    }
+  } catch ( PoDoFo::PdfError  e ) {
+    qDebug() << "linkLayer: Error processing names tree:" << e.what();
+  };
+  qDebug() << "linkLayer: Done loading named destinations.";
+}
+
+
+void linkLayer::saveToDoc(PoDoFo::PdfDocument* doc) {
+  try {
+    PoDoFo::PdfNamesTree* pNames = doc->GetNamesTree( PoDoFo::ePdfCreateObject );
+    if( ! pNames ) { 
+      qDebug() << "Error retrieving/creating names tree";
+      return;
+    }
+    PoDoFo::PdfPage *pg;
+    PoDoFo::PdfDestination *dest;
+    foreach( targetItem *tgt, targets ) {
+      pg = doc->GetPage(tgt->getPage());
+      dest = tgt->getPdfDest(pg);
+      doc->AddNamedDestination( *dest, pdfUtil::qStringToPdf(tgt->getName()));
+      delete dest;      
+    };
+  } catch ( PoDoFo::PdfError  e ) {
+    qDebug() << "linkLayer: Error processing names tree:" << e.what();
+  };
 }
 
 
@@ -101,7 +159,7 @@ PoDoFo::PdfDestination *targetItem::getPdfDest(PoDoFo::PdfPage* pg) {
   pdfCoords transform( pg );
   PoDoFo::PdfRect *rect = transform.sceneToPdf( brect.translated(pgPos) );
   PoDoFo::PdfDestination *ret = new PoDoFo::PdfDestination( pg, *rect );
-  ret->GetObject()->GetDictionary().AddKey(PoDoFo::PdfName("comment_target_name"),pdfUtil::qStringToPdf(name));
+  //ret->GetObject()->GetDictionary().AddKey(PoDoFo::PdfName("comment_target_name"),pdfUtil::qStringToPdf(name));
   delete rect;
   return ret;
 }

@@ -84,10 +84,11 @@ linkAnnotation::linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, pdf
   movable = false;
   PoDoFo::PdfDestination *dest = pdfUtil::getDestination( Link );
   if ( ! dest ) throw 5;
+  dest->GetObject()->SetOwner(Link->GetObject()->GetOwner());
   QString tgtName="";
   if ( dest->GetObject()->IsString() ) {
     tgtName = pdfUtil::pdfStringToQ(dest->GetObject()->GetString());
-  } else if ( dest->GetObject()->GetDictionary().HasKey(PoDoFo::PdfName("comment_target_name")) ) {
+  } else if ( ! dest->GetObject()->IsArray() && dest->GetObject()->GetDictionary().HasKey(PoDoFo::PdfName("comment_target_name")) ) {
     tgtName = pdfUtil::pdfStringToQ(dest->GetObject()->GetDictionary().GetKey(PoDoFo::PdfName("comment_target_name"))->GetString());
   }
   tgt = tool->scene->getLinkTargets()->addTarget( tgtName, dest );
@@ -110,12 +111,12 @@ void linkAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPa
   qDebug() << "Saving Link annotation for "<<getAuthor()<<" : " << pos();
   PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(activeArea).boundingRect() );
   PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Link, *brect );
-  PoDoFo::PdfDestination *dest = tgt->getPdfDest(pg);
-  annot->SetDestination( *dest );
+  annot->GetObject()->GetDictionary().AddKey( PoDoFo::PdfName("Dest"), pdfUtil::qStringToPdf(tgt->getName()) );
+  //PoDoFo::PdfDestination *dest = tgt->getPdfDest(pg);
+  //annot->SetDestination( *dest );
   saveInfo2PDF( annot );
   delete brect;
-  delete dest;
-  
+  //delete dest;
 }
 
 void linkAnnotation::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {
