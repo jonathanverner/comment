@@ -157,7 +157,11 @@ mainWindow::mainWindow() {
 }
 
 void mainWindow::tocItemActivated(const QModelIndex& itemIndex) {
- pgView->centerOn( scene->getToc()->getItem( itemIndex )->getTarget()->pos() );
+ QGraphicsItem *tgt = scene->getToc()->getItem( itemIndex )->getTarget();
+ if ( tgt ) pgView->centerOn( scene->getToc()->getItem( itemIndex )->getTarget()->pos() );
+ else {
+   qDebug() << "tocItemActivated: Invalid toc target";
+ }
 }
 
 

@@ -94,6 +94,7 @@ tocItem* toc::loadOutlineItem( PdfOutlineItem* item, tocItem* parent, const QStr
     targetItem *tgt = NULL;
     QString nm = path+"."+title;
     if ( dest ) tgt = links->addTarget( nm, dest );
+    else tgt = NULL;
     tocItem *me = new tocItem( title, parent, tgt );
     PdfOutlineItem *child = item->First();
     while( child ) {
