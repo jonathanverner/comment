@@ -83,6 +83,8 @@ namespace pdfUtil {
   
   PoDoFo::PdfDestination *getDestination( PoDoFo::PdfElement* e );
   QRectF destinationToQRect( PoDoFo::PdfDestination *dest );
+  
+  PoDoFo::PdfObject *resolveRefs( PoDoFo::PdfMemDocument *doc, PoDoFo::PdfObject *obj );
 
 };
 

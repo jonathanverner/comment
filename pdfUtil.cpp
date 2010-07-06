@@ -169,7 +169,7 @@ QList<QRectF> pdfUtil::quadPointsToQBoxes( PdfArray &quadPoints, pdfCoords *coor
   return ret;
 }
 
-PdfObject* resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
+PdfObject* pdfUtil::resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
   PdfObject *ret = ref;
   if ( ret->IsReference() )
   while ( ret->IsReference() ) {
@@ -187,7 +187,14 @@ PdfDestination* pdfUtil::getDestination(PdfElement* e) {
   if ( ! linkAnnot && ! outLineItem ) return ret;
   try {
   if ( outLineItem ) ret = outLineItem->GetDestination();
-  else if ( linkAnnot && linkAnnot->HasDestination() ) ret = new PdfDestination(linkAnnot->GetDestination()); // Memory leak ??
+  else if ( linkAnnot && linkAnnot->HasDestination() ) {
+    PdfObject *d = linkAnnot->GetObject()->GetDictionary().GetKey("Dest");
+    d->SetOwner( e->GetObject()->GetOwner() );
+    return new PdfDestination( d );
+//    PdfObject *d = linkAnnot->GetDestination();
+    //d->SetOwner( e->GetObject()->GetOwner() );
+    //ret = new PdfDestination(d); // Memory leak ??
+  }
   if ( ret ) return ret;
   PdfObject *a = e->GetObject()->GetDictionary().GetKey(PdfName("A"));
   if ( a->IsReference() ) a = e->GetObject()->GetOwner()->GetObject( a->GetReference() );
@@ -202,7 +209,7 @@ PdfDestination* pdfUtil::getDestination(PdfElement* e) {
     ret  = new PdfDestination( d );
   }
   } catch ( PdfError e ) {
-    qDebug() << e.what();
+    qDebug() <<"Error in pdfUtil::getDestination: " << e.what();
   }
   return ret;
 }
@@ -227,7 +234,7 @@ QRectF pdfUtil::destinationToQRect(PdfDestination* dest) {
        return QRectF( 0,dst[2].GetReal(),0,0 );
     }
   } catch (PdfError e) {
-    qDebug() << e.what();
+    qDebug() << "pdfUtil::destinationToQRect:" << e.what();
   }
  return QRectF(0,0,0,0);
 };
