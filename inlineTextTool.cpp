@@ -80,11 +80,8 @@ bool inlineTextTool::acceptEventsFor( QGraphicsItem *item ) {
 void inlineTextTool::editItem( abstractAnnotation *item ) { 
   qDebug() << "inlineTextAnnotation::editItem";
   inlineTextAnnotation *ann = dynamic_cast<inlineTextAnnotation *>( item );
-  if ( ! ann ) {
-    qDebug() << "inlineTextAnnotation::editItem: NOT AN INLINE TEXT ANNOTATION !!!! WTF ?! ";
-    return;
-  }
-  if ( currentEditItem == item ) finishEditing();
+  if ( ! ann ) item->editSelf();
+  else if ( currentEditItem == item ) finishEditing();
   else {
     currentEditItem = item;
     propertyEdit->setAuthor( item->getAuthor() );
@@ -112,7 +109,7 @@ void inlineTextTool::finishEditing() {
       currentEditItem = NULL;
     }
     emit needKeyFocus( false );
-  }
+  } else currentEditItem->finishEditing();
 }
 	
 void inlineTextTool::prepareTeX( inlineTextAnnotation *ann ) { 

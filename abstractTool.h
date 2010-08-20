@@ -109,6 +109,9 @@ class abstractTool : public QObject {
 		  * if the item is currently already being edited, hide
 		  * it instead */
 		 virtual void editItem( abstractAnnotation *item );
+		 
+		 /* Finish editing the currently edited item (if any) */
+		 virtual void finishEditing();
 
 		 /* Called by the view when an event happens. Returns true, if
 		  * tool handles the event, otherwise returns false; */
@@ -169,6 +172,7 @@ class abstractAnnotation : public QGraphicsObject {
 		bool showToolTip( const QPoint &scPos );
 		void hideToolTip();
 		bool editSelf();
+		void finishEditing();
 		 /* Returns the context menu for the item *it */
                 QMenu *contextMenu();
 

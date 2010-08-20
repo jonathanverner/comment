@@ -49,7 +49,6 @@ class hilightTool : public abstractTool {
 	  void updateCurrentAnnotation( QPointF ScenePos );
           void editAnnotationExtent( abstractAnnotation *item );
 	  void editAnnotationText();
-	  void finishEditing();
 
 	public:
 		hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);

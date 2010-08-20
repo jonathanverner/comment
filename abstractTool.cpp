@@ -183,11 +183,8 @@ QMenu *abstractTool::contextMenu( QGraphicsItem *it ) {
 /* Called by an item, which wants to be edited. The item passes
  * * a reference to itself */
 void abstractTool::editItem( abstractAnnotation *item ) {
-  if ( currentEditItem == item ) { 
-    currentEditItem = NULL;
-    editArea->hide();
-    setTeXToolTip( item );
-  } else {
+  if ( currentEditItem == item ) finishEditing();
+  else {
     currentEditItem = item;
     editArea->setCurrentWidget( editor );
     editArea->show();
@@ -198,18 +195,28 @@ void abstractTool::editItem( abstractAnnotation *item ) {
   }
 }
 
+void abstractTool::finishEditing() {
+  qDebug() << "abstractTool::finishEditing()...";
+  if ( currentEditItem ) {
+    editArea->hide();
+    setTeXToolTip( currentEditItem );
+    currentEditItem = NULL;
+  }
+}
+
 bool abstractTool::handleEvent( viewEvent *ev ) { 
   if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
     QPointF pos=ev->scenePos(), delta = ev->sceneDelta();
     if ( ev->isClick() ) {
       qDebug() << "Single click...";
       abstractAnnotation *annot = ev->topItem();
-      if ( annot ) editItem( annot );
+      if ( annot ) annot->editSelf();
       else newActionEvent( &pos );
       return true;
     }
   } if ( ev->type() == viewEvent::VE_MOUSE_MOVE && currentEditItem ) {
-      editItem( currentEditItem );
+      qDebug() << "Should finish editing";
+      currentEditItem->finishEditing();
       return true;
   } if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::RightButton ) ) { 
     hi->clear();
@@ -272,6 +279,11 @@ void abstractAnnotation::setMyToolTip(const QString &richText) {
 bool abstractAnnotation::editSelf() {
   myTool->editItem( this );
   return true;
+}
+
+void abstractAnnotation::finishEditing() {
+  qDebug() << "Finish editing...";
+  myTool->finishEditing();
 }
 
 
