@@ -35,30 +35,31 @@
 
 class pdfScene;
 
-class QSignalMapper;
 
-class targetItem : public QGraphicsObject {
-  Q_OBJECT
+namespace PoDoFo {
+  class PdfDestination;
+  class PdfPage;
+  class PdfMemDocument;
+  class PdfDocument;
+};
+
+class targetItem : public QGraphicsItem {
   private:
-    QRectF area;
+    QPointF pgPos;
+    QRectF brect;
     QString name;
     int pgNum;
     
   public:
-    targetItem( int Page, const QRectF &Area, const QString &Name = "" ): area(Area), name(Name), pgNum(Page) {};
-    QRectF boundingRect() const { return area; };
+    targetItem( int Page, const QSizeF &Area, const QPointF PgPos, const QString &Name = "" ): brect(QPointF(0,0),Area), name(Name), pgNum(Page), pgPos(PgPos) {};
+    QRectF boundingRect() const { return brect; };
     
     int getPage() const { return pgNum; };
+    QPointF getPagePos() const { return pgPos; };
+    QString getName() const { return name; };
     
     virtual void paint( QPainter*, const QStyleOptionGraphicsItem*, QWidget* ) {};
-    
-  public slots:
-    
-    void activate();
-    
-  signals:
-    
-    void activated();
+    PoDoFo::PdfDestination *getPdfDest(PoDoFo::PdfPage* pg);
 };
 
 class linkLayer : public sceneLayer {
@@ -66,25 +67,27 @@ class linkLayer : public sceneLayer {
   Q_OBJECT
 
   private:
-    QSignalMapper *mapper;
+
+    int generation;
+    
     QHash<QString, targetItem *> targets;
+    
+    QString generateName();
     
   private slots:
     
-    void emitGOTO( const QString &name );
+    void placeOnPages();
 
   public:
     
     linkLayer( pdfScene* sc );
+    void loadFromDoc( PoDoFo::PdfMemDocument* doc );
+    void saveToDoc( PoDoFo::PdfDocument* doc );
 
-    targetItem *addTarget( const QString &name, const QRectF &target );
-    targetItem *addTarget( const QString &name, const int page, const QRectF &target );
+    targetItem *addTarget( QString& name, const int page, const QRectF& target );
+    targetItem *addTarget( QString& name, PoDoFo::PdfDestination* dest );
     
     void removeTarget( const QString &name );
-    
-  signals:
-    
-    void gotoTarget( QGraphicsItem *target );
 
 };
 

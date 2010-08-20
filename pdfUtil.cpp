@@ -169,8 +169,9 @@ QList<QRectF> pdfUtil::quadPointsToQBoxes( PdfArray &quadPoints, pdfCoords *coor
   return ret;
 }
 
-PdfObject* resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
+PdfObject* pdfUtil::resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
   PdfObject *ret = ref;
+  if ( ret->IsReference() )
   while ( ret->IsReference() ) {
     ret = doc->GetObjects().GetObject(ret->GetReference());
     if ( ! ret ) return NULL;
@@ -179,30 +180,61 @@ PdfObject* resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
 }
 
 
-PdfDestination* pdfUtil::getDestination(PdfMemDocument *doc, PdfElement* e) {
+PdfDestination* pdfUtil::getDestination(PdfElement* e) {
   PdfDestination *ret = NULL;
-  PdfOutlineItem *item = dynamic_cast<PdfOutlineItem*>(e);
-  if ( item ) { 
-    try {
-      ret = item->GetDestination();
-      if ( ret ) return ret;
-      PdfObject *a = e->GetObject()->GetDictionary().GetKey(PdfName("A"));
-      a = resolveRefs( doc, a );
-      if ( ! a ) {
-	qDebug() << "getDestination: Reference not found";
-	return NULL;
-      }
-      PdfDictionary s = a->GetDictionary();
-      if ( s.GetKey(PdfName("S"))->GetName() == PdfName("GoTo") ) {
-	PdfObject *d = a->GetDictionary().GetKey(PdfName("D"));
-	d->SetOwner(&doc->GetObjects());
-	ret  = new PdfDestination( d );
-      }
-    } catch ( PdfError e ) {
-      qDebug() << e.what();
-    }
+  PdfOutlineItem *outLineItem = dynamic_cast<PdfOutlineItem*>(e);
+  PdfAnnotation *linkAnnot = dynamic_cast<PdfAnnotation*>(e);
+  if ( ! linkAnnot && ! outLineItem ) return ret;
+  try {
+  if ( outLineItem ) ret = outLineItem->GetDestination();
+  else if ( linkAnnot && linkAnnot->HasDestination() ) {
+    PdfObject *d = linkAnnot->GetObject()->GetDictionary().GetKey("Dest");
+    d->SetOwner( e->GetObject()->GetOwner() );
+    return new PdfDestination( d );
+//    PdfObject *d = linkAnnot->GetDestination();
+    //d->SetOwner( e->GetObject()->GetOwner() );
+    //ret = new PdfDestination(d); // Memory leak ??
+  }
+  if ( ret ) return ret;
+  PdfObject *a = e->GetObject()->GetDictionary().GetKey(PdfName("A"));
+  if ( a->IsReference() ) a = e->GetObject()->GetOwner()->GetObject( a->GetReference() );
+  if ( ! a ) {
+    qDebug() << "getDestination: Reference not found";
+    return NULL;
+  }
+  PdfDictionary s = a->GetDictionary();
+  if ( s.GetKey(PdfName("S"))->GetName() == PdfName("GoTo") ) {
+    PdfObject *d = a->GetDictionary().GetKey(PdfName("D"));
+    d->SetOwner( e->GetObject()->GetOwner() );
+    ret  = new PdfDestination( d );
+  }
+  } catch ( PdfError e ) {
+    qDebug() <<"Error in pdfUtil::getDestination: " << e.what();
   }
   return ret;
+}
+
+QRectF pdfUtil::destinationToQRect(PdfDestination* dest) {
+  try {
+    pdfCoords transform( dest->GetPage() );
+    PdfArray dst = dest->GetArray();
+    PdfName tp = dst[1].GetName();
+    QRectF ret;
+    PdfRect pRect;
+    if ( tp == PdfName("XYZ" ) ) { 
+      PdfRect rect(dst[2].GetReal(),dst[3].GetReal(),0,0);
+      return transform.pdfRectToScene( &rect );
+    } else if ( tp == PdfName("FitR") ) {
+      PdfRect rect(dst[2].GetReal(),dst[3].GetReal(),dst[4].GetReal()-dst[2].GetReal(),dst[5].GetReal()-dst[3].GetReal());
+      return transform.pdfRectToScene(&rect);
+    } else if ( tp == PdfName("FitH") ) {
+      PdfRect rect(0,dst[2].GetReal(),0,0);
+      return transform.pdfRectToScene(&rect);
+    } else if ( tp == PdfName("FitV") ) {
+       return QRectF( 0,dst[2].GetReal(),0,0 );
+    }
+  } catch (PdfError e) {
+    qDebug() << "pdfUtil::destinationToQRect:" << e.what();
+  }
+ return QRectF(0,0,0,0);
 };
-
-

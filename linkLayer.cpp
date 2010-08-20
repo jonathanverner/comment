@@ -27,57 +27,124 @@
 #include "linkLayer.h"
 #include "pdfScene.h"
 
-
-#include <QtCore/QSignalMapper>
-#include <QtGui/QAction>
 #include <QtCore/QDebug>
 
-void targetItem::activate()
-{
-  emit activated();
+#include <podofo/podofo.h>
+#include "pdfUtil.h"
+
+QString linkLayer::generateName() {
+  return "generated."+QString::number(generation++);
 }
-
-
-
 
 linkLayer::linkLayer(pdfScene* sc):
-  sceneLayer(sc)
+  sceneLayer(sc), generation(0)
 {
-  mapper = new QSignalMapper( this );
-  connect( mapper, SIGNAL(mapped(const QString &)), this, SLOT(emitGOTO(const QString &)) );
+  connect( sc, SIGNAL(finishedLoading()), this, SLOT(placeOnPages()) );
+
 }
 
-targetItem* linkLayer::addTarget ( const QString& name, const QRectF& target ) {
-  if ( targets.contains( name ) ) return targets[name];
-  pdfScene *sc = dynamic_cast<pdfScene *>(scene);
-  QRectF area = QRectF(QPointF(0,0),target.size());
-  targetItem *tgt = new targetItem( sc->posToPage(area.topLeft()), area, name );
-  connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
-  mapper->setMapping( tgt, name );
-  targets.insert( name, tgt );
-  addItem( tgt );
-  tgt->setPos( target.topLeft() );
-  qDebug() << "Target: " << name << "Position:" << target.topLeft();
-  return tgt;
+void linkLayer::loadFromDoc(PoDoFo::PdfMemDocument* doc) {
+  qDebug() << "linkLayer: Loading named destinations ...";
+  try {
+    PoDoFo::PdfNamesTree* pNames = doc->GetNamesTree( PoDoFo::ePdfDontCreateObject );
+    if( ! pNames ) return;
+    PoDoFo::PdfDictionary destsDict;
+    pNames->ToDictionary( PoDoFo::PdfName("Dests"), destsDict );
+    PoDoFo::TKeyMap keyMap = destsDict.GetKeys();
+    QString tName;
+    PoDoFo::PdfDestination *dest;
+    PoDoFo::PdfObject *obj;
+    for(PoDoFo::TKeyMap::const_iterator it = keyMap.begin(); it != keyMap.end(); ++it ) {
+      try {
+	tName = QString::fromUtf8( it->first.GetName().c_str() );
+	qDebug() << "Processing "<< tName;
+        obj = pdfUtil::resolveRefs( doc, it->second );
+	if ( obj->IsArray() ) dest = new PoDoFo::PdfDestination( obj );
+	else if ( obj->IsDictionary() ) {
+	  obj->GetDictionary().GetKey("D")->SetOwner( &doc->GetObjects() );
+	  dest = new PoDoFo::PdfDestination( obj->GetDictionary().GetKey("D") );
+	}
+	else {
+	  qDebug() << "Element is neither an array, nor a dictionary:"<< obj->GetDataTypeString();
+	  continue;
+	}
+	addTarget( tName, dest );
+      } catch ( PoDoFo::PdfError e ) {
+	qDebug() << "linkLayer: Error adding named destination ("<<tName<<"):"<<e.what();
+      }
+    }
+  } catch ( PoDoFo::PdfError  e ) {
+    qDebug() << "linkLayer: Error processing names tree:" << e.what();
+  };
+  qDebug() << "linkLayer: Done loading named destinations.";
 }
 
-targetItem* linkLayer::addTarget ( const QString& name, const int page, const QRectF& target )
+
+void linkLayer::saveToDoc(PoDoFo::PdfDocument* doc) {
+  try {
+    PoDoFo::PdfNamesTree* pNames = doc->GetNamesTree( PoDoFo::ePdfCreateObject );
+    if( ! pNames ) { 
+      qDebug() << "Error retrieving/creating names tree";
+      return;
+    }
+    PoDoFo::PdfPage *pg;
+    PoDoFo::PdfDestination *dest;
+    foreach( targetItem *tgt, targets ) {
+      pg = doc->GetPage(tgt->getPage());
+      dest = tgt->getPdfDest(pg);
+      doc->AddNamedDestination( *dest, pdfUtil::qStringToPdf(tgt->getName()));
+      delete dest;      
+    };
+  } catch ( PoDoFo::PdfError  e ) {
+    qDebug() << "linkLayer: Error processing names tree:" << e.what();
+  };
+}
+
+
+targetItem* linkLayer::addTarget ( QString& name, const int page, const QRectF& target )
 {
+  if ( name == "" ) name = generateName();
   if ( targets.contains( name ) ) {
     qDebug() << "Not replacing target named: " << name;
     return targets[name];
   }
-  QRectF area = QRectF(QPointF(0,0),target.size());
-  targetItem *tgt = new targetItem( page, target, name );
-  connect( tgt, SIGNAL(activated()), mapper, SLOT(map()));
-  mapper->setMapping( tgt, name );
+  targetItem *tgt = new targetItem( page, target.size(), target.topLeft(), name );
   targets.insert( name, tgt );
   addItem( tgt );
   pdfScene *sc = dynamic_cast<pdfScene *>(scene);
   tgt->setPos(target.topLeft()+sc->topLeftPage(page));
-  qDebug() << "Target: " << name << "Position:" << target.topLeft() + sc->topLeftPage(page) << " (on page " << page << ")";
+  qDebug() << "Target: " << name << "Position:" << target << " (on page " << page << ")";
   return tgt;
 }
+
+void linkLayer::placeOnPages() {
+  targetItem *tgt;
+  pdfScene *sc = dynamic_cast<pdfScene *>(scene);
+  foreach( QGraphicsItem *item, items ) {
+    if ( (tgt = dynamic_cast<targetItem*>(item)) ) {
+      tgt->setPos(tgt->getPagePos()+sc->topLeftPage(tgt->getPage()));
+    }
+  }
+}
+
+
+targetItem* linkLayer::addTarget(QString& name, PoDoFo::PdfDestination* dest) {
+  if ( name == "" ) name = generateName();
+  if ( targets.contains( name ) ) {
+    qDebug() << "Not replacing target named: " << name;
+    return targets[name];
+  }
+  QRectF tgtRect = pdfUtil::destinationToQRect( dest );
+  int page = dest->GetPage()->GetPageNumber()-1;
+  targetItem *tgt = new targetItem( page, tgtRect.size(), tgtRect.topLeft(), name );
+  targets.insert( name, tgt );
+  addItem( tgt );
+  pdfScene *sc = dynamic_cast<pdfScene *>(scene);
+  tgt->setPos(tgtRect.topLeft()+sc->topLeftPage(page));
+  qDebug() << "Target: " << name << "Position:" << tgtRect << " (on page " << page << ", "<<sc->topLeftPage(page)<<")";
+  return tgt;
+}
+
 
 void linkLayer::removeTarget ( const QString& name ) {
   if ( ! targets.contains( name ) ) return;
@@ -88,8 +155,13 @@ void linkLayer::removeTarget ( const QString& name ) {
 
 
 
-void linkLayer::emitGOTO(const QString& name) {
-  if ( targets.contains( name ) ) emit gotoTarget( targets[name] );
+PoDoFo::PdfDestination *targetItem::getPdfDest(PoDoFo::PdfPage* pg) {
+  pdfCoords transform( pg );
+  PoDoFo::PdfRect *rect = transform.sceneToPdf( brect.translated(pgPos) );
+  PoDoFo::PdfDestination *ret = new PoDoFo::PdfDestination( pg, *rect );
+  //ret->GetObject()->GetDictionary().AddKey(PoDoFo::PdfName("comment_target_name"),pdfUtil::qStringToPdf(name));
+  delete rect;
+  return ret;
 }
 
 

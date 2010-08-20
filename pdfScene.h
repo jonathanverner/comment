@@ -73,6 +73,7 @@ struct pageSelections {
 
 
 class pdfScene : public QGraphicsScene {
+  Q_OBJECT
 	private:
 		QSet<abstractTool *> tools; // a list of registered tools (i.e. annotation types) 
 		// This vector is only used while loading a file. Afterwards
@@ -153,6 +154,7 @@ class pdfScene : public QGraphicsScene {
 		void removeLayer( sceneLayer *layer );
 		
 		toc* getToc() { return TOC; };
+		linkLayer *getLinkTargets() { return links; };
 
 		/****************************************************
 		 *             TEXT LAYER METHODS                   *
@@ -197,6 +199,9 @@ class pdfScene : public QGraphicsScene {
 		 */
 
 		QList< pageSelections > findText( QString text, int startPage = 0, int endPage = -1 );
+		
+  signals:
+    void finishedLoading();
 
 
 };

@@ -74,7 +74,6 @@ struct pdfProperties {
 };
 
 namespace pdfUtil { 
-
   PoDoFo::PdfString qStringToPdf( QString str );
   PoDoFo::PdfArray qBoxesToQuadPoints( QList<QRectF> boxes, pdfCoords *coords );
   QList<QRectF> quadPointsToQBoxes( PoDoFo::PdfArray &quadPoints, pdfCoords *coords );
@@ -82,9 +81,11 @@ namespace pdfUtil {
 
   void debugPrintTextBoxen( QList<Poppler::TextBox *> boxen );
   
-  PoDoFo::PdfDestination *getDestination( PoDoFo::PdfMemDocument* doc, PoDoFo::PdfElement* e );
+  PoDoFo::PdfDestination *getDestination( PoDoFo::PdfElement* e );
+  QRectF destinationToQRect( PoDoFo::PdfDestination *dest );
+  
+  PoDoFo::PdfObject *resolveRefs( PoDoFo::PdfMemDocument *doc, PoDoFo::PdfObject *obj );
 
-
-}
+};
 
 #endif /* _pdfUtil_H */

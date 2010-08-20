@@ -87,7 +87,7 @@ class toc : public QAbstractItemModel {
     tocItem *root;
     linkLayer *links;
     
-    tocItem* loadOutlineItem( PoDoFo::PdfMemDocument* doc, PoDoFo::PdfOutlineItem* item, tocItem* parent, const QString& path );
+    tocItem* loadOutlineItem( PoDoFo::PdfOutlineItem* item, tocItem* parent, const QString& path );
   
   public:
     

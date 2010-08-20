@@ -32,6 +32,7 @@
 #include "textTool.h"
 #include "hilightTool.h"
 #include "inlineTextTool.h"
+#include "linkTool.h"
 #include "pdfScene.h"
 #include "pageView.h"
 #include "searchBar.h"
@@ -79,10 +80,12 @@ mainWindow::mainWindow() {
   inlineTextTool *itTool = new inlineTextTool( scene, toolBar, editor );
   itTool->setAuthor( config()["author"] );
   hilightTool *hiTool = new hilightTool( scene, toolBar, editor ); 
+  linkTool *liTool = new linkTool( scene, toolBar, editor );
   hiTool->setAuthor( config()["author"] );
   scene->registerTool( hiTool );
   scene->registerTool( textAnnotTool );
   scene->registerTool( itTool );
+  scene->registerTool( liTool );
   toolBar->resize( pgView->width(), toolBar->height()+10 );
 
 
@@ -134,6 +137,7 @@ mainWindow::mainWindow() {
   connect( search, SIGNAL( currentMatchPosition(const QRectF&) ), this, SLOT( ensureVisible(const QRectF&) ) );
   
   connect( tocView, SIGNAL( activated(const QModelIndex &) ), this, SLOT( tocItemActivated(const QModelIndex &) ) );
+  connect( liTool, SIGNAL( gotoPos(const QPointF &) ), pgView, SLOT( gotoPoint(const QPointF &) ) );
 
 
 
@@ -153,7 +157,11 @@ mainWindow::mainWindow() {
 }
 
 void mainWindow::tocItemActivated(const QModelIndex& itemIndex) {
- pgView->centerOn( scene->getToc()->getItem( itemIndex )->getTarget()->pos() );
+ QGraphicsItem *tgt = scene->getToc()->getItem( itemIndex )->getTarget();
+ if ( tgt ) pgView->centerOn( scene->getToc()->getItem( itemIndex )->getTarget()->pos() );
+ else {
+   qDebug() << "tocItemActivated: Invalid toc target";
+ }
 }
 
 

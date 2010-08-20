@@ -28,13 +28,19 @@
 
 #include "abstractTool.h"
 
+#include <QtGui/QIcon>
+
 #include <QtCore/QString>
 
+class targetItem;
 class toolBox;
 class linkAnnotation;
+class linkLayer;
+class viewEvent;
 
 namespace PoDoFo {
     class PdfDestination;
+    class PdfMemDocument;
 }
 
 
@@ -42,33 +48,34 @@ namespace PoDoFo {
 class linkTool : public abstractTool {
     Q_OBJECT
 private:
-
-    struct destination {
-        int page;
-        QString name,type;
-        QRectF viewPort;
-        double value;
-    };
-
-    QList<destination> targets;
-    QString addDestination( int page, QRectF viewPort, QString name = "" );
-    QString addDestination( PoDoFo::PdfDestination &dest );
-    static QPixmap *icon;
-    static int nameCounter;
+  
+    static QIcon icon;
 
 public:
-    linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
-    virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
+    linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea );
+    virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation* annotation, pdfCoords* transform );
     virtual void newActionEvent( const QPointF *ScenePos );
     virtual bool acceptEventsFor( QGraphicsItem *item );
+    virtual bool handleEvent( viewEvent *ev );
     friend class linkAnnotation;
+    
+  signals:
+    void gotoPos( const QPointF &pos );
 };
 
 class linkAnnotation : public abstractAnnotation {
+  private:
+    targetItem *tgt;
+    QRectF activeArea;
+  
     public:
-        linkAnnotation( linkTool *tool, PoDoFo::PdfAnnotation *linkAnnot = NULL, pdfCoords *transform = NULL );
+        linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform = 0 );
         static bool isA( PoDoFo::PdfAnnotation *annotation );
         virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
+	virtual QRectF boundingRect() const { return activeArea; };
+	virtual void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
+	
+	friend class linkTool;
 };
 
 

@@ -31,7 +31,6 @@ SET(ANNOT_SRC
   pdfPageItem.cpp
   myToolTip.cpp
   mainWindow.cpp
-  testView.cpp
   pageBeginItem.cpp
   abstractTool.cpp
   textTool.cpp
@@ -55,6 +54,7 @@ SET(ANNOT_SRC
   linkLayer.cpp
   toc.cpp
   gwenview_splittercollapser.cpp
+  linkTool.cpp
 )
 
 SET(TEST_SRC
@@ -123,7 +123,7 @@ INSTALL(TARGETS comment
 ADD_EXECUTABLE(testPoppler ${ANNOT_SRC} testPoppler.cpp)
 TARGET_LINK_LIBRARIES(testPoppler ${LINK_LIBS})
 
-ADD_EXECUTABLE(testPdfPageItem ${ANNOT_SRC} testPdfPageItem.cpp)
+ADD_EXECUTABLE(testPdfPageItem ${ANNOT_SRC} testPdfPageItem.cpp testView.cpp)
 TARGET_LINK_LIBRARIES(testPdfPageItem ${LINK_LIBS})
 
 

@@ -111,6 +111,7 @@ class pageView : public QGraphicsView {
 	  void lastPage();
 	  void firstPage();
 	  void gotoPage( int num );
+	  void gotoPoint( const QPointF &point );
 	  void setCurrentTool( abstractTool *curTool );
 
 };

@@ -56,6 +56,7 @@ hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *Edi
 
 
 void hilightTool::newActionEvent( const QPointF *ScenePos ) {
+  qDebug() << "New action event...";
   hilightAnnotation *hi = new hilightAnnotation(this);
   scene->placeAnnotation( hi, ScenePos );
   hi->setZValue( 9 );
@@ -77,11 +78,8 @@ bool hilightTool::acceptEventsFor( QGraphicsItem *item ) {
 
 void hilightTool::editItem( abstractAnnotation *item ) { 
   qDebug() << "hilight::editItem";
-  if ( currentEditItem == item ) { 
-    currentEditItem = NULL;
-    editArea->hide();
-    setTeXToolTip( item );
-  } else {
+  if ( currentEditItem == item ) finishEditing();
+  else {
     currentEditItem = item;
     propertyEdit->setAuthor( item->getAuthor() );
     editAnnotationText();
@@ -106,13 +104,6 @@ void hilightTool::editAnnotationText() {
    contentEdit->setText( currentEditItem->getContent() );
    contentEdit->setFocus();
    editor->setCurrentIndex( 0 );
-}
-void hilightTool::finishEditing() { 
-  if ( dynamic_cast<hilightAnnotation*>(currentEditItem) ) { 
-    editArea->hide();
-    setTeXToolTip( currentEditItem );
-    currentEditItem = NULL;
-  }
 }
 	
 bool hilightTool::handleEvent( viewEvent *ev ) { 
