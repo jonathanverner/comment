@@ -93,16 +93,16 @@ mainWindow::mainWindow() {
   pgView->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
   pgView->setHorizontalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 
-  QAction *quitAct = pgView->newAction( "Ctrl+Q", this, SIGNAL( quit() ) );
-  QAction *saveAct = pgView->newAction( "Ctrl+S", this, SLOT( save() ) );
-  QAction *zoomInAct = pgView->newAction( "Ctrl++", pgView, SLOT( zoomIN() ) );
-  QAction *zoomOutAct = pgView->newAction( "Ctrl+-", pgView, SLOT( zoomOUT() ) );
+  QAction *quitAct = pgView->newAction( QKeySequence::Quit, this, SIGNAL( quit() ) );
+  QAction *saveAct = pgView->newAction( QKeySequence::Save, this, SLOT( save() ) );
+  QAction *zoomInAct = pgView->newAction( QKeySequence::ZoomIn, pgView, SLOT( zoomIN() ) );
+  QAction *zoomOutAct = pgView->newAction( QKeySequence::ZoomOut, pgView, SLOT( zoomOUT() ) );
   QAction *pageGotoAct = pgView->newAction( "F6", this, SLOT( pageNumEdit() ) );
-  QAction *startAct =  pgView->newAction( "Ctrl+Home", pgView, SLOT( firstPage() ) );
-  QAction *endAct = pgView->newAction( "Ctrl+End", pgView, SLOT( lastPage() ) );
-  QAction *searchAct = pgView->newAction( "Ctrl+F", this, SLOT( showSearchBar() ) );
+  QAction *startAct =  pgView->newAction( QKeySequence::MoveToStartOfDocument, pgView, SLOT( firstPage() ) );
+  QAction *endAct = pgView->newAction( QKeySequence::MoveToEndOfDocument, pgView, SLOT( lastPage() ) );
+  QAction *searchAct = pgView->newAction( QKeySequence::Find, this, SLOT( showSearchBar() ) );
   QAction *infoAct = pgView->newAction( "Ctrl+I", this, SLOT( showInfoDlg() ) );
-  QAction *toggleTocAct = pgView->newAction( "Ctrl+H", this, SLOT( toggleToc() ) );
+  QAction *toggleTocAct = pgView->newAction( "F7", this, SLOT( toggleToc() ) );
   QAction *closeEditorAct = pgView->newAction( "Esc", this, SLOT(closeEditor()) );
   
   tocView->addAction( quitAct );

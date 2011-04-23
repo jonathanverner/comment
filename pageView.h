@@ -94,7 +94,9 @@ class pageView : public QGraphicsView {
 		pageView( QGraphicsScene *scene, QWidget *parent = 0 );
 //	        ~pageView();
 
-		QAction *newAction( QString shortCut, QObject *target, const char * ); 
+		QAction *newAction( QString shortCut, QObject *target, const char * );
+		QAction *newAction( QKeySequence shortCut, QObject *target, const char * ); 
+
 
 	signals:
 		void mouseNearBorder( const QPoint &pos );

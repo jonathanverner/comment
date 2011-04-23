@@ -47,6 +47,10 @@ bool viewEvent::isClick() {
 };
 
 QAction *pageView::newAction( QString shortCut, QObject *target, const char* slot ) { 
+  return newAction( QKeySequence(shortCut), target, slot );
+}
+
+QAction *pageView::newAction( QKeySequence shortCut, QObject *target, const char* slot ) {
   QAction *ret = new QAction( this );
   ret->setShortcut( shortCut );
   ret->setShortcutContext( Qt::WidgetShortcut );
