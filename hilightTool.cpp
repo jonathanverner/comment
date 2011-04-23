@@ -139,7 +139,7 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
   return false;
 }
 
-abstractAnnotation *hilightTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
+abstractAnnotation *hilightTool::processAnnotation( PoDoFo::PdfDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform ) {
   if ( ! hilightAnnotation::isA( annotation ) ) return NULL;
   return new hilightAnnotation( this, annotation, transform );
 }

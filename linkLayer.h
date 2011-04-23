@@ -85,7 +85,7 @@ class linkLayer : public sceneLayer {
     void saveToDoc( PoDoFo::PdfDocument* doc );
 
     targetItem *addTarget( QString& name, const int page, const QRectF& target );
-    targetItem *addTarget( QString& name, PoDoFo::PdfDestination* dest );
+    targetItem *addTarget( QString& name, PoDoFo::PdfDestination* dest, PoDoFo::PdfDocument *doc );
     
     void removeTarget( const QString &name );
 

@@ -81,8 +81,8 @@ namespace pdfUtil {
 
   void debugPrintTextBoxen( QList<Poppler::TextBox *> boxen );
   
-  PoDoFo::PdfDestination *getDestination( PoDoFo::PdfElement* e );
-  QRectF destinationToQRect( PoDoFo::PdfDestination *dest );
+  PoDoFo::PdfDestination *getDestination( PoDoFo::PdfElement* e, PoDoFo::PdfDocument *doc );
+  QRectF destinationToQRect( PoDoFo::PdfDestination* dest, PoDoFo::PdfDocument* doc );
   
   PoDoFo::PdfObject *resolveRefs( PoDoFo::PdfMemDocument *doc, PoDoFo::PdfObject *obj );
 

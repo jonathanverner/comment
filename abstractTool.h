@@ -96,7 +96,7 @@ class abstractTool : public QObject {
 		 /* Returns a pointer to a newly created annotation, if the annotation was recognized,
 		  * otherwise returns NULL. Note that the new annotation should have its position 
 		  * relative to the page. However this should be intuitive :-) */
-		 virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) = 0;
+		 virtual abstractAnnotation *processAnnotation( PoDoFo::PdfDocument *doc, PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) = 0;
 
 		 /* Called when the user wants to add a new annotation at scenePos 
 		  * (scene coordinates) */

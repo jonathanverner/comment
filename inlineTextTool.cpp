@@ -136,7 +136,7 @@ void inlineTextTool::teXReady( int item ) {
 }*/
 
 
-abstractAnnotation *inlineTextTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
+abstractAnnotation *inlineTextTool::processAnnotation( PoDoFo::PdfDocument *doc, PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
   if ( ! inlineTextAnnotation::isA( annotation ) ) return NULL;
   inlineTextAnnotation *ann = new inlineTextAnnotation( this, annotation, transform );
   if ( int2annot.size() <= ann->inlineID ) int2annot.resize( ann->inlineID + 10 );

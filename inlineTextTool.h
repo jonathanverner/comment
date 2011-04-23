@@ -58,7 +58,7 @@ class inlineTextTool : public abstractTool {
                 inlineTextTool(pdfScene* Scene, toolBox* ToolBar, QStackedWidget* EditArea);
 	        ~inlineTextTool();
 		
-		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
+		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform );
 		virtual void newActionEvent( const QPointF *scPos );
 		virtual bool acceptEventsFor( QGraphicsItem *item );
 		/*virtual bool handleEvent( viewEvent *ev );*/

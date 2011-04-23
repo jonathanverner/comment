@@ -112,7 +112,7 @@ void pdfScene::processPage( PoDoFo::PdfDocument *pdf, int pgNum ) {
     retainCurAnnot=true;
     try {
     foreach( abstractTool *tool, tools.toList() ) {
-      if ( annot = tool->processAnnotation( pg->GetAnnotation( num_of_retained ), &transform ) ) { 
+      if ( annot = tool->processAnnotation( pdf, pg->GetAnnotation( num_of_retained ), &transform ) ) { 
 	try {
 	  pg->DeleteAnnotation( num_of_retained );
 	  annotations[pgNum].append( annot );

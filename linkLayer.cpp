@@ -59,16 +59,16 @@ void linkLayer::loadFromDoc(PoDoFo::PdfMemDocument* doc) {
 	tName = QString::fromUtf8( it->first.GetName().c_str() );
 	qDebug() << "Processing "<< tName;
         obj = pdfUtil::resolveRefs( doc, it->second );
-	if ( obj->IsArray() ) dest = new PoDoFo::PdfDestination( obj );
+	if ( obj->IsArray() ) dest = new PoDoFo::PdfDestination( obj, doc );
 	else if ( obj->IsDictionary() ) {
 	  obj->GetDictionary().GetKey("D")->SetOwner( &doc->GetObjects() );
-	  dest = new PoDoFo::PdfDestination( obj->GetDictionary().GetKey("D") );
+	  dest = new PoDoFo::PdfDestination( obj->GetDictionary().GetKey("D"), doc );
 	}
 	else {
 	  qDebug() << "Element is neither an array, nor a dictionary:"<< obj->GetDataTypeString();
 	  continue;
 	}
-	addTarget( tName, dest );
+	addTarget( tName, dest, doc );
       } catch ( PoDoFo::PdfError e ) {
 	qDebug() << "linkLayer: Error adding named destination ("<<tName<<"):"<<e.what();
       }
@@ -128,14 +128,14 @@ void linkLayer::placeOnPages() {
 }
 
 
-targetItem* linkLayer::addTarget(QString& name, PoDoFo::PdfDestination* dest) {
+targetItem* linkLayer::addTarget(QString& name, PoDoFo::PdfDestination* dest, PoDoFo::PdfDocument *doc) {
   if ( name == "" ) name = generateName();
   if ( targets.contains( name ) ) {
     qDebug() << "Not replacing target named: " << name;
     return targets[name];
   }
-  QRectF tgtRect = pdfUtil::destinationToQRect( dest );
-  int page = dest->GetPage()->GetPageNumber()-1;
+  QRectF tgtRect = pdfUtil::destinationToQRect( dest, doc );
+  int page = dest->GetPage(doc)->GetPageNumber()-1;
   targetItem *tgt = new targetItem( page, tgtRect.size(), tgtRect.topLeft(), name );
   targets.insert( name, tgt );
   addItem( tgt );

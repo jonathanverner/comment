@@ -56,7 +56,7 @@ textTool::textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea)
   toolBar->addTool( icon, this );
 }
 
-abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
+abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform ) {
   if ( ! textAnnotation::isA( annotation ) ) return NULL;
   return new textAnnotation( this, annotation, transform );
 }
