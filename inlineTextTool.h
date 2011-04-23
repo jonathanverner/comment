@@ -67,12 +67,19 @@ class inlineTextTool : public abstractTool {
 		friend class inlineTextAnnotation;
 
 };
+
+class myTextItem : public QGraphicsTextItem {
+protected:
+  virtual void keyPressEvent( QKeyEvent *event );
+  virtual void keyReleaseEvent (QKeyEvent *event );
+  friend class pageView;
+};
   
 class inlineTextAnnotation : public abstractAnnotation {
   Q_OBJECT
   static int inlineAnnotationCount;
   private:
-    QGraphicsTextItem *item;
+    myTextItem *item;
     int inlineID;
     bool teXAppearance;
   QRectF brec;

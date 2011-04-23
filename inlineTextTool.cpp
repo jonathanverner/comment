@@ -201,7 +201,7 @@ inlineTextAnnotation::inlineTextAnnotation( inlineTextTool *tool, PoDoFo::PdfAnn
 	abstractAnnotation(tool, inlineAnnot, transform), teXAppearance(false)
 {
   inlineID = inlineAnnotationCount++;
-  item = new QGraphicsTextItem();
+  item = new myTextItem();
   item->setTextInteractionFlags( Qt::TextEditable );
   item->setParentItem(this);
   item->setPos(0,0);
@@ -259,6 +259,52 @@ void inlineTextAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo:
   saveInfo2PDF( annot );
   delete brect;
 }
+
+
+void myTextItem::keyReleaseEvent(QKeyEvent* event) {
+  QGraphicsTextItem::keyReleaseEvent(event);
+  qDebug() << "myTextItem::keyReleaseEvent: Processing event " << event;
+  QTextCursor cursor = textCursor();
+  switch ( event->key() ) { 
+    case Qt::Key_Shift:
+      cursor.selectionEnd();
+      break;
+    default:
+      QGraphicsTextItem::keyPressEvent(event);
+  }
+  setTextCursor(cursor);
+}
+
+void myTextItem::keyPressEvent(QKeyEvent* event) {
+  qDebug() << "myTextItem::keyPressEvent: Processing event " << event;
+  QTextCursor cursor = textCursor();
+  switch ( event->key() ) { 
+    case Qt::Key_Right:
+      cursor.movePosition(QTextCursor::Right);
+      break;
+    case Qt::Key_Left:
+      cursor.movePosition(QTextCursor::Left);
+      break;
+    case Qt::Key_Up:
+      cursor.movePosition(QTextCursor::Up);
+      break;
+    case Qt::Key_Down:
+      cursor.movePosition(QTextCursor::Down);
+      break;
+    case Qt::Key_Home:
+      cursor.movePosition(QTextCursor::Start);
+      break;
+    case Qt::Key_End:
+      cursor.movePosition(QTextCursor::End);
+      break;
+    case Qt::Key_Shift:
+      cursor.selectionStart();
+    default:
+      QGraphicsTextItem::keyPressEvent(event);
+  }
+  setTextCursor(cursor);
+}
+
 
 
 

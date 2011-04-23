@@ -84,6 +84,7 @@ class mainWindow : public QWidget {
 		void save();
 		void showSearchBar();
 		void toggleToc();
+		void closeEditor();
 	signals:
 		void quit();
 

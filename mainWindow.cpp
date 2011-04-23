@@ -98,17 +98,12 @@ mainWindow::mainWindow() {
   QAction *zoomInAct = pgView->newAction( "Ctrl++", pgView, SLOT( zoomIN() ) );
   QAction *zoomOutAct = pgView->newAction( "Ctrl+-", pgView, SLOT( zoomOUT() ) );
   QAction *pageGotoAct = pgView->newAction( "F6", this, SLOT( pageNumEdit() ) );
-  QAction *nextPageAct = pgView->newAction( "PgDown", pgView, SLOT( nextPage() ) );
-  QAction *prevPageAct = pgView->newAction( "PgUp", pgView, SLOT( prevPage() ) );
-  QAction *upAct = pgView->newAction( "Up", pgView, SLOT( up() ) );
-  QAction *downAct = pgView->newAction( "Down", pgView, SLOT( down() ) );
-  QAction *rightAct = pgView->newAction( "Right", pgView, SLOT( right() ) );
-  QAction *leftAct = pgView->newAction( "Left", pgView, SLOT( left() ) );
   QAction *startAct =  pgView->newAction( "Ctrl+Home", pgView, SLOT( firstPage() ) );
   QAction *endAct = pgView->newAction( "Ctrl+End", pgView, SLOT( lastPage() ) );
   QAction *searchAct = pgView->newAction( "Ctrl+F", this, SLOT( showSearchBar() ) );
   QAction *infoAct = pgView->newAction( "Ctrl+I", this, SLOT( showInfoDlg() ) );
   QAction *toggleTocAct = pgView->newAction( "Ctrl+H", this, SLOT( toggleToc() ) );
+  QAction *closeEditorAct = pgView->newAction( "Esc", this, SLOT(closeEditor()) );
   
   tocView->addAction( quitAct );
   tocView->addAction( pageGotoAct );
@@ -118,7 +113,6 @@ mainWindow::mainWindow() {
   tocView->addAction( toggleTocAct );
 
 
-  connect( itTool, SIGNAL( needKeyFocus(bool) ), pgView, SLOT( disableActions(bool) ) );
   connect( numberEdit, SIGNAL( prevPage() ), pgView, SLOT( prevPage() ) );
   connect( numberEdit, SIGNAL( nextPage() ), pgView, SLOT( nextPage() ) );
   connect( numberEdit, SIGNAL( gotoPage(int) ), pgView, SLOT( gotoPage(int) ) );
@@ -184,6 +178,12 @@ void mainWindow::showSearchBar() {
 void mainWindow::toggleToc() {
   if ( tocView->isVisible() ) tocView->hide();
   else tocView->show();
+}
+
+void mainWindow::closeEditor() {
+  foreach( abstractTool *t, scene->listTools() ) {
+    t->finishEditing();
+  }
 }
 
 

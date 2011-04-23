@@ -76,6 +76,7 @@ class pdfScene : public QGraphicsScene {
   Q_OBJECT
 	private:
 		QSet<abstractTool *> tools; // a list of registered tools (i.e. annotation types) 
+		
 		// This vector is only used while loading a file. Afterwards
 		// it is cleared !!!!
 		QVector< QList<abstractAnnotation *> > annotations;
@@ -121,6 +122,7 @@ class pdfScene : public QGraphicsScene {
 
 		/* Registers an annotation tool */
 		void registerTool( abstractTool *tool );
+		QList<abstractTool *> listTools() { return tools.toList(); };
 
 		bool loadFromFile( QString fileName, QObject *pageInViewReceiver = NULL, const char *slot = NULL);
 		bool saveToFile( QString fileName );
