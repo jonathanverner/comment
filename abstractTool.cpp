@@ -87,6 +87,7 @@ abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *E
 	  connect( leftTab, SIGNAL( triggered() ), this, SLOT( prevEditorTab() ) );
 	  connect( closeEdit, SIGNAL( triggered() ), this, SLOT( hideEditor() ) );
 	  connect( propertyEdit, SIGNAL( authorChanged() ), this, SLOT( updateAuthor() ) );  	
+	  connect( propertyEdit, SIGNAL( colorChanged() ), this, SLOT( updateColor() ) );
 	  connect( contentEdit, SIGNAL( textChanged() ), this, SLOT( updateContent() ) );
 	  editArea->addWidget( editor );
 	  renderer = new renderTeX;
@@ -115,6 +116,11 @@ void abstractTool::updateAuthor() {
   currentEditItem->setAuthor( propertyEdit->getAuthor() );
 }
 
+void abstractTool::updateColor() {
+  if ( ! currentEditItem ) return;
+  qDebug() << "updating Color to ..." << propertyEdit->getColor() << "\n";
+  currentEditItem->setColor( propertyEdit->getColor() );
+}
 
 
 void abstractAnnotation::setContent( QString Content ) { 
@@ -181,6 +187,7 @@ void abstractTool::editItem( abstractAnnotation *item ) {
     editArea->setCurrentWidget( editor );
     editArea->show();
     propertyEdit->setAuthor( item->getAuthor() );
+    propertyEdit->setColor( item->getColor() );
     contentEdit->setText( item->getContent() );
     contentEdit->setFocus();
     editor->setCurrentIndex( 0 );
@@ -222,6 +229,7 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool ):
 {
   setAcceptsHoverEvents( true );
   setAuthor( tool->getAuthor() );
+  setColor( tool->getColor() );
   connect( this, SIGNAL(needKeyFocus(bool)), tool, SIGNAL(needKeyFocus(bool)) );
 }
 
@@ -229,9 +237,12 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotatio
 	myTool( tool ), haveToolTip( false ), showingToolTip( false ), movable( true )
 { 
   setAcceptsHoverEvents( true );
+  setColor( tool->getColor() );
   if ( annot ) { 
     setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
     setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
+    setColor( pdfUtil::pdfColorToQ( annot->GetColor() ) );
+    qDebug() << "Loaded annotation " << getContent();
     PoDoFo::PdfRect ps = annot->GetRect();
     setPos( transform->pdfRectToScene( &ps ).topLeft() );
     tool->setTeXToolTip( this );
@@ -324,6 +335,7 @@ void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) {
     annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
     annot->SetFlags( 0 ); // unset all flags to allow everything
     annot->SetBorderStyle( 0, 0, 0 );
+    annot->SetColor( color.cyanF(), color.magentaF(), color.yellowF(), color.blackF() );
   } catch ( PoDoFo::PdfError error ) { 
     qWarning() << "Error setting annotation properties:" << error.what();
   }

@@ -57,6 +57,7 @@
 #include <QtGui/QMouseEvent>
 #include <QtGui/QStackedWidget>
 #include <QtGui/QTreeView>
+#include <QtGui/QColor>
 
 #include <QtCore/QDebug>
 
@@ -78,10 +79,12 @@ mainWindow::mainWindow() {
   textAnnotTool = new textTool( scene, toolBar, editor );
   textAnnotTool->setAuthor( config()["author"] );
   inlineTextTool *itTool = new inlineTextTool( scene, toolBar, editor );
+  textAnnotTool->setColor( QColor(Qt::black) );
   itTool->setAuthor( config()["author"] );
   hilightTool *hiTool = new hilightTool( scene, toolBar, editor ); 
   linkTool *liTool = new linkTool( scene, toolBar, editor );
   hiTool->setAuthor( config()["author"] );
+  hiTool->setColor( QColor( 255, 255, 0 ) );
   scene->registerTool( hiTool );
   scene->registerTool( textAnnotTool );
   scene->registerTool( itTool );

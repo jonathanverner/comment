@@ -33,15 +33,24 @@
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QHBoxLayout>
 #include <QtGui/QLabel>
+#include <QtGui/QColorDialog>
+#include <QtGui/QPixmap>
+#include <QtGui/QIcon>
 
 propertyTab::propertyTab( QWidget *parent) : QWidget( parent ) {
   layout = new QVBoxLayout;
   authorEdit = new QLineEdit;
   colorPush = new QPushButton;
+  pix = new QPixmap(20,10);
+  pix->fill(QColor(Qt::black));
+  colorPush->setIcon(QIcon(*pix));
+  
+  
   addWidgetWithLabel( "Author", authorEdit );
   addWidgetWithLabel( "Color", colorPush );
   setLayout( layout );
   connect( authorEdit, SIGNAL( textChanged( const QString & ) ), this, SIGNAL( authorChanged() ) );
+  connect( colorPush, SIGNAL( pressed() ), this, SLOT( inputColor() ) );
 }
 
 void propertyTab::addWidgetWithLabel( QString Label, QWidget *w ) { 
@@ -55,8 +64,18 @@ void propertyTab::setAuthor( QString Author ) {
   authorEdit->setText( Author );
 }
 
+void propertyTab::inputColor() {
+  QColor tmp_col = QColorDialog::getColor( getColor(), this, QString("Select a color"));
+  if ( tmp_col.isValid() && getColor() != tmp_col ) {
+    setColor( tmp_col );
+    emit colorChanged();
+  }
+}
+
 void propertyTab::setColor( QColor col ) {
-  color = col;
+  if ( col.isValid() ) color = col;
+  pix->fill(col);
+  colorPush->setIcon(QIcon(*pix));
 }
 
 QString propertyTab::getAuthor() {

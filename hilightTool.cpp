@@ -82,6 +82,7 @@ void hilightTool::editItem( abstractAnnotation *item ) {
   else {
     currentEditItem = item;
     propertyEdit->setAuthor( item->getAuthor() );
+    propertyEdit->setColor( item->getColor() );
     editAnnotationText();
   }
 }
@@ -147,8 +148,11 @@ abstractAnnotation *hilightTool::processAnnotation( PoDoFo::PdfDocument* doc, Po
 
 void hilightAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget ) {
   QPointF myPos = pos();
+  QColor my_col = getColor();
+  if ( ! my_col.isValid() ) my_col = QColor( 255, 255, 0 );
+  my_col.setAlpha(156);
   foreach( QRectF box, hBoxes ) { 
-    painter->fillRect( box, QColor( 255, 255, 0, 156 ) );
+    painter->fillRect( box, my_col );
   }
 }
 
@@ -206,7 +210,7 @@ void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::Pd
   PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Highlight, *brect );
   annot->SetQuadPoints( quadPoints );
   saveInfo2PDF( annot );
-  annot->SetColor( 0, 0, 1, 0 ); // Set the annotation to be yellow
+  //annot->SetColor( 0, 0, 1, 0 ); // Set the annotation to be yellow
   delete brect;
 }
 

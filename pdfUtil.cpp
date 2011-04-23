@@ -169,6 +169,35 @@ QList<QRectF> pdfUtil::quadPointsToQBoxes( PdfArray &quadPoints, pdfCoords *coor
   return ret;
 }
 
+QColor pdfUtil::pdfColorToQ( const PdfArray &pdfCol ) {
+  qreal r,g,b,l;
+  QColor ret(Qt::black);
+  std::vector<PdfObject>::const_iterator pos = pdfCol.begin(), e = pdfCol.end();
+  if ( pos != e ) r = pos->GetReal();
+  else return QColor(Qt::transparent);
+  pos++;
+  if ( pos != e ) g = pos->GetReal();
+  else {
+    ret.setHsvF(0,0,r);
+    return ret;
+  }
+  pos++;
+  if ( pos != e ) b = pos->GetReal();
+  else return ret;
+  pos++;
+  if ( pos != e ) { 
+    l = pos->GetReal();
+    qDebug() << "pdfUtil::pdfColorToQ Converting CMYK color: " << r << "," << g << "," << b <<"," << l;
+    ret.setCmykF( r, g, b, l );
+  } else {
+    qDebug() << "pdfUtil::pdfColorToQ Converting RGB color: " << r << "," << g << "," << b;
+    ret.setRgbF( r, g, b );
+  }
+  qDebug() << "pdfUtil::pdfColorToQ Returning QColor: " << ret;
+  return ret;
+}
+
+
 PdfObject* pdfUtil::resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
   PdfObject *ret = ref;
   if ( ret->IsReference() )

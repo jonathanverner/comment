@@ -20,6 +20,7 @@
 #include <QtGui/QPixmap>
 #include <QtGui/QGraphicsItem>
 #include <QtGui/QGraphicsObject>
+#include <QtGui/QColor>
 
 class QToolBar;
 class QStackedWidget;
@@ -52,6 +53,7 @@ class abstractTool : public QObject {
 	private:
 		QString toolName;
 		QString author;
+		QColor color;
 
 		renderTeX *renderer;
 		QVector<abstractAnnotation *> int2annot;
@@ -78,6 +80,7 @@ class abstractTool : public QObject {
 		void editCurrentAnnotationProperties();
 		void updateContent();
 		void updateAuthor();
+		void updateColor();
 
 		void teXToolTipReady( int annotID );
 
@@ -89,8 +92,10 @@ class abstractTool : public QObject {
 		 ~abstractTool();
 
 		 QString getAuthor() const { return author; };
+		 QColor getColor() const { return color; };
 		 void setAuthor( QString Author ) { author = Author;};
-
+		 QColor setColor( QColor col ) { color = col;};
+		 
 		 QString getToolName() { return toolName; };
 
 		 /* Returns a pointer to a newly created annotation, if the annotation was recognized,
@@ -142,6 +147,7 @@ class abstractAnnotation : public QGraphicsObject {
 		QString author,content;
 		QDate date;
 		QTime time;
+		QColor color;
 
 	protected:
 	  	abstractTool *myTool;
@@ -182,9 +188,11 @@ class abstractAnnotation : public QGraphicsObject {
 		void setAuthor( QString a ) { author = a; };
 		void setDate( QDate d ) { date = d; };
 		void setTime( QTime t ) { time = t; };
-		QString getAuthor() { return author; };
-		QDate getDate() { return date; };
-		QTime getTime() { return time; };
+		void setColor( QColor col ) { if ( col.isValid() ) color = col; };
+		QColor getColor() const { return color; };
+		QString getAuthor() const { return author; };
+		QDate getDate() const  { return date; };
+		QTime getTime() const { return time; };
 
 		virtual QRectF boundingRect() const;
 		virtual void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );

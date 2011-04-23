@@ -32,6 +32,8 @@
 class QLineEdit;
 class QPushButton;
 class QVBoxLayout;
+class QPixmap;
+class QIcon;
 
 class propertyTab : public QWidget { 
   Q_OBJECT
@@ -39,11 +41,16 @@ class propertyTab : public QWidget {
 	  QLineEdit *authorEdit;
 	  QPushButton *colorPush;
 	  QVBoxLayout *layout;
+	  QPixmap *pix;
+	  QIcon *icon;
 
           QColor color;
 
 	protected:
 	  void addWidgetWithLabel( QString Label, QWidget *w );
+	  
+        protected slots:
+	  void inputColor();
 
 	public:
 	  propertyTab( QWidget *parent = 0 );
@@ -56,6 +63,7 @@ class propertyTab : public QWidget {
 
 	signals:
 	  void authorChanged();
+	  void colorChanged();
   
 };
 
