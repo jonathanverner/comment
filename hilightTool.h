@@ -48,7 +48,6 @@ class hilightTool : public abstractTool {
 	protected:
 	  void updateCurrentAnnotation( QPointF ScenePos );
           void editAnnotationExtent( abstractAnnotation *item );
-	  void editAnnotationText();
 
 	public:
 		hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
@@ -57,7 +56,8 @@ class hilightTool : public abstractTool {
 		virtual void newActionEvent( const QPointF *scPos );
 		virtual bool acceptEventsFor( QGraphicsItem *item );
 		virtual bool handleEvent( viewEvent *ev );
-		virtual void editItem( abstractAnnotation *item );
+		
+		
 
 		friend class hilightAnnotation;
 

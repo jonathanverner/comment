@@ -76,15 +76,6 @@ bool hilightTool::acceptEventsFor( QGraphicsItem *item ) {
   return dynamic_cast<hilightAnnotation*>( item );
 }
 
-void hilightTool::editItem( abstractAnnotation *item ) { 
-  qDebug() << "hilight::editItem";
-  if ( currentEditItem == item ) finishEditing();
-  else {
-    currentEditItem = item;
-    propertyEdit->setAuthor( item->getAuthor() );
-    propertyEdit->setColor( item->getColor() );
-    editAnnotationText();
-  }
 }
 
 void hilightTool::editAnnotationExtent( abstractAnnotation *item ) { 
@@ -96,15 +87,6 @@ void hilightTool::editAnnotationExtent( abstractAnnotation *item ) {
      currentEditItem = item;
      editingHilight = true;
    }
-}
-
-void hilightTool::editAnnotationText() { 
-   editingHilight = false;
-   editArea->setCurrentWidget( editor );
-   editArea->show();
-   contentEdit->setText( currentEditItem->getContent() );
-   contentEdit->setFocus();
-   editor->setCurrentIndex( 0 );
 }
 	
 bool hilightTool::handleEvent( viewEvent *ev ) { 
@@ -120,19 +102,19 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
   } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && ( ev->btnCaused() == Qt::LeftButton ) ) { 
     if ( ! (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) return false;
     if ( ev->isClick() ) {
-      if ( editingHilight ) editAnnotationText();
+      if ( editingHilight ) prepareEditItem(currentEditItem);
       else finishEditing();
       return true;
     }
     updateCurrentAnnotation( ev->scenePos() );
-    editAnnotationText();
+    prepareEditItem(currentEditItem);
     return true;
   } else if ( ev->type() == viewEvent::VE_MOUSE_MOVE && (annot=dynamic_cast<hilightAnnotation*>(currentEditItem)) ) {
     if ( editingHilight ) {
       updateCurrentAnnotation( ev->scenePos() );
       if ( ! (ev->btnState() & Qt::LeftButton) ) { // Missed a mouse release, end editing annotation
         qDebug() << "WARNING MISSED MOUSE RELEASE EVENT!!!";
-        editAnnotationText();
+        editItem(currentEditItem);
       }
     } else finishEditing();
     return true;  
