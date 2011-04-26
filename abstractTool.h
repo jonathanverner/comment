@@ -175,15 +175,18 @@ class abstractAnnotation : public QGraphicsObject {
 
 		bool showToolTip( const QPoint &scPos );
 		void hideToolTip();
-		bool editSelf();
-		void finishEditing();
+		
+		/* ??? if returns true, then it accepted the edit event ??? */
+		virtual bool editSelf();
+		
+		virtual void finishEditing();
 		 /* Returns the context menu for the item *it */
-                QMenu *contextMenu();
+                virtual QMenu *contextMenu();
 
 		bool hasToolTip();
 
-		bool isMovable() { return movable; };
-		QString getContent() const { return content; };
+		virtual bool isMovable() { return movable; };
+		virtual QString getContent() const { return content; };
 		void setContent( QString Content );
 		void setAuthor( QString a ) { author = a; };
 		void setDate( QDate d ) { date = d; };
