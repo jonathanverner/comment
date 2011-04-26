@@ -51,6 +51,8 @@ class linkTool : public abstractTool {
 private:
   
     static QIcon icon;
+    
+    void emit_gotoPos( const QPointF &pos );
 
 public:
     linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea );
@@ -75,6 +77,7 @@ class linkAnnotation : public abstractAnnotation {
         virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 	virtual QRectF boundingRect() const { return activeArea; };
 	virtual void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
+	virtual bool editSelf();
 	
 	friend class linkTool;
 };

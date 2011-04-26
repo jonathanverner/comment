@@ -123,6 +123,17 @@ void linkAnnotation::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
   painter->fillRect( activeArea, QColor( 155, 155, 0, 100 ) );
 }
 
+bool linkAnnotation::editSelf() {
+  linkTool *tool = dynamic_cast<linkTool*>(myTool);
+  tool->emit_gotoPos( tgt->scenePos() );
+}
+
+
+void linkTool::emit_gotoPos(const QPointF& pos) {
+  emit gotoPos( pos );
+}
+
+
 bool linkTool::handleEvent(viewEvent* ev) {
   linkAnnotation *annot;
   if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::LeftButton ) ) {
