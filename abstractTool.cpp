@@ -335,7 +335,7 @@ void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) {
     annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
     annot->SetFlags( 0 ); // unset all flags to allow everything
     annot->SetBorderStyle( 0, 0, 0 );
-    annot->SetColor( color.cyanF(), color.magentaF(), color.yellowF(), color.blackF() );
+    annot->SetColor( color.redF(), color.greenF(), color.blueF() );
   } catch ( PoDoFo::PdfError error ) { 
     qWarning() << "Error setting annotation properties:" << error.what();
   }
