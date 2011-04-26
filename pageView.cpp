@@ -78,11 +78,6 @@ pageView::pageView( QGraphicsScene *scene, QWidget *parent ) :
 	}
 
 
-/*pageView::~pageView() {
-  delete hi;
-  QGraphicsView::~QGraphicsView();
-}*/
-
 viewEvent pageView::eventToVE( QMouseEvent *e, viewEvent::eventType tp ) { 
  viewEvent ret;
  abstractAnnotation *annot;
