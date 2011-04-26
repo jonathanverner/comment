@@ -37,10 +37,42 @@
 #include <QtGui/QStackedWidget>
 #include <QtGui/QTextEdit>
 #include <QtGui/QTabWidget>
+#include <QtGui/QComboBox>
 
 #include <poppler-qt4.h>
+#include <podofo/podofo.h>
 
 using namespace Poppler;
+
+
+enum hilightAnnotation::hilightType PoDoFoToPdfType(const int podofoTyp)  {
+  switch( podofoTyp ) { 
+    case PoDoFo::ePdfAnnotation_Squiggly:
+      return hilightAnnotation::squiggly;
+    case PoDoFo::ePdfAnnotation_Underline:
+      return hilightAnnotation::underline;
+    case PoDoFo::ePdfAnnotation_StrikeOut:
+      return hilightAnnotation::strikeout;
+    case PoDoFo::ePdfAnnotation_Highlight:
+      return hilightAnnotation::hilight;
+    default:
+      return hilightAnnotation::undefined;
+  }
+}
+
+enum PoDoFo::EPdfAnnotation PdfToPoDoFoType(hilightAnnotation::hilightType t) {
+  switch( t ) { 
+    case hilightAnnotation::hilight:
+      return PoDoFo::ePdfAnnotation_Highlight;
+    case hilightAnnotation::squiggly:
+      return PoDoFo::ePdfAnnotation_Squiggly;
+    case hilightAnnotation::underline:
+      return PoDoFo::ePdfAnnotation_Underline;
+    case hilightAnnotation::strikeout:
+      return PoDoFo::ePdfAnnotation_StrikeOut;
+  }
+}
+
 
 QIcon hilightTool::icon;
 
@@ -51,7 +83,14 @@ hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *Edi
 {
   icon = QIcon::fromTheme("format-text-underline");
   setToolName( "Hilight Tool" );
+  typSelect = new QComboBox();
+  typSelect->addItem("Hilight");
+  typSelect->addItem("Underline");
+  typSelect->addItem("Squiggly underline");
+  typSelect->addItem("Strikeout");
+  connect( typSelect, SIGNAL( currentIndexChanged(const QString &)), this, SLOT( updateTyp( const QString & )) );
   toolBar->addTool( icon, this );
+  propertyEdit->addWidgetWithLabel( "Type:", typSelect );
 }
 
 
@@ -63,6 +102,17 @@ void hilightTool::newActionEvent( const QPointF *ScenePos ) {
   qDebug() << "Editing item";
   editAnnotationExtent( hi );
 }
+
+void hilightTool::updateTyp(const QString& typ) {
+  qDebug() << "hilightTool::updateTyp("<<typ<<");";
+  hilightAnnotation *annot = dynamic_cast<hilightAnnotation*>(currentEditItem);
+  if ( ! annot ) return;
+  if ( typ == "Hilight" ) annot->setTyp( hilightAnnotation::hilight );
+  if ( typ == "Underline" ) annot->setTyp( hilightAnnotation::underline );
+  if ( typ == "Squiggly underline" ) annot->setTyp( hilightAnnotation::squiggly );
+  if ( typ == "Strikeout" ) annot->setTyp( hilightAnnotation::strikeout );
+}
+
 
 void hilightTool::updateCurrentAnnotation( QPointF ScenePos ) { 
   hilightAnnotation *annot = dynamic_cast<hilightAnnotation*>(currentEditItem); 
@@ -76,6 +126,11 @@ bool hilightTool::acceptEventsFor( QGraphicsItem *item ) {
   return dynamic_cast<hilightAnnotation*>( item );
 }
 
+void hilightTool::prepareEditItem(abstractAnnotation* item) {
+  abstractTool::prepareEditItem(item);
+  hilightAnnotation *annot = dynamic_cast<hilightAnnotation*>(currentEditItem); 
+  if ( annot ) typSelect->setCurrentIndex(annot->typ);
+  editingHilight=false;
 }
 
 void hilightTool::editAnnotationExtent( abstractAnnotation *item ) { 
@@ -124,7 +179,7 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
 
 abstractAnnotation *hilightTool::processAnnotation( PoDoFo::PdfDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform ) {
   if ( ! hilightAnnotation::isA( annotation ) ) return NULL;
-  return new hilightAnnotation( this, annotation, transform );
+  return new hilightAnnotation( this, hilightAnnotation::hilight, annotation, transform );
 }
 
 
@@ -132,9 +187,21 @@ void hilightAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsItem
   QPointF myPos = pos();
   QColor my_col = getColor();
   if ( ! my_col.isValid() ) my_col = QColor( 255, 255, 0 );
+  painter->setPen( my_col );
   my_col.setAlpha(156);
-  foreach( QRectF box, hBoxes ) { 
-    painter->fillRect( box, my_col );
+  foreach( QRectF box, hBoxes ) {
+    switch( typ ) { 
+      case hilight:
+	painter->fillRect( box, my_col );
+	break;
+      case squiggly:
+      case underline:
+	painter->drawLine( box.bottomLeft(), box.bottomRight() );
+	break;
+      case strikeout:
+	painter->drawLine( box.topLeft()+QPoint(0,box.height()/2), box.topRight()+QPoint(0,box.height()/2) );
+	break;
+    }
   }
 }
 
@@ -143,6 +210,14 @@ void hilightAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsItem
 QPainterPath hilightAnnotation::shape() const { 
   return exactShape;
 }
+
+void hilightAnnotation::setTyp(hilightAnnotation::hilightType tp) {
+  update();
+  prepareGeometryChange();
+  typ=tp;
+  update();
+}
+
 
 void hilightAnnotation::updateSelection( QList<TextBox*> newSelection ) { 
   QPainterPath tmp;
@@ -160,8 +235,8 @@ void hilightAnnotation::updateSelection( QList<TextBox*> newSelection ) {
   update();
 }
 
-hilightAnnotation::hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot, pdfCoords *transform): 
-	abstractAnnotation(tool, hilightAnnot, transform), bBox(0,0,0,0) {
+hilightAnnotation::hilightAnnotation( hilightTool *tool, enum hilightType tp, PoDoFo::PdfAnnotation *hilightAnnot, pdfCoords *transform): 
+	abstractAnnotation(tool, hilightAnnot, transform), bBox(0,0,0,0), typ(tp) {
 	  movable=false;
 	  if ( isA( hilightAnnot ) ) {
 	    PoDoFo::PdfArray quadPoints = hilightAnnot->GetQuadPoints();
@@ -173,14 +248,18 @@ hilightAnnotation::hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *
 	      exactShape.addRect( tmp );
 	    }
 	    bBox = exactShape.boundingRect();
+	    typ = PoDoFoToPdfType( hilightAnnot->GetType() );
 	  }
 	  setZValue( 9 );
 };
 
 bool hilightAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) { 
   if ( ! annotation ) return false;
-  return ( annotation->GetType() == PoDoFo::ePdfAnnotation_Highlight );
+  return ( PoDoFoToPdfType( annotation->GetType() ) != undefined );
 }
+
+
+
 void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { 
   qDebug() << "Saving HILIGHT annotation for "<<getAuthor()<<" : " << pos();
   QList<QRectF> pageBoxes;
@@ -189,7 +268,7 @@ void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::Pd
   }
   PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(bBox).boundingRect() );
   PoDoFo::PdfArray quadPoints =  pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
-  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Highlight, *brect );
+  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PdfToPoDoFoType( typ ), *brect );
   annot->SetQuadPoints( quadPoints );
   saveInfo2PDF( annot );
   //annot->SetColor( 0, 0, 1, 0 ); // Set the annotation to be yellow

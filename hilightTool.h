@@ -31,6 +31,8 @@
 #include <QtGui/QIcon>
 #include "abstractTool.h"
 
+
+class QComboBox;
 class toolBox;
 class hilightAnnotation;
 
@@ -40,14 +42,19 @@ namespace Poppler {
 
 class hilightTool : public abstractTool { 
   Q_OBJECT
-	private:
+	protected:
 	  static QIcon icon;
+	  QComboBox *typSelect;
 	  bool editingHilight; // if true, mouse movement edits the extent
 	                       // of the current hilight
 
 	protected:
 	  void updateCurrentAnnotation( QPointF ScenePos );
           void editAnnotationExtent( abstractAnnotation *item );
+	  virtual void prepareEditItem( abstractAnnotation *item );
+
+	protected slots:
+	  void updateTyp( const QString &typ );
 
 	public:
 		hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
@@ -63,13 +70,19 @@ class hilightTool : public abstractTool {
 
 };
 
-class hilightAnnotation : public abstractAnnotation { 
-	private:
+class hilightAnnotation : public abstractAnnotation {
+	public:
+		enum hilightType { hilight, underline, squiggly, strikeout, undefined };
+	
+	protected:
 		QList<QRectF> hBoxes;
 		QRectF bBox;
 		QPainterPath exactShape;
+		enum hilightType typ;
+		
+		
 	public:
-		hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL );
+		hilightAnnotation( hilightTool *tool, enum hilightType tp = hilight, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL );
 		~hilightAnnotation() {};
 
 		void updateSelection( QList<Poppler::TextBox*> newSelection );
@@ -80,6 +93,9 @@ class hilightAnnotation : public abstractAnnotation {
 
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
 		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
+                
+		void setTyp(hilightType tp);
+		hilightType getTyp() const { return typ;};
 
 		friend class hilightTool;
 

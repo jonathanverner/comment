@@ -64,7 +64,8 @@ class propertyTab : public QWidget {
 	signals:
 	  void authorChanged();
 	  void colorChanged();
-  
+	  
+	  friend class hilightTool;
 };
 
 
