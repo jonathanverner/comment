@@ -182,7 +182,10 @@ QMenu *abstractTool::contextMenu( QGraphicsItem *it ) {
  * * a reference to itself */
 void abstractTool::editItem( abstractAnnotation *item ) {
   if ( currentEditItem == item ) finishEditing();
-  else {
+  else prepareEditItem( item );
+}
+
+void abstractTool::prepareEditItem(abstractAnnotation* item) {
     currentEditItem = item;
     editArea->setCurrentWidget( editor );
     editArea->show();
@@ -191,8 +194,8 @@ void abstractTool::editItem( abstractAnnotation *item ) {
     contentEdit->setText( item->getContent() );
     contentEdit->setFocus();
     editor->setCurrentIndex( 0 );
-  }
 }
+
 
 void abstractTool::finishEditing() {
   qDebug() << "abstractTool::finishEditing()...";

@@ -86,6 +86,7 @@ class abstractTool : public QObject {
 
 		void nextEditorTab();
 		void prevEditorTab();
+	        virtual void prepareEditItem( abstractAnnotation *item );
 
 	public:
 		 abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea  );
