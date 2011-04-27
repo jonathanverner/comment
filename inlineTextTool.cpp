@@ -221,14 +221,10 @@ bool inlineTextAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
   if ( ! annotation ) return false;
     return ( annotation->GetType() == PoDoFo::ePdfAnnotation_FreeText );
 }
-void inlineTextAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) {
+PoDoFo::PdfAnnotation* inlineTextAnnotation::saveToPdfPage( PoDoFo::PdfDocument* document, PoDoFo::PdfPage* pg, pdfCoords* coords ) {
   inlineTextTool *tl = dynamic_cast<inlineTextTool*>(myTool);
   qDebug() << "Saving INLINE annotation for "<<getAuthor()<<" : " << pos() << " BBox:" << mapToParent(boundingRect()).boundingRect();
-  PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(boundingRect()).boundingRect() );
-  qDebug() << "PDF Rect: (" << brect->GetLeft() << ", "<< brect->GetBottom() << " " << brect->GetWidth() << "x"<<brect->GetHeight() << ")";
-  //brect->SetHeight(boundingRect().height());
-  //brect->SetWidth(boundingRect().width());
-  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_FreeText, *brect );
+  PoDoFo::PdfAnnotation *annot = abstractAnnotation::saveToPdfPage( document, pg, coords );
   if ( teXAppearance ) {
     QByteArray path = tl->inlineRenderer->getPDF( inlineID ).toUtf8();
     QRectF cropBox = tl->inlineRenderer->getBBox( inlineID );
@@ -256,8 +252,6 @@ void inlineTextAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo:
     annot->SetAppearanceStream( annotAppearance );
     delete annotAppearance;
   }
-  saveInfo2PDF( annot );
-  delete brect;
 }
 
 

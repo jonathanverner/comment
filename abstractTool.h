@@ -114,6 +114,8 @@ class abstractTool : public QObject {
 		  * it instead */
 		 virtual void editItem( abstractAnnotation *item );
 		 
+
+		 
 		 /* Finish editing the currently edited item (if any) */
 		 virtual void finishEditing();
 
@@ -139,18 +141,47 @@ class abstractTool : public QObject {
 
 class abstractAnnotation : public QGraphicsObject { 
   Q_OBJECT
+	public:
+		/* The enumeration type holding
+		 * supported annotation types.
+		 */
+		enum eAnnotationTypes {
+		  eHilight,
+		  eUnderline,
+		  eSquiggly,
+		  eStrikeOut,
+		  eFreeText,
+		  eLink,
+		  eText,
+		  eNone
+		};
+		  
 	private:
 		QPixmap toolTipPixMap, icon;
 		QString toolTipRichText;
 		bool waitingForToolTip, haveToolTip, moved, showingToolTip;
 		enum toolTipType { pixmap, text };
 		toolTipType tp;
+		
 		QString author,content;
 		QDate date;
 		QTime time;
 		QColor color;
+		
+		/*
+		 * The contents of the Rect key from the annotation dictionary
+		 * transformed into QGraphicsView Page-coordinates. Currently
+		 * this does not change throughout the lifetime of the annotation,
+		 * but users should not rely on this behaviour.
+		 */
+		QRectF annotationRect;
 
 	protected:
+	  
+	        /* The type of the annotation */
+		enum eAnnotationTypes annotType;
+	        
+		/* The tool that corresponds to the annotation type */
 	  	abstractTool *myTool;
 		bool movable;
 		virtual void setMyToolTip(const QPixmap &pixMap);
@@ -172,6 +203,7 @@ class abstractAnnotation : public QGraphicsObject {
  
 	public:
 		abstractAnnotation( abstractTool *tool );
+		virtual ~abstractAnnotation() {};
 
 
 		bool showToolTip( const QPoint &scPos );
@@ -187,23 +219,30 @@ class abstractAnnotation : public QGraphicsObject {
 		bool hasToolTip();
 
 		virtual bool isMovable() { return movable; };
-		virtual QString getContent() const { return content; };
+
 		void setContent( QString Content );
 		void setAuthor( QString a ) { author = a; };
 		void setDate( QDate d ) { date = d; };
 		void setTime( QTime t ) { time = t; };
 		void setColor( QColor col ) { if ( col.isValid() ) color = col; };
+		
+		virtual QString getContent() const { return content; };
 		QColor getColor() const { return color; };
 		QString getAuthor() const { return author; };
 		QDate getDate() const  { return date; };
 		QTime getTime() const { return time; };
+		QRectF getAnnotRect() const { return annotationRect; };
+		
 
 		virtual QRectF boundingRect() const;
 		virtual void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
 
 
-
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) = 0;
+		/* Creates a new PoDoFo::PdfAnnotation on page \param pg,
+		 * sets the Color, Author, Date and Time and returns it.
+		 * The Rect key of the Annotation dictionary is determined
+		 * by calling the boundingRect() method */
+		virtual PoDoFo::PdfAnnotation *saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 		
   signals:
     void needKeyFocus( bool );

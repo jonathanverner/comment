@@ -107,16 +107,10 @@ bool linkAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
 }
 
 
-void linkAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) {
+PoDoFo::PdfAnnotation* linkAnnotation::saveToPdfPage( PoDoFo::PdfDocument* document, PoDoFo::PdfPage* pg, pdfCoords* coords ) {
   qDebug() << "Saving Link annotation for "<<getAuthor()<<" : " << pos();
-  PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(activeArea).boundingRect() );
-  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Link, *brect );
+  PoDoFo::PdfAnnotation *annot = abstractAnnotation::saveToPdfPage( document, pg, coords );
   annot->GetObject()->GetDictionary().AddKey( PoDoFo::PdfName("Dest"), pdfUtil::qStringToPdf(tgt->getName()) );
-  //PoDoFo::PdfDestination *dest = tgt->getPdfDest(pg);
-  //annot->SetDestination( *dest );
-  saveInfo2PDF( annot );
-  delete brect;
-  //delete dest;
 }
 
 void linkAnnotation::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) {

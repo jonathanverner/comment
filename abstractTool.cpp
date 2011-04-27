@@ -50,6 +50,9 @@
 
 #include <podofo/podofo.h>
 
+enum abstractAnnotation::eAnnotationTypes PoDoFoToType( PoDoFo::EPdfAnnotation podofoTyp);
+enum PoDoFo::EPdfAnnotation PdfToPoDoFoType(abstractAnnotation::eAnnotationTypes t);
+
 void abstractTool::nextEditorTab() { 
   int cur_pos = editor->currentIndex(), max = editor->count();
   cur_pos++;
@@ -237,7 +240,7 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool ):
 }
 
 abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotation *annot, pdfCoords *transform ):
-	myTool( tool ), haveToolTip( false ), showingToolTip( false ), movable( true )
+	myTool( tool ), haveToolTip( false ), showingToolTip( false ), movable( true ), annotationRect(0,0,0,0), annotType(eNone)
 { 
   setAcceptsHoverEvents( true );
   setColor( tool->getColor() );
@@ -245,9 +248,11 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotatio
     setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
     setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
     setColor( pdfUtil::pdfColorToQ( annot->GetColor() ) );
+    annotType = PoDoFoToType( annot->GetType() );
     qDebug() << "Loaded annotation " << getContent();
     PoDoFo::PdfRect ps = annot->GetRect();
-    setPos( transform->pdfRectToScene( &ps ).topLeft() );
+    annotationRect = transform->pdfRectToScene( &ps );
+    setPos( annotationRect.topLeft() );
     tool->setTeXToolTip( this );
   } else { 
     setAuthor( tool->getAuthor() );
@@ -331,6 +336,52 @@ void abstractAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsIte
   painter->drawPixmap( option->exposedRect, icon, option->exposedRect );
 }
 
+enum abstractAnnotation::eAnnotationTypes PoDoFoToType( PoDoFo::EPdfAnnotation podofoTyp)  {
+  switch( podofoTyp ) { 
+    case PoDoFo::ePdfAnnotation_Squiggly:
+      return abstractAnnotation::eSquiggly;
+    case PoDoFo::ePdfAnnotation_Underline:
+      return abstractAnnotation::eUnderline;
+    case PoDoFo::ePdfAnnotation_StrikeOut:
+      return abstractAnnotation::eStrikeOut;
+    case PoDoFo::ePdfAnnotation_Highlight:
+      return abstractAnnotation::eHilight;
+    case PoDoFo::ePdfAnnotation_Text:
+      return abstractAnnotation::eText;
+    case PoDoFo::ePdfAnnotation_Link:
+      return abstractAnnotation::eLink;
+    case PoDoFo::ePdfAnnotation_FreeText:
+      return abstractAnnotation::eFreeText;
+    default:
+      return abstractAnnotation::eNone;
+  }
+}
+
+enum PoDoFo::EPdfAnnotation PdfToPoDoFoType(abstractAnnotation::eAnnotationTypes t) {
+  switch( t ) { 
+    case abstractAnnotation::eHilight:
+      return PoDoFo::ePdfAnnotation_Highlight;
+    case abstractAnnotation::eSquiggly:
+      return PoDoFo::ePdfAnnotation_Squiggly;
+    case abstractAnnotation::eUnderline:
+      return PoDoFo::ePdfAnnotation_Underline;
+    case abstractAnnotation::eStrikeOut:
+      return PoDoFo::ePdfAnnotation_StrikeOut;
+    case abstractAnnotation::eLink:
+      return PoDoFo::ePdfAnnotation_Link;
+    case abstractAnnotation::eText:
+      return PoDoFo::ePdfAnnotation_Text;
+    case abstractAnnotation::eFreeText:
+      return PoDoFo::ePdfAnnotation_FreeText;
+    default:
+      return PoDoFo::ePdfAnnotation_Unknown;
+  }
+}
+
+
+
+
+
 void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) { 
   try { 
     annot->SetOpen( false );
@@ -343,6 +394,16 @@ void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) {
     qWarning() << "Error setting annotation properties:" << error.what();
   }
 }
+
+PoDoFo::PdfAnnotation* abstractAnnotation::saveToPdfPage(PoDoFo::PdfDocument* document, PoDoFo::PdfPage* pg, pdfCoords* coords) {
+  PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(boundingRect()).boundingRect() );
+  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PdfToPoDoFoType( annotType ), *brect );
+  saveInfo2PDF( annot );
+  delete brect;
+  return annot;
+}
+
+
 
 
 #include "abstractTool.moc"

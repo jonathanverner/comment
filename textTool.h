@@ -39,7 +39,6 @@ class textAnnotation : public abstractAnnotation {
 	public:
 		textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *textAnnot = NULL, pdfCoords *transform = NULL );
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 
 };
 

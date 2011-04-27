@@ -74,7 +74,7 @@ class linkAnnotation : public abstractAnnotation {
     public:
         linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, PoDoFo::PdfDocument *doc,  pdfCoords* transform = 0 );
         static bool isA( PoDoFo::PdfAnnotation *annotation );
-        virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
+        virtual PoDoFo::PdfAnnotation *saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 	virtual QRectF boundingRect() const { return activeArea; };
 	virtual void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
 	virtual bool editSelf();

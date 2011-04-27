@@ -92,7 +92,7 @@ class hilightAnnotation : public abstractAnnotation {
 		QPainterPath shape() const;
 
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
+		virtual PoDoFo::PdfAnnotation *saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
                 
 		void setTyp(hilightType tp);
 		hilightType getTyp() const { return typ;};

@@ -260,19 +260,16 @@ bool hilightAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
 
 
 
-void hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { 
+PoDoFo::PdfAnnotation* hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument* document, PoDoFo::PdfPage* pg, pdfCoords* coords ) { 
+  PoDoFo::PdfAnnotation *annot = abstractAnnotation::saveToPdfPage( document, pg, coords );
   qDebug() << "Saving HILIGHT annotation for "<<getAuthor()<<" : " << pos();
   QList<QRectF> pageBoxes;
   foreach( QRectF box, hBoxes ) { 
     pageBoxes.append( mapToParent(box).boundingRect() );
   }
-  PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(bBox).boundingRect() );
-  PoDoFo::PdfArray quadPoints =  pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
-  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PdfToPoDoFoType( typ ), *brect );
+  PoDoFo::PdfArray quadPoints = pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
   annot->SetQuadPoints( quadPoints );
-  saveInfo2PDF( annot );
-  //annot->SetColor( 0, 0, 1, 0 ); // Set the annotation to be yellow
-  delete brect;
+  return annot;
 }
 
 
