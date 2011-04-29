@@ -145,6 +145,12 @@ abstractAnnotation *inlineTextTool::processAnnotation( PoDoFo::PdfDocument *doc,
   return ann;
 }
 
+void inlineTextAnnotation::setColor(const QColor& col) {
+  abstractAnnotation::setColor( col );
+  item->setDefaultTextColor( getColor() );
+  implementationData.insert( "Color", QVariant( getColor() ) );
+}
+
 
 void inlineTextAnnotation::setTeXAppearance( bool haveTeX ) {
   if ( haveTeX == teXAppearance ) return;
@@ -209,6 +215,11 @@ inlineTextAnnotation::inlineTextAnnotation( inlineTextTool *tool, PoDoFo::PdfAnn
   item->setPlainText(getContent());
   movable=true;
   setZValue( 9 );
+  if ( implementationData.contains("Color") ) setColor( implementationData.value("Color").value<QColor>() );
+  if ( ! implementationData.contains("Font") ) implementationData.insert("Font", QVariant("Helvetica"));
+  if ( ! implementationData.contains("Font size") ) implementationData.insert("Font size", QVariant(12));
+ 
+  item->setFont(QFont( implementationData["Font"].toString(), implementationData["Font size"].toInt() ));
 };
 
 inlineTextAnnotation::~inlineTextAnnotation() {
@@ -251,6 +262,17 @@ PoDoFo::PdfAnnotation* inlineTextAnnotation::saveToPdfPage( PoDoFo::PdfDocument*
 //     }
     annot->SetAppearanceStream( annotAppearance );
     delete annotAppearance;
+  }
+
+  QString DAString = "/"+implementationData["Font"].toString()+ " "+ QString::number(implementationData["Font size"].toInt()) +" Tf " + 
+                     QString::number(getColor().redF()) + " " + 
+		     QString::number(getColor().greenF()) + " " + 
+		     QString::number(getColor().blueF()) + " rg";
+  try {
+      annot->GetObject()->GetDictionary().RemoveKey("C");
+      annot->GetObject()->GetDictionary().AddKey( "DA", pdfUtil::qStringToPdf(DAString) );
+  } catch (PoDoFo::PdfError e) { 
+    qDebug() <<"annot.AddKey(DA,"+DAString+") failed: "<<e.what();
   }
 }
 

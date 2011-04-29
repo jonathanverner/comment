@@ -98,6 +98,7 @@ class inlineTextAnnotation : public abstractAnnotation {
 		QRectF boundingRect() const;
 		QPainterPath shape() const;
 		
+		virtual void setColor( const QColor &col );
 
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
 		virtual PoDoFo::PdfAnnotation *saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
