@@ -47,6 +47,8 @@
 #include <QtGui/QTabWidget>
 
 #include <QtCore/QDebug>
+#include <QtCore/QByteArray>
+#include <QtCore/QDataStream>
 
 #include <podofo/podofo.h>
 
@@ -244,21 +246,14 @@ abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotatio
 { 
   setAcceptsHoverEvents( true );
   setColor( tool->getColor() );
+  setAuthor( tool->getAuthor() );  
   if ( annot ) { 
-    setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
-    setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
-    setColor( pdfUtil::pdfColorToQ( annot->GetColor() ) );
-    annotType = PoDoFoToType( annot->GetType() );
-    qDebug() << "Loaded annotation " << getContent();
-    PoDoFo::PdfRect ps = annot->GetRect();
-    annotationRect = transform->pdfRectToScene( &ps );
+    loadInfoFromPDF( annot, transform );
     setPos( annotationRect.topLeft() );
     tool->setTeXToolTip( this );
-  } else { 
-    setAuthor( tool->getAuthor() );
+    qDebug() << "Loaded annotation " << getContent();
   }
 }
-
 
 void abstractAnnotation::setMyToolTip(const QPixmap &pixMap) {
   setAcceptsHoverEvents(true);
@@ -378,7 +373,38 @@ enum PoDoFo::EPdfAnnotation PdfToPoDoFoType(abstractAnnotation::eAnnotationTypes
   }
 }
 
-
+void abstractAnnotation::loadInfoFromPDF(PoDoFo::PdfAnnotation* annot, pdfCoords *transform ) {
+  try {
+    setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
+    setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
+    setColor( pdfUtil::pdfColorToQ( annot->GetColor() ) );
+    annotType = PoDoFoToType( annot->GetType() );
+    PoDoFo::PdfRect ps = annot->GetRect();
+    annotationRect = transform->pdfRectToScene( &ps );
+    
+    /* Get the implementation data */
+    {
+      PoDoFo::PdfObject *dict = annot->GetObject()->GetDictionary().GetKey(PoDoFo::PdfName("CommentData"));
+      PoDoFo::PdfStream *pdfStream;
+      if ( dict && dict->HasStream() ) {
+	char *pBuffer;
+	PoDoFo::pdf_long len;
+	pdfStream  = dict->GetStream();
+	pdfStream->GetCopy( &pBuffer, &len );
+	QByteArray serialized_data( pBuffer, len );
+	QDataStream stream(&serialized_data, QIODevice::ReadOnly);
+	stream.setVersion(QDataStream::Qt_4_7);
+	try {
+	  stream >> implementationData;
+	} catch (...) {
+	  qDebug() << "Error reading implementation data";
+	}
+      }
+    }
+  } catch ( PoDoFo::PdfError error ) { 
+    qWarning() << "Error reading annotation properties:" << error.what();
+  }
+}
 
 
 
@@ -390,6 +416,28 @@ void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) {
     annot->SetFlags( 0 ); // unset all flags to allow everything
     annot->SetBorderStyle( 0, 0, 0 );
     annot->SetColor( color.redF(), color.greenF(), color.blueF() );
+    
+    
+    // Save private data into the CommentData subdictionary of the
+    // Annotation dictionary
+    if ( implementationData.size() > 0 ) 
+    {
+      PoDoFo::PdfObject commentDataDict;
+      PoDoFo::PdfMemStream pdfStream( &commentDataDict );
+      QByteArray serialized_data;
+      QDataStream stream(&serialized_data, QIODevice::WriteOnly);
+      stream.setVersion(QDataStream::Qt_4_7);
+      
+      stream << implementationData;
+      pdfStream.Set(serialized_data.data());
+
+      /* this is for testing purposes only,
+       * not used anywhere */
+      commentDataDict.GetDictionary().AddKey(PoDoFo::PdfName("Version"),PoDoFo::PdfString("v0.1"));
+      
+      annot->GetObject()->GetDictionary().AddKey(PoDoFo::PdfName("CommentData"),commentDataDict);
+    }
+
   } catch ( PoDoFo::PdfError error ) { 
     qWarning() << "Error setting annotation properties:" << error.what();
   }

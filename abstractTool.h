@@ -16,6 +16,8 @@
 #include <QtCore/QString>
 #include <QtCore/QDate>
 #include <QtCore/QTime>
+#include <QtCore/QMap>
+#include <QtCore/QVariant>
 
 #include <QtGui/QPixmap>
 #include <QtGui/QGraphicsItem>
@@ -178,6 +180,10 @@ class abstractAnnotation : public QGraphicsObject {
 
 	protected:
 	  
+	        /* Data that will be stored in a the 'CommentData'
+		 * subdictionary of the annotation dictionary */
+	        QMap<QString, QVariant> implementationData;
+		
 	        /* The type of the annotation */
 		enum eAnnotationTypes annotType;
 	        
@@ -192,6 +198,14 @@ class abstractAnnotation : public QGraphicsObject {
 		
 
 		void saveInfo2PDF( PoDoFo::PdfAnnotation *annot );
+
+		/* Reads data common to all annotations from PDF annotation \param annot
+		 * The data currently read: Author, Content, Color, Rect, implementation data
+		 * It also sets the annotation type */
+		void loadInfoFromPDF( PoDoFo::PdfAnnotation* annot, pdfCoords* transform );
+		
+		/* Note that the constructor, as it is currently implemented,
+		 * must cope with \param annot == NULL and \param transform == NULL */
 		abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotation *annot, pdfCoords *transform );
 	        friend class abstractTool;
 
