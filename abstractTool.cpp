@@ -232,6 +232,11 @@ QMenu *abstractAnnotation::contextMenu() {
   return myTool->contextMenu( this );
 }
 
+QColor abstractTool::setColor(const QColor &col) {
+  color = col;
+}
+
+
 abstractAnnotation::abstractAnnotation( abstractTool *tool ):
 	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ), haveToolTip(false), showingToolTip(false), movable( true )
 {

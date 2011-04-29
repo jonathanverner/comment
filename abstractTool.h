@@ -96,8 +96,12 @@ class abstractTool : public QObject {
 
 		 QString getAuthor() const { return author; };
 		 QColor getColor() const { return color; };
-		 void setAuthor( QString Author ) { author = Author;};
-		 QColor setColor( QColor col ) { color = col;};
+		 void setAuthor( const QString &Author ) { author = Author;};
+		 
+		 /* Sets the color of the annotation, whatever
+		  * that means. The abstract implementation
+		  * just sets the private color variable */
+		 virtual QColor setColor( const QColor &col );
 		 
 		 QString getToolName() { return toolName; };
 
