@@ -87,6 +87,11 @@ class inlineTextAnnotation : public abstractAnnotation {
   protected:
     void setTeXAppearance(bool);
    
+		/* The font name to be used in the DA
+		 * key of the pdf annotation dictionary.
+		 * This will be the font of the annotation.
+		 * Should be one of the 14 supported fonts */
+		QString fontName;
     
 	  
 	public:

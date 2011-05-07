@@ -85,6 +85,7 @@ void inlineTextTool::editItem( abstractAnnotation *item ) {
   else {
     currentEditItem = item;
     propertyEdit->setAuthor( item->getAuthor() );
+    propertyEdit->setColor( item->getColor() );
     editor->setCurrentWidget( propertyEdit );
     emit needKeyFocus( true );
     ann->setTeXAppearance( false );
@@ -103,6 +104,8 @@ void inlineTextTool::finishEditing() {
     else {
       ann->setContent( ann->item->toPlainText() );
       ann->setTeXAppearance( false );
+      ann->setAuthor( propertyEdit->getAuthor() );
+      ann->setColor( propertyEdit->getColor() );
       prepareTeX( ann );
       editArea->hide();
       //setTeXToolTip( currentEditItem );

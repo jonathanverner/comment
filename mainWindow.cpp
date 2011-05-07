@@ -83,6 +83,7 @@ mainWindow::mainWindow() {
   itTool->setAuthor( config()["author"] );
   hilightTool *hiTool = new hilightTool( scene, toolBar, editor ); 
   linkTool *liTool = new linkTool( scene, toolBar, editor );
+  itTool->setColor( QColor(Qt::black) );
   hiTool->setAuthor( config()["author"] );
   hiTool->setColor( QColor( 255, 255, 0 ) );
   scene->registerTool( hiTool );

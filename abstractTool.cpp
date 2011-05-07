@@ -176,6 +176,8 @@ void abstractTool::hideEditor() {
 
 void abstractTool::editCurrentAnnotationProperties() { 
   qDebug() << "Editing properties...";
+  prepareEditItem( currentEditItem );
+  editArea->setCurrentWidget(propertyEdit);
 }
 
 QMenu *abstractTool::contextMenu( QGraphicsItem *it ) { 
