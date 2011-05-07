@@ -74,6 +74,7 @@ void textTool::newActionEvent( const QPointF *ScenePos ) {
 textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment, pdfCoords *transform ):
 	abstractAnnotation( tool, Comment, transform )
 {
+  annotType = abstractAnnotation::eText;
   setIcon( QIcon::fromTheme("flag").pixmap(20) );
   setZValue( 10 );
 }

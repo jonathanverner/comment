@@ -206,6 +206,7 @@ int inlineTextAnnotation::inlineAnnotationCount = 0;
 inlineTextAnnotation::inlineTextAnnotation( inlineTextTool *tool, PoDoFo::PdfAnnotation *inlineAnnot, pdfCoords *transform): 
 	abstractAnnotation(tool, inlineAnnot, transform), teXAppearance(false)
 {
+  annotType = abstractAnnotation::eFreeText;
   inlineID = inlineAnnotationCount++;
   item = new myTextItem();
   item->setTextInteractionFlags( Qt::TextEditable );

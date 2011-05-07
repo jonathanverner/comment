@@ -45,41 +45,12 @@
 using namespace Poppler;
 
 
-enum hilightAnnotation::hilightType PoDoFoToPdfType(const int podofoTyp)  {
-  switch( podofoTyp ) { 
-    case PoDoFo::ePdfAnnotation_Squiggly:
-      return hilightAnnotation::squiggly;
-    case PoDoFo::ePdfAnnotation_Underline:
-      return hilightAnnotation::underline;
-    case PoDoFo::ePdfAnnotation_StrikeOut:
-      return hilightAnnotation::strikeout;
-    case PoDoFo::ePdfAnnotation_Highlight:
-      return hilightAnnotation::hilight;
-    default:
-      return hilightAnnotation::undefined;
-  }
-}
-
-enum PoDoFo::EPdfAnnotation PdfToPoDoFoType(hilightAnnotation::hilightType t) {
-  switch( t ) { 
-    case hilightAnnotation::hilight:
-      return PoDoFo::ePdfAnnotation_Highlight;
-    case hilightAnnotation::squiggly:
-      return PoDoFo::ePdfAnnotation_Squiggly;
-    case hilightAnnotation::underline:
-      return PoDoFo::ePdfAnnotation_Underline;
-    case hilightAnnotation::strikeout:
-      return PoDoFo::ePdfAnnotation_StrikeOut;
-  }
-}
-
-
 QIcon hilightTool::icon;
 
 
 
-hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
-	abstractTool( Scene, ToolBar, EditArea ), editingHilight(false)
+hilightTool::hilightTool( pageView *v, pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
+	abstractTool( v, Scene, ToolBar, EditArea ), editingHilight(false)
 {
   icon = QIcon::fromTheme("format-text-underline");
   setToolName( "Hilight Tool" );
@@ -107,10 +78,10 @@ void hilightTool::updateTyp(const QString& typ) {
   qDebug() << "hilightTool::updateTyp("<<typ<<");";
   hilightAnnotation *annot = dynamic_cast<hilightAnnotation*>(currentEditItem);
   if ( ! annot ) return;
-  if ( typ == "Hilight" ) annot->setTyp( hilightAnnotation::hilight );
-  if ( typ == "Underline" ) annot->setTyp( hilightAnnotation::underline );
-  if ( typ == "Squiggly underline" ) annot->setTyp( hilightAnnotation::squiggly );
-  if ( typ == "Strikeout" ) annot->setTyp( hilightAnnotation::strikeout );
+  if ( typ == "Hilight" ) annot->setTyp( abstractAnnotation::eHilight );
+  if ( typ == "Underline" ) annot->setTyp( abstractAnnotation::eUnderline );
+  if ( typ == "Squiggly underline" ) annot->setTyp( abstractAnnotation::eSquiggly );
+  if ( typ == "Strikeout" ) annot->setTyp( abstractAnnotation::eStrikeOut );
 }
 
 
@@ -129,8 +100,22 @@ bool hilightTool::acceptEventsFor( QGraphicsItem *item ) {
 void hilightTool::prepareEditItem(abstractAnnotation* item) {
   abstractTool::prepareEditItem(item);
   hilightAnnotation *annot = dynamic_cast<hilightAnnotation*>(currentEditItem); 
-  if ( annot ) typSelect->setCurrentIndex(annot->typ);
   editingHilight=false;
+  if ( ! annot ) return;
+  switch( annot->annotType ) { 
+    case abstractAnnotation::eHilight:
+      typSelect->setCurrentIndex(0);
+      break;
+    case abstractAnnotation::eUnderline:
+      typSelect->setCurrentIndex(1);
+      break;
+    case abstractAnnotation::eSquiggly:
+      typSelect->setCurrentIndex(2);
+      break;
+    case abstractAnnotation::eStrikeOut:
+      typSelect->setCurrentIndex(3);
+      break;
+  };
 }
 
 void hilightTool::editAnnotationExtent( abstractAnnotation *item ) { 
@@ -179,7 +164,7 @@ bool hilightTool::handleEvent( viewEvent *ev ) {
 
 abstractAnnotation *hilightTool::processAnnotation( PoDoFo::PdfDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform ) {
   if ( ! hilightAnnotation::isA( annotation ) ) return NULL;
-  return new hilightAnnotation( this, hilightAnnotation::hilight, annotation, transform );
+  return new hilightAnnotation( this, abstractAnnotation::eHilight, annotation, transform );
 }
 
 
@@ -190,15 +175,15 @@ void hilightAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsItem
   painter->setPen( my_col );
   my_col.setAlpha(156);
   foreach( QRectF box, hBoxes ) {
-    switch( typ ) { 
-      case hilight:
+    switch( annotType ) { 
+      case eHilight:
 	painter->fillRect( box, my_col );
 	break;
-      case squiggly:
-      case underline:
+      case eSquiggly:
+      case eUnderline:
 	painter->drawLine( box.bottomLeft(), box.bottomRight() );
 	break;
-      case strikeout:
+      case eStrikeOut:
 	painter->drawLine( box.topLeft()+QPoint(0,box.height()/2), box.topRight()+QPoint(0,box.height()/2) );
 	break;
     }
@@ -211,10 +196,25 @@ QPainterPath hilightAnnotation::shape() const {
   return exactShape;
 }
 
-void hilightAnnotation::setTyp(hilightAnnotation::hilightType tp) {
+
+bool hilightAnnotation::isMarkupAnnotation(abstractAnnotation::eAnnotationTypes tp) {
+  switch( tp ) { 
+    case eHilight:
+    case eSquiggly:
+    case eUnderline:
+    case eStrikeOut:
+      return true;
+    default:
+      return false;
+  };  
+}
+
+
+void hilightAnnotation::setTyp(const abstractAnnotation::eAnnotationTypes tp) {
+  if ( ! isMarkupAnnotation( tp ) ) return;
   update();
   prepareGeometryChange();
-  typ=tp;
+  annotType=tp;
   update();
 }
 
@@ -235,8 +235,12 @@ void hilightAnnotation::updateSelection( QList<TextBox*> newSelection ) {
   update();
 }
 
-hilightAnnotation::hilightAnnotation( hilightTool *tool, enum hilightType tp, PoDoFo::PdfAnnotation *hilightAnnot, pdfCoords *transform): 
-	abstractAnnotation(tool, hilightAnnot, transform), bBox(0,0,0,0), typ(tp) {
+
+
+
+
+hilightAnnotation::hilightAnnotation( hilightTool* tool, abstractAnnotation::eAnnotationTypes tp, PoDoFo::PdfAnnotation* hilightAnnot, pdfCoords* transform): 
+	abstractAnnotation(tool, hilightAnnot, transform), bBox(0,0,0,0) {
 	  movable=false;
 	  if ( isA( hilightAnnot ) ) {
 	    PoDoFo::PdfArray quadPoints = hilightAnnot->GetQuadPoints();
@@ -248,14 +252,14 @@ hilightAnnotation::hilightAnnotation( hilightTool *tool, enum hilightType tp, Po
 	      exactShape.addRect( tmp );
 	    }
 	    bBox = exactShape.boundingRect();
-	    typ = PoDoFoToPdfType( hilightAnnot->GetType() );
+	  } else { 
+	    annotType = tp;
 	  }
 	  setZValue( 9 );
 };
 
 bool hilightAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) { 
-  if ( ! annotation ) return false;
-  return ( PoDoFoToPdfType( annotation->GetType() ) != undefined );
+  return isMarkupAnnotation( getTypeFromPoDoFo(annotation) );
 }
 
 

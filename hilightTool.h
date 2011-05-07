@@ -71,18 +71,19 @@ class hilightTool : public abstractTool {
 };
 
 class hilightAnnotation : public abstractAnnotation {
-	public:
-		enum hilightType { hilight, underline, squiggly, strikeout, undefined };
-	
 	protected:
 		QList<QRectF> hBoxes;
 		QRectF bBox;
 		QPainterPath exactShape;
-		enum hilightType typ;
+		
+		/* Returns true if \param tp is one of
+		 *   eHighlight, eStrikeOut, eSquiggly, eUnderline
+		 * otherwise returns false. */
+		static bool isMarkupAnnotation( const enum abstractAnnotation::eAnnotationTypes tp ); 
 		
 		
 	public:
-		hilightAnnotation( hilightTool *tool, enum hilightType tp = hilight, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL );
+		hilightAnnotation( hilightTool *tool, enum abstractAnnotation::eAnnotationTypes tp = abstractAnnotation::eHilight, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL );
 		~hilightAnnotation() {};
 
 		void updateSelection( QList<Poppler::TextBox*> newSelection );
@@ -94,8 +95,10 @@ class hilightAnnotation : public abstractAnnotation {
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
 		virtual PoDoFo::PdfAnnotation *saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
                 
-		void setTyp(hilightType tp);
-		hilightType getTyp() const { return typ;};
+		/* setTyp calls prepareGeometryChange, updates the annotType to \param tp, and, if necessary,
+		 * calls update to redraw the annotation. tp must be a Text Markup Annotation, i.e. one of
+		 * eHighlight, eStrikeOut, eSquiggly, eUnderline, otherwise the method does nothing. */
+		void setTyp(const abstractAnnotation::eAnnotationTypes tp);
 
 		friend class hilightTool;
 

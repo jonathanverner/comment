@@ -336,6 +336,13 @@ void abstractAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsIte
   painter->drawPixmap( option->exposedRect, icon, option->exposedRect );
 }
 
+enum abstractAnnotation::eAnnotationTypes abstractAnnotation::getTypeFromPoDoFo(const PoDoFo::PdfAnnotation* annot) {
+  if ( annot ) { 
+    return PoDoFoToType( annot->GetType() );
+  } else return eNone;
+}
+
+
 enum abstractAnnotation::eAnnotationTypes PoDoFoToType( PoDoFo::EPdfAnnotation podofoTyp)  {
   switch( podofoTyp ) { 
     case PoDoFo::ePdfAnnotation_Squiggly:

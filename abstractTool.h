@@ -191,6 +191,14 @@ class abstractAnnotation : public QGraphicsObject {
 	        /* The type of the annotation */
 		enum eAnnotationTypes annotType;
 	        
+		/* If \param annot != NULL, converts the annotation type from the 
+		 * PoDoFo::EPdfAnnotation enum to eAnnotationTypes enum. 
+		 * If \param annot == NULL, returns eNone 
+		 * 
+		 * \param annot NULL OK
+		 */
+		static enum eAnnotationTypes getTypeFromPoDoFo( const PoDoFo::PdfAnnotation *annot );
+		
 		/* The tool that corresponds to the annotation type */
 	  	abstractTool *myTool;
 		bool movable;
@@ -250,6 +258,8 @@ class abstractAnnotation : public QGraphicsObject {
 		QDate getDate() const  { return date; };
 		QTime getTime() const { return time; };
 		QRectF getAnnotRect() const { return annotationRect; };
+		
+		enum eAnnotationTypes getTyp() const { return annotType; };
 		
 
 		virtual QRectF boundingRect() const;
