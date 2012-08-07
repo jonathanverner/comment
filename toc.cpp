@@ -81,24 +81,24 @@ void toc::load( PoDoFo::PdfMemDocument* doc ) {
   delete root;
   root = new tocItem( tr("Table of Contents") );
   while( child ) {
-    tocItem *item = loadOutlineItem( child, root, "toc" );
+    tocItem *item = loadOutlineItem( child, doc, root, "toc" );
     root->appendChild( item );
     child = child->Next();
   }
 }
 
-tocItem* toc::loadOutlineItem( PdfOutlineItem* item, tocItem* parent, const QString& path ) { 
-    PdfDestination *dest = pdfUtil::getDestination(item);
+tocItem* toc::loadOutlineItem( PdfOutlineItem* item, PdfDocument *doc, tocItem* parent, const QString& path ) { 
+    PdfDestination *dest = pdfUtil::getDestination(item, doc);
     QString title = pdfUtil::pdfStringToQ( item->GetTitle() );
     qDebug() << "Loading TOC item: " << path << "." << title;
     targetItem *tgt = NULL;
     QString nm = path+"."+title;
-    if ( dest ) tgt = links->addTarget( nm, dest );
+    if ( dest ) tgt = links->addTarget( nm, dest, doc );
     else tgt = NULL;
     tocItem *me = new tocItem( title, parent, tgt );
     PdfOutlineItem *child = item->First();
     while( child ) {
-      tocItem *item = loadOutlineItem( child, me, path+"."+title );
+      tocItem *item = loadOutlineItem( child, doc, me, path+"."+title );
       me->appendChild( item );
       child = child->Next();
     }

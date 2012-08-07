@@ -180,17 +180,17 @@ PdfObject* pdfUtil::resolveRefs( PdfMemDocument *doc, PdfObject *ref )  {
 }
 
 
-PdfDestination* pdfUtil::getDestination(PdfElement* e) {
+PdfDestination* pdfUtil::getDestination(PdfElement* e, PdfDocument *doc) {
   PdfDestination *ret = NULL;
   PdfOutlineItem *outLineItem = dynamic_cast<PdfOutlineItem*>(e);
   PdfAnnotation *linkAnnot = dynamic_cast<PdfAnnotation*>(e);
   if ( ! linkAnnot && ! outLineItem ) return ret;
   try {
-  if ( outLineItem ) ret = outLineItem->GetDestination();
+  if ( outLineItem ) ret = outLineItem->GetDestination(doc);
   else if ( linkAnnot && linkAnnot->HasDestination() ) {
     PdfObject *d = linkAnnot->GetObject()->GetDictionary().GetKey("Dest");
     d->SetOwner( e->GetObject()->GetOwner() );
-    return new PdfDestination( d );
+    return new PdfDestination( d, doc );
 //    PdfObject *d = linkAnnot->GetDestination();
     //d->SetOwner( e->GetObject()->GetOwner() );
     //ret = new PdfDestination(d); // Memory leak ??
@@ -206,7 +206,7 @@ PdfDestination* pdfUtil::getDestination(PdfElement* e) {
   if ( s.GetKey(PdfName("S"))->GetName() == PdfName("GoTo") ) {
     PdfObject *d = a->GetDictionary().GetKey(PdfName("D"));
     d->SetOwner( e->GetObject()->GetOwner() );
-    ret  = new PdfDestination( d );
+    ret  = new PdfDestination( d, doc );
   }
   } catch ( PdfError e ) {
     qDebug() <<"Error in pdfUtil::getDestination: " << e.what();
@@ -214,9 +214,9 @@ PdfDestination* pdfUtil::getDestination(PdfElement* e) {
   return ret;
 }
 
-QRectF pdfUtil::destinationToQRect(PdfDestination* dest) {
+QRectF pdfUtil::destinationToQRect(PdfDestination* dest, PdfDocument *doc) {
   try {
-    pdfCoords transform( dest->GetPage() );
+    pdfCoords transform( dest->GetPage(doc) );
     PdfArray dst = dest->GetArray();
     PdfName tp = dst[1].GetName();
     QRectF ret;
