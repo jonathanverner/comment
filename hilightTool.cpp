@@ -272,7 +272,8 @@ PoDoFo::PdfAnnotation* hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument* do
     pageBoxes.append( mapToParent(box).boundingRect() );
   }
   PoDoFo::PdfArray quadPoints = pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
-  annot->SetQuadPoints( quadPoints );
+  annot->GetObject()->GetDictionary().AddKey( "QuadPoints", quadPoints );
+  //annot->SetQuadPoints( quadPoints );
   return annot;
 }
 
