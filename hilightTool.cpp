@@ -49,8 +49,8 @@ QIcon hilightTool::icon;
 
 
 
-hilightTool::hilightTool( pageView *v, pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
-	abstractTool( v, Scene, ToolBar, EditArea ), editingHilight(false)
+hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
+	abstractTool( Scene, ToolBar, EditArea ), editingHilight(false)
 {
   icon = QIcon::fromTheme("format-text-underline");
   setToolName( "Hilight Tool" );
@@ -272,7 +272,8 @@ PoDoFo::PdfAnnotation* hilightAnnotation::saveToPdfPage( PoDoFo::PdfDocument* do
     pageBoxes.append( mapToParent(box).boundingRect() );
   }
   PoDoFo::PdfArray quadPoints = pdfUtil::qBoxesToQuadPoints( pageBoxes, coords );
-  annot->SetQuadPoints( quadPoints );
+  annot->GetObject()->GetDictionary().AddKey( "QuadPoints", quadPoints );
+  //annot->SetQuadPoints( quadPoints );
   return annot;
 }
 
