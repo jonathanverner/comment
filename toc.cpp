@@ -98,11 +98,7 @@ tocItem* toc::loadOutlineItem( PdfOutlineItem* item, tocItem* parent, const QStr
     tocItem *me = new tocItem( title, parent, tgt );
     PdfOutlineItem *child = item->First();
     while( child ) {
-<<<<<<< HEAD
-      tocItem *item = loadOutlineItem( child, doc, me, path+"."+title );
-=======
       tocItem *item = loadOutlineItem( child, me, path+"."+title, doc );
->>>>>>> origin/input_handling
       me->appendChild( item );
       child = child->Next();
     }
