@@ -31,6 +31,8 @@
 #include <QtGui/QIcon>
 #include "abstractTool.h"
 
+
+class QComboBox;
 class toolBox;
 class hilightAnnotation;
 
@@ -40,36 +42,48 @@ namespace Poppler {
 
 class hilightTool : public abstractTool { 
   Q_OBJECT
-	private:
+	protected:
 	  static QIcon icon;
+	  QComboBox *typSelect;
 	  bool editingHilight; // if true, mouse movement edits the extent
 	                       // of the current hilight
 
 	protected:
 	  void updateCurrentAnnotation( QPointF ScenePos );
           void editAnnotationExtent( abstractAnnotation *item );
-	  void editAnnotationText();
+	  virtual void prepareEditItem( abstractAnnotation *item );
+
+	protected slots:
+	  void updateTyp( const QString &typ );
 
 	public:
 		hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
 
-		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
+		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfDocument *doc, PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
 		virtual void newActionEvent( const QPointF *scPos );
 		virtual bool acceptEventsFor( QGraphicsItem *item );
 		virtual bool handleEvent( viewEvent *ev );
-		virtual void editItem( abstractAnnotation *item );
+		
+		
 
 		friend class hilightAnnotation;
 
 };
 
-class hilightAnnotation : public abstractAnnotation { 
-	private:
+class hilightAnnotation : public abstractAnnotation {
+	protected:
 		QList<QRectF> hBoxes;
 		QRectF bBox;
 		QPainterPath exactShape;
+		
+		/* Returns true if \param tp is one of
+		 *   eHighlight, eStrikeOut, eSquiggly, eUnderline
+		 * otherwise returns false. */
+		static bool isMarkupAnnotation( const enum abstractAnnotation::eAnnotationTypes tp ); 
+		
+		
 	public:
-		hilightAnnotation( hilightTool *tool, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL );
+		hilightAnnotation( hilightTool *tool, enum abstractAnnotation::eAnnotationTypes tp = abstractAnnotation::eHilight, PoDoFo::PdfAnnotation *hilightAnnot = NULL, pdfCoords *transform = NULL );
 		~hilightAnnotation() {};
 
 		void updateSelection( QList<Poppler::TextBox*> newSelection );
@@ -79,7 +93,12 @@ class hilightAnnotation : public abstractAnnotation {
 		QPainterPath shape() const;
 
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
+		virtual PoDoFo::PdfAnnotation *saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
+                
+		/* setTyp calls prepareGeometryChange, updates the annotType to \param tp, and, if necessary,
+		 * calls update to redraw the annotation. tp must be a Text Markup Annotation, i.e. one of
+		 * eHighlight, eStrikeOut, eSquiggly, eUnderline, otherwise the method does nothing. */
+		void setTyp(const abstractAnnotation::eAnnotationTypes tp);
 
 		friend class hilightTool;
 

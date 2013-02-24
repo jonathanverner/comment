@@ -24,6 +24,7 @@ class abstractTool;
 class QGraphicsItem;
 class QKeyEvent;
 class abstractAnnotation;
+class hiliteItem;
 
 class viewEvent { 
 	public:
@@ -77,20 +78,24 @@ class pageView : public QGraphicsView {
 		QGraphicsItem *movingItem;
 		QPointF moveDelta;
 		abstractTool *currentTool;
+		hiliteItem *hi;
+		QString selectedText;
 
 	protected:
 	  viewEvent eventToVE( QMouseEvent *e, viewEvent::eventType tp );
 	  virtual void mouseMoveEvent( QMouseEvent *e );
 	  virtual void mouseReleaseEvent( QMouseEvent *e );
 	  virtual void mousePressEvent( QMouseEvent *e );
-	  //virtual void keyPressEvent( QKeyEvent *e );
 	  int getLastPage();
 
 
 	public:
 		pageView( QGraphicsScene *scene, QWidget *parent = 0 );
+//	        ~pageView();
 
-		QAction *newAction( QString shortCut, QObject *target, const char * ); 
+		QAction *newAction( QString shortCut, QObject *target, const char * );
+		QAction *newAction( QKeySequence shortCut, QObject *target, const char * ); 
+
 
 	signals:
 		void mouseNearBorder( const QPoint &pos );

@@ -31,6 +31,8 @@
 #include <QtCore/QRectF>
 #include <QtCore/QDebug>
 
+#include <QtGui/QColor>
+
 #include <podofo/podofo.h>
 
 
@@ -78,10 +80,11 @@ namespace pdfUtil {
   PoDoFo::PdfArray qBoxesToQuadPoints( QList<QRectF> boxes, pdfCoords *coords );
   QList<QRectF> quadPointsToQBoxes( PoDoFo::PdfArray &quadPoints, pdfCoords *coords );
   QString pdfStringToQ( PoDoFo::PdfString str );
+  QColor pdfColorToQ( const PoDoFo::PdfArray& pdfCol );
 
   void debugPrintTextBoxen( QList<Poppler::TextBox *> boxen );
   
-  PoDoFo::PdfDestination *getDestination( PoDoFo::PdfElement* e , PoDoFo::PdfDocument *doc);
+  PoDoFo::PdfDestination *getDestination( PoDoFo::PdfElement* e, PoDoFo::PdfDocument *doc );
   QRectF destinationToQRect( PoDoFo::PdfDestination* dest, PoDoFo::PdfDocument* doc );
   
   PoDoFo::PdfObject *resolveRefs( PoDoFo::PdfMemDocument *doc, PoDoFo::PdfObject *obj );

@@ -58,7 +58,7 @@ class inlineTextTool : public abstractTool {
                 inlineTextTool(pdfScene* Scene, toolBox* ToolBar, QStackedWidget* EditArea);
 	        ~inlineTextTool();
 		
-		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
+		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform );
 		virtual void newActionEvent( const QPointF *scPos );
 		virtual bool acceptEventsFor( QGraphicsItem *item );
 		/*virtual bool handleEvent( viewEvent *ev );*/
@@ -67,12 +67,19 @@ class inlineTextTool : public abstractTool {
 		friend class inlineTextAnnotation;
 
 };
+
+class myTextItem : public QGraphicsTextItem {
+protected:
+  virtual void keyPressEvent( QKeyEvent *event );
+  virtual void keyReleaseEvent (QKeyEvent *event );
+  friend class pageView;
+};
   
 class inlineTextAnnotation : public abstractAnnotation {
   Q_OBJECT
   static int inlineAnnotationCount;
   private:
-    QGraphicsTextItem *item;
+    myTextItem *item;
     int inlineID;
     bool teXAppearance;
   QRectF brec;
@@ -80,6 +87,11 @@ class inlineTextAnnotation : public abstractAnnotation {
   protected:
     void setTeXAppearance(bool);
    
+		/* The font name to be used in the DA
+		 * key of the pdf annotation dictionary.
+		 * This will be the font of the annotation.
+		 * Should be one of the 14 supported fonts */
+		QString fontName;
     
 	  
 	public:
@@ -91,9 +103,10 @@ class inlineTextAnnotation : public abstractAnnotation {
 		QRectF boundingRect() const;
 		QPainterPath shape() const;
 		
+		virtual void setColor( const QColor &col );
 
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
+		virtual PoDoFo::PdfAnnotation *saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 
 
 		friend class inlineTextTool;

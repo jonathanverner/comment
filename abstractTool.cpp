@@ -33,7 +33,6 @@
 #include "pdfUtil.h"
 #include "renderTeX.h"
 #include "propertyTab.h"
-#include "hiliteItem.h"
 
 #include <QtGui/QStackedWidget>
 #include <QtGui/QGraphicsScene>
@@ -46,12 +45,15 @@
 #include <QtGui/QMenu>
 #include <QtGui/QTextEdit>
 #include <QtGui/QTabWidget>
-#include <QtGui/QClipboard>
-#include <QtGui/QApplication>
 
 #include <QtCore/QDebug>
+#include <QtCore/QByteArray>
+#include <QtCore/QDataStream>
 
 #include <podofo/podofo.h>
+
+enum abstractAnnotation::eAnnotationTypes PoDoFoToType( PoDoFo::EPdfAnnotation podofoTyp);
+enum PoDoFo::EPdfAnnotation PdfToPoDoFoType(abstractAnnotation::eAnnotationTypes t);
 
 void abstractTool::nextEditorTab() { 
   int cur_pos = editor->currentIndex(), max = editor->count();
@@ -71,10 +73,6 @@ void abstractTool::prevEditorTab() {
 abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea ):
 	editArea(EditArea), scene(Scene), toolBar(ToolBar), currentEditItem( NULL ) {
 	  cntxMenu = new QMenu();
-	  hi = new hiliteItem();
-	  hi->setColor( QColor(0,0,0,100) );
-	  hi->setZValue( 40 );
-	  scene->addItem(hi);
 	
 	  contentEdit = new QTextEdit( EditArea );
 	  propertyEdit = new propertyTab( EditArea );
@@ -94,6 +92,7 @@ abstractTool::abstractTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *E
 	  connect( leftTab, SIGNAL( triggered() ), this, SLOT( prevEditorTab() ) );
 	  connect( closeEdit, SIGNAL( triggered() ), this, SLOT( hideEditor() ) );
 	  connect( propertyEdit, SIGNAL( authorChanged() ), this, SLOT( updateAuthor() ) );  	
+	  connect( propertyEdit, SIGNAL( colorChanged() ), this, SLOT( updateColor() ) );
 	  connect( contentEdit, SIGNAL( textChanged() ), this, SLOT( updateContent() ) );
 	  editArea->addWidget( editor );
 	  renderer = new renderTeX;
@@ -109,7 +108,6 @@ abstractTool::~abstractTool() {
   editArea->removeWidget( editor );
   toolBar->removeTool( this );
   if ( editor ) delete editor;
-  delete hi;
 }
 
 void abstractTool::updateContent() {
@@ -123,6 +121,11 @@ void abstractTool::updateAuthor() {
   currentEditItem->setAuthor( propertyEdit->getAuthor() );
 }
 
+void abstractTool::updateColor() {
+  if ( ! currentEditItem ) return;
+  qDebug() << "updating Color to ..." << propertyEdit->getColor() << "\n";
+  currentEditItem->setColor( propertyEdit->getColor() );
+}
 
 
 void abstractAnnotation::setContent( QString Content ) { 
@@ -173,6 +176,8 @@ void abstractTool::hideEditor() {
 
 void abstractTool::editCurrentAnnotationProperties() { 
   qDebug() << "Editing properties...";
+  prepareEditItem( currentEditItem );
+  editArea->setCurrentWidget(propertyEdit);
 }
 
 QMenu *abstractTool::contextMenu( QGraphicsItem *it ) { 
@@ -184,16 +189,20 @@ QMenu *abstractTool::contextMenu( QGraphicsItem *it ) {
  * * a reference to itself */
 void abstractTool::editItem( abstractAnnotation *item ) {
   if ( currentEditItem == item ) finishEditing();
-  else {
+  else prepareEditItem( item );
+}
+
+void abstractTool::prepareEditItem(abstractAnnotation* item) {
     currentEditItem = item;
     editArea->setCurrentWidget( editor );
     editArea->show();
     propertyEdit->setAuthor( item->getAuthor() );
+    propertyEdit->setColor( item->getColor() );
     contentEdit->setText( item->getContent() );
     contentEdit->setFocus();
     editor->setCurrentIndex( 0 );
-  }
 }
+
 
 void abstractTool::finishEditing() {
   qDebug() << "abstractTool::finishEditing()...";
@@ -218,17 +227,6 @@ bool abstractTool::handleEvent( viewEvent *ev ) {
       qDebug() << "Should finish editing";
       currentEditItem->finishEditing();
       return true;
-  } if ( ev->type() == viewEvent::VE_MOUSE_PRESS && ( ev->btnCaused() == Qt::RightButton ) ) { 
-    hi->clear();
-    hi->setPos( scene->topLeftPage(scene->posToPage( ev->scenePos() ) ) );
-    hi->show();
-    selectedText = "";
-  } else if ( ev->type() == viewEvent::VE_MOUSE_RELEASE && (ev->btnCaused() == Qt::RightButton ) ) {
-    qDebug() << "Selected: " << selectedText;
-    QApplication::clipboard()->setText( selectedText, QClipboard::Selection );
-  } else if ( ev->type() == viewEvent::VE_MOUSE_MOVE && (ev->btnState() & Qt::RightButton ) ) { 
-    hi->updateBBoxes( scene->selectText( ev->mousePressPos(), ev->scenePos() ) );
-    selectedText = scene->selectedText( ev->mousePressPos(), ev->scenePos() );
   } else return false;
 }
 
@@ -236,29 +234,33 @@ QMenu *abstractAnnotation::contextMenu() {
   return myTool->contextMenu( this );
 }
 
+QColor abstractTool::setColor(const QColor &col) {
+  color = col;
+}
+
+
 abstractAnnotation::abstractAnnotation( abstractTool *tool ):
 	myTool( tool ), date( QDate::currentDate() ), time( QTime::currentTime() ), haveToolTip(false), showingToolTip(false), movable( true )
 {
   setAcceptsHoverEvents( true );
   setAuthor( tool->getAuthor() );
+  setColor( tool->getColor() );
   connect( this, SIGNAL(needKeyFocus(bool)), tool, SIGNAL(needKeyFocus(bool)) );
 }
 
 abstractAnnotation::abstractAnnotation( abstractTool *tool, PoDoFo::PdfAnnotation *annot, pdfCoords *transform ):
-	myTool( tool ), haveToolTip( false ), showingToolTip( false ), movable( true )
+	myTool( tool ), haveToolTip( false ), showingToolTip( false ), movable( true ), annotationRect(0,0,0,0), annotType(eNone)
 { 
   setAcceptsHoverEvents( true );
+  setColor( tool->getColor() );
+  setAuthor( tool->getAuthor() );  
   if ( annot ) { 
-    setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
-    setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
-    PoDoFo::PdfRect ps = annot->GetRect();
-    setPos( transform->pdfRectToScene( &ps ).topLeft() );
+    loadInfoFromPDF( annot, transform );
+    setPos( annotationRect.topLeft() );
     tool->setTeXToolTip( this );
-  } else { 
-    setAuthor( tool->getAuthor() );
+    qDebug() << "Loaded annotation " << getContent();
   }
 }
-
 
 void abstractAnnotation::setMyToolTip(const QPixmap &pixMap) {
   setAcceptsHoverEvents(true);
@@ -336,6 +338,90 @@ void abstractAnnotation::paint( QPainter *painter, const QStyleOptionGraphicsIte
   painter->drawPixmap( option->exposedRect, icon, option->exposedRect );
 }
 
+enum abstractAnnotation::eAnnotationTypes abstractAnnotation::getTypeFromPoDoFo(const PoDoFo::PdfAnnotation* annot) {
+  if ( annot ) { 
+    return PoDoFoToType( annot->GetType() );
+  } else return eNone;
+}
+
+
+enum abstractAnnotation::eAnnotationTypes PoDoFoToType( PoDoFo::EPdfAnnotation podofoTyp)  {
+  switch( podofoTyp ) { 
+    case PoDoFo::ePdfAnnotation_Squiggly:
+      return abstractAnnotation::eSquiggly;
+    case PoDoFo::ePdfAnnotation_Underline:
+      return abstractAnnotation::eUnderline;
+    case PoDoFo::ePdfAnnotation_StrikeOut:
+      return abstractAnnotation::eStrikeOut;
+    case PoDoFo::ePdfAnnotation_Highlight:
+      return abstractAnnotation::eHilight;
+    case PoDoFo::ePdfAnnotation_Text:
+      return abstractAnnotation::eText;
+    case PoDoFo::ePdfAnnotation_Link:
+      return abstractAnnotation::eLink;
+    case PoDoFo::ePdfAnnotation_FreeText:
+      return abstractAnnotation::eFreeText;
+    default:
+      return abstractAnnotation::eNone;
+  }
+}
+
+enum PoDoFo::EPdfAnnotation PdfToPoDoFoType(abstractAnnotation::eAnnotationTypes t) {
+  switch( t ) { 
+    case abstractAnnotation::eHilight:
+      return PoDoFo::ePdfAnnotation_Highlight;
+    case abstractAnnotation::eSquiggly:
+      return PoDoFo::ePdfAnnotation_Squiggly;
+    case abstractAnnotation::eUnderline:
+      return PoDoFo::ePdfAnnotation_Underline;
+    case abstractAnnotation::eStrikeOut:
+      return PoDoFo::ePdfAnnotation_StrikeOut;
+    case abstractAnnotation::eLink:
+      return PoDoFo::ePdfAnnotation_Link;
+    case abstractAnnotation::eText:
+      return PoDoFo::ePdfAnnotation_Text;
+    case abstractAnnotation::eFreeText:
+      return PoDoFo::ePdfAnnotation_FreeText;
+    default:
+      return PoDoFo::ePdfAnnotation_Unknown;
+  }
+}
+
+void abstractAnnotation::loadInfoFromPDF(PoDoFo::PdfAnnotation* annot, pdfCoords *transform ) {
+  try {
+    setAuthor( pdfUtil::pdfStringToQ( annot->GetTitle() ) );
+    setContent( pdfUtil::pdfStringToQ( annot->GetContents() ) );
+    setColor( pdfUtil::pdfColorToQ( annot->GetColor() ) );
+    annotType = PoDoFoToType( annot->GetType() );
+    PoDoFo::PdfRect ps = annot->GetRect();
+    annotationRect = transform->pdfRectToScene( &ps );
+    
+    /* Get the implementation data */
+    {
+      PoDoFo::PdfObject *dict = annot->GetObject()->GetDictionary().GetKey(PoDoFo::PdfName("CommentData"));
+      PoDoFo::PdfStream *pdfStream;
+      if ( dict && dict->HasStream() ) {
+	char *pBuffer;
+	PoDoFo::pdf_long len;
+	pdfStream  = dict->GetStream();
+	pdfStream->GetCopy( &pBuffer, &len );
+	QByteArray serialized_data( pBuffer, len );
+	QDataStream stream(&serialized_data, QIODevice::ReadOnly);
+	stream.setVersion(QDataStream::Qt_4_7);
+	try {
+	  stream >> implementationData;
+	} catch (...) {
+	  qDebug() << "Error reading implementation data";
+	}
+      }
+    }
+  } catch ( PoDoFo::PdfError error ) { 
+    qWarning() << "Error reading annotation properties:" << error.what();
+  }
+}
+
+
+
 void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) { 
   try { 
     annot->SetOpen( false );
@@ -343,10 +429,43 @@ void abstractAnnotation::saveInfo2PDF( PoDoFo::PdfAnnotation *annot ) {
     annot->SetTitle( pdfUtil::qStringToPdf( getAuthor() ) );
     annot->SetFlags( 0 ); // unset all flags to allow everything
     annot->SetBorderStyle( 0, 0, 0 );
+    annot->SetColor( color.redF(), color.greenF(), color.blueF() );
+    
+    
+    // Save private data into the CommentData subdictionary of the
+    // Annotation dictionary
+    if ( implementationData.size() > 0 ) 
+    {
+      PoDoFo::PdfObject commentDataDict;
+      PoDoFo::PdfMemStream pdfStream( &commentDataDict );
+      QByteArray serialized_data;
+      QDataStream stream(&serialized_data, QIODevice::WriteOnly);
+      stream.setVersion(QDataStream::Qt_4_7);
+      
+      stream << implementationData;
+      pdfStream.Set(serialized_data.data());
+
+      /* this is for testing purposes only,
+       * not used anywhere */
+      commentDataDict.GetDictionary().AddKey(PoDoFo::PdfName("Version"),PoDoFo::PdfString("v0.1"));
+      
+      annot->GetObject()->GetDictionary().AddKey(PoDoFo::PdfName("CommentData"),commentDataDict);
+    }
+
   } catch ( PoDoFo::PdfError error ) { 
     qWarning() << "Error setting annotation properties:" << error.what();
   }
 }
+
+PoDoFo::PdfAnnotation* abstractAnnotation::saveToPdfPage(PoDoFo::PdfDocument* document, PoDoFo::PdfPage* pg, pdfCoords* coords) {
+  PoDoFo::PdfRect *brect = coords->sceneToPdf( mapToParent(boundingRect()).boundingRect() );
+  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PdfToPoDoFoType( annotType ), *brect );
+  saveInfo2PDF( annot );
+  delete brect;
+  return annot;
+}
+
+
 
 
 #include "abstractTool.moc"

@@ -41,6 +41,7 @@ class viewEvent;
 namespace PoDoFo {
     class PdfDestination;
     class PdfMemDocument;
+    class PdfDocument;
 }
 
 
@@ -50,10 +51,12 @@ class linkTool : public abstractTool {
 private:
   
     static QIcon icon;
+    
+    void emit_gotoPos( const QPointF &pos );
 
 public:
     linkTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea );
-    virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation* annotation, pdfCoords* transform );
+    virtual abstractAnnotation *processAnnotation( PoDoFo::PdfDocument *doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform );
     virtual void newActionEvent( const QPointF *ScenePos );
     virtual bool acceptEventsFor( QGraphicsItem *item );
     virtual bool handleEvent( viewEvent *ev );
@@ -69,11 +72,12 @@ class linkAnnotation : public abstractAnnotation {
     QRectF activeArea;
   
     public:
-        linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, pdfCoords* transform = 0 );
+        linkAnnotation( linkTool* tool, PoDoFo::PdfAnnotation* Link, PoDoFo::PdfDocument *doc,  pdfCoords* transform = 0 );
         static bool isA( PoDoFo::PdfAnnotation *annotation );
-        virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
+        virtual PoDoFo::PdfAnnotation *saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 	virtual QRectF boundingRect() const { return activeArea; };
 	virtual void paint( QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget );
+	virtual bool editSelf();
 	
 	friend class linkTool;
 };

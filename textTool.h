@@ -29,7 +29,7 @@ class textTool : public abstractTool {
 	public:
 		textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea);
 
-		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
+		virtual abstractAnnotation *processAnnotation( PoDoFo::PdfDocument *doc, PoDoFo::PdfAnnotation *annotation, pdfCoords *transform );
 		virtual void newActionEvent( const QPointF *ScenePos );
 		virtual bool acceptEventsFor( QGraphicsItem *item );
 		friend class textAnnotation;
@@ -39,7 +39,6 @@ class textAnnotation : public abstractAnnotation {
 	public:
 		textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *textAnnot = NULL, pdfCoords *transform = NULL );
 		static bool isA( PoDoFo::PdfAnnotation *annotation );
-		virtual void saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords );
 
 };
 

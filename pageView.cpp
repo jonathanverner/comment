@@ -28,8 +28,12 @@
 #include "pageView.h"
 #include "abstractTool.h"
 #include "myToolTip.h"
+#include "hiliteItem.h"
+#include "pdfScene.h"
 
 #include <QtCore/QDebug>
+#include <QtGui/QApplication>
+#include <QtGui/QClipboard>
 #include <QtGui/QMouseEvent>
 #include <QtGui/QKeyEvent>
 #include <QtGui/QGraphicsItem>
@@ -43,6 +47,10 @@ bool viewEvent::isClick() {
 };
 
 QAction *pageView::newAction( QString shortCut, QObject *target, const char* slot ) { 
+  return newAction( QKeySequence(shortCut), target, slot );
+}
+
+QAction *pageView::newAction( QKeySequence shortCut, QObject *target, const char* slot ) {
   QAction *ret = new QAction( this );
   ret->setShortcut( shortCut );
   ret->setShortcutContext( Qt::WidgetShortcut );
@@ -63,6 +71,10 @@ pageView::pageView( QGraphicsScene *scene, QWidget *parent ) :
 	QGraphicsView( scene, parent ), zoom(1), currentPage(1), currentTool(NULL),
 	movingItem(NULL), toolTipItem(NULL) { 
 	  setDragMode( QGraphicsView::ScrollHandDrag );
+	  hi = new hiliteItem();
+	  hi->setColor( QColor(0,0,0,100) );
+	  hi->setZValue( 40 );
+	  scene->addItem(hi);
 	}
 
 
@@ -139,6 +151,9 @@ void pageView::mouseMoveEvent( QMouseEvent *e ) {
     vBar->setValue(vBar->value() + delta.y());
 /*    pdfScene *sc = dynamic_cast<pdfScene*>(scene());
     qDebug() << "Currently on Pos:" << hBar->value()<< vBar->value();*/
+  } else if ( viewEv.bt_state & Qt::RightButton ) { 
+    hi->updateBBoxes( static_cast<pdfScene*>(scene())->selectText( viewEv.mousePressPosition, viewEv.scenePos() ) );
+    selectedText = static_cast<pdfScene*>(scene())->selectedText( viewEv.mousePressPos(), viewEv.scenePos( ) );
   } else { // show/hide tooltips
     abstractAnnotation *annot;
     bool hide = true;
@@ -186,9 +201,15 @@ void pageView::mousePressEvent( QMouseEvent *e ) {
     if ( currentTool ) currentTool->handleEvent( &viewEv );
   } else if ( (viewEv.bt_caused & Qt::RightButton) && viewEv.topMostAll ) { // popup-menu
     viewEv.topMostAll->contextMenu()->popup( e->globalPos() );
-  } else if ( currentTool ) currentTool->handleEvent( &viewEv );
+  } else if ( currentTool ) 
+    currentTool->handleEvent( &viewEv );
+  else if ( viewEv.bt_caused & Qt::RightButton ) {
+    hi->clear();
+    hi->setPos( static_cast<pdfScene*>(scene())->topLeftPage(static_cast<pdfScene*>(scene())->posToPage( viewEv.scenePos() ) ) );
+    hi->show();
+    selectedText = "";
+  }
 }
-
 
 void pageView::mouseReleaseEvent( QMouseEvent *e ) { 
   viewport()->setCursor(Qt::OpenHandCursor);
@@ -204,6 +225,10 @@ void pageView::mouseReleaseEvent( QMouseEvent *e ) {
 	if ( annot->editSelf() ) return;
       }
     }
+  }
+  if ( viewEv.bt_caused == Qt::RightButton ) {
+    qDebug() << "Selected: " << selectedText;
+    QApplication::clipboard()->setText( selectedText, QClipboard::Selection );
   }
 }
 

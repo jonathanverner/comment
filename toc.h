@@ -37,6 +37,7 @@ class linkLayer;
 
 namespace PoDoFo {
   class PdfMemDocument;
+  class PdfDocument;
   class PdfOutlineItem;
 class PdfDocument;
 };
@@ -88,7 +89,7 @@ class toc : public QAbstractItemModel {
     tocItem *root;
     linkLayer *links;
     
-    tocItem* loadOutlineItem( PoDoFo::PdfOutlineItem* item, PoDoFo::PdfDocument *doc, tocItem* parent, const QString& path );
+    tocItem* loadOutlineItem( PoDoFo::PdfOutlineItem* item, tocItem* parent, const QString& path, PoDoFo::PdfDocument *doc );
   
   public:
     

@@ -56,7 +56,7 @@ textTool::textTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea)
   toolBar->addTool( icon, this );
 }
 
-abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfAnnotation *annotation, pdfCoords *transform ) {
+abstractAnnotation *textTool::processAnnotation( PoDoFo::PdfDocument* doc, PoDoFo::PdfAnnotation* annotation, pdfCoords* transform ) {
   if ( ! textAnnotation::isA( annotation ) ) return NULL;
   return new textAnnotation( this, annotation, transform );
 }
@@ -74,6 +74,7 @@ void textTool::newActionEvent( const QPointF *ScenePos ) {
 textAnnotation::textAnnotation( textTool *tool, PoDoFo::PdfAnnotation *Comment, pdfCoords *transform ):
 	abstractAnnotation( tool, Comment, transform )
 {
+  annotType = abstractAnnotation::eText;
   setIcon( QIcon::fromTheme("flag").pixmap(20) );
   setZValue( 10 );
 }
@@ -83,18 +84,5 @@ bool textAnnotation::isA( PoDoFo::PdfAnnotation *annotation ) {
   if ( ! annotation ) return false;
   return ( annotation->GetType() == PoDoFo::ePdfAnnotation_Text );
 }
-
-
-void textAnnotation::saveToPdfPage( PoDoFo::PdfDocument *document, PoDoFo::PdfPage *pg, pdfCoords *coords ) { 
-  qDebug() << "Saving text annotation for "<<getAuthor() <<" : " << pos();
-  QRectF bbox = mapToParent(boundingRect()).boundingRect();
-  PoDoFo::PdfRect *brect = coords->sceneToPdf( bbox );
-  PoDoFo::PdfAnnotation *annot = pg->CreateAnnotation( PoDoFo::ePdfAnnotation_Text, *brect );
-  saveInfo2PDF( annot );
-  delete brect;
-}
-
-
-
 
 #include "textTool.moc"
