@@ -49,8 +49,8 @@ QIcon hilightTool::icon;
 
 
 
-hilightTool::hilightTool( pageView *v, pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
-	abstractTool( v, Scene, ToolBar, EditArea ), editingHilight(false)
+hilightTool::hilightTool( pdfScene *Scene, toolBox *ToolBar, QStackedWidget *EditArea):
+	abstractTool( Scene, ToolBar, EditArea ), editingHilight(false)
 {
   icon = QIcon::fromTheme("format-text-underline");
   setToolName( "Hilight Tool" );
